@@ -1,0 +1,418 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 71;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000001 /* BallKnowledge/BallKnowledgeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000001 /* BallKnowledge/BallKnowledgeApp.swift */; };
+		A10000000000000000000002 /* PlayerSeason.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000002 /* PlayerSeason.swift */; };
+		A10000000000000000000003 /* SeasonRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000003 /* SeasonRepository.swift */; };
+		A10000000000000000000004 /* MatchmakingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000004 /* MatchmakingService.swift */; };
+		A10000000000000000000005 /* AuctionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000005 /* AuctionEngine.swift */; };
+		A10000000000000000000006 /* MatchTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000006 /* MatchTransport.swift */; };
+		A10000000000000000000007 /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000007 /* GameViewModel.swift */; };
+		A10000000000000000000008 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000008 /* RootView.swift */; };
+		A10000000000000000000009 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000009 /* HomeView.swift */; };
+		A10000000000000000000014 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000014 /* StatsView.swift */; };
+		A10000000000000000000010 /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000010 /* GameView.swift */; };
+		A10000000000000000000011 /* DebugMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000011 /* DebugMenu.swift */; };
+		A10000000000000000000012 /* nba_seasons.json in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000012 /* nba_seasons.json */; };
+		A10000000000000000000013 /* nba_historical_rosters.json in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000013 /* nba_historical_rosters.json */; };
+		A20000000000000000000001 /* BallKnowledgeTests/AuctionEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000001 /* BallKnowledgeTests/AuctionEngineTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		160000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 150000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 110000000000000000000001;
+			remoteInfo = BallKnowledge;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		B10000000000000000000001 /* BallKnowledge/BallKnowledgeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BallKnowledge/BallKnowledgeApp.swift; sourceTree = "<group>"; };
+		B10000000000000000000002 /* PlayerSeason.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSeason.swift; sourceTree = "<group>"; };
+		B10000000000000000000003 /* SeasonRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonRepository.swift; sourceTree = "<group>"; };
+		B10000000000000000000004 /* MatchmakingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingService.swift; sourceTree = "<group>"; };
+		B10000000000000000000005 /* AuctionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuctionEngine.swift; sourceTree = "<group>"; };
+		B10000000000000000000006 /* MatchTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchTransport.swift; sourceTree = "<group>"; };
+		B10000000000000000000007 /* GameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModel.swift; sourceTree = "<group>"; };
+		B10000000000000000000008 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		B10000000000000000000009 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		B10000000000000000000014 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
+		B10000000000000000000010 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
+		B10000000000000000000011 /* DebugMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugMenu.swift; sourceTree = "<group>"; };
+		B10000000000000000000012 /* nba_seasons.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = nba_seasons.json; sourceTree = "<group>"; };
+		B10000000000000000000013 /* nba_historical_rosters.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = nba_historical_rosters.json; sourceTree = "<group>"; };
+		C10000000000000000000001 /* BallKnowledgeTests/AuctionEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BallKnowledgeTests/AuctionEngineTests.swift; sourceTree = "<group>"; };
+		D10000000000000000000001 /* Ball Knowledge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = "Ball Knowledge.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D10000000000000000000002 /* BallKnowledgeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = BallKnowledgeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E10000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		7B6FBADC3012742000BED9DD /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				C10000000000000000000001 /* BallKnowledgeTests/AuctionEngineTests.swift */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
+		F10000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000001 /* BallKnowledge/BallKnowledgeApp.swift */,
+				F10000000000000000000002 /* Models */,
+				F10000000000000000000003 /* Database */,
+				F10000000000000000000004 /* Services */,
+				F10000000000000000000005 /* Simulation */,
+				F10000000000000000000006 /* GameKit */,
+				F10000000000000000000007 /* ViewModels */,
+				F10000000000000000000008 /* Views */,
+				F10000000000000000000012 /* Database */,
+				F10000000000000000000013 /* Products */,
+				7B6FBADC3012742000BED9DD /* Recovered References */,
+			);
+			sourceTree = "<group>";
+		};
+		F10000000000000000000002 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000002 /* PlayerSeason.swift */,
+			);
+			name = Models;
+			path = BallKnowledge/Models;
+			sourceTree = "<group>";
+		};
+		F10000000000000000000003 /* Database */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000003 /* SeasonRepository.swift */,
+			);
+			name = Database;
+			path = BallKnowledge/Database;
+			sourceTree = "<group>";
+		};
+		F10000000000000000000004 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000004 /* MatchmakingService.swift */,
+			);
+			name = Services;
+			path = BallKnowledge/Services;
+			sourceTree = "<group>";
+		};
+		F10000000000000000000005 /* Simulation */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000005 /* AuctionEngine.swift */,
+			);
+			name = Simulation;
+			path = BallKnowledge/Simulation;
+			sourceTree = "<group>";
+		};
+		F10000000000000000000006 /* GameKit */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000006 /* MatchTransport.swift */,
+			);
+			name = GameKit;
+			path = BallKnowledge/GameKit;
+			sourceTree = "<group>";
+		};
+		F10000000000000000000007 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000007 /* GameViewModel.swift */,
+			);
+			name = ViewModels;
+			path = BallKnowledge/ViewModels;
+			sourceTree = "<group>";
+		};
+		F10000000000000000000008 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000008 /* RootView.swift */,
+				B10000000000000000000009 /* HomeView.swift */,
+				B10000000000000000000014 /* StatsView.swift */,
+				B10000000000000000000010 /* GameView.swift */,
+				B10000000000000000000011 /* DebugMenu.swift */,
+			);
+			name = Views;
+			path = BallKnowledge/Views;
+			sourceTree = "<group>";
+		};
+		F10000000000000000000012 /* Database */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000012 /* nba_seasons.json */,
+				B10000000000000000000013 /* nba_historical_rosters.json */,
+			);
+			name = Database;
+			path = BallKnowledge/Database;
+			sourceTree = "<group>";
+		};
+		F10000000000000000000013 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D10000000000000000000001 /* Ball Knowledge.app */,
+				D10000000000000000000002 /* BallKnowledgeTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		110000000000000000000001 /* BallKnowledge */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 130000000000000000000001 /* Build configuration list for PBXNativeTarget "BallKnowledge" */;
+			buildPhases = (
+				120000000000000000000001 /* Sources */,
+				E10000000000000000000001 /* Frameworks */,
+				120000000000000000000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BallKnowledge;
+			productName = "Ball Knowledge";
+			productReference = D10000000000000000000001 /* Ball Knowledge.app */;
+			productType = "com.apple.product-type.application";
+		};
+		110000000000000000000002 /* BallKnowledgeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 130000000000000000000002 /* Build configuration list for PBXNativeTarget "BallKnowledgeTests" */;
+			buildPhases = (
+				120000000000000000000002 /* Sources */,
+				E10000000000000000000002 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				140000000000000000000001 /* PBXTargetDependency */,
+			);
+			name = BallKnowledgeTests;
+			productName = BallKnowledgeTests;
+			productReference = D10000000000000000000002 /* BallKnowledgeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		150000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 2620;
+			};
+			buildConfigurationList = 130000000000000000000003 /* Build configuration list for PBXProject "BallKnowledge" */;
+			compatibilityVersion = "Xcode 16.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = F10000000000000000000001;
+			productRefGroup = F10000000000000000000013 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				110000000000000000000001 /* BallKnowledge */,
+				110000000000000000000002 /* BallKnowledgeTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		120000000000000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000012 /* nba_seasons.json in Resources */,
+				A10000000000000000000013 /* nba_historical_rosters.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		120000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000001 /* BallKnowledge/BallKnowledgeApp.swift in Sources */,
+				A10000000000000000000002 /* PlayerSeason.swift in Sources */,
+				A10000000000000000000003 /* SeasonRepository.swift in Sources */,
+				A10000000000000000000004 /* MatchmakingService.swift in Sources */,
+				A10000000000000000000005 /* AuctionEngine.swift in Sources */,
+				A10000000000000000000006 /* MatchTransport.swift in Sources */,
+				A10000000000000000000007 /* GameViewModel.swift in Sources */,
+				A10000000000000000000008 /* RootView.swift in Sources */,
+				A10000000000000000000009 /* HomeView.swift in Sources */,
+				A10000000000000000000014 /* StatsView.swift in Sources */,
+				A10000000000000000000010 /* GameView.swift in Sources */,
+				A10000000000000000000011 /* DebugMenu.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		120000000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A20000000000000000000001 /* BallKnowledgeTests/AuctionEngineTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		140000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 110000000000000000000001 /* BallKnowledge */;
+			targetProxy = 160000000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		170000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = YS4W3Q38H5;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Ball Knowledge";
+				INFOPLIST_KEY_CFBundleName = "Ball Knowledge";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ballknowledge.BallKnowledge;
+				PRODUCT_NAME = "Ball Knowledge";
+				PRODUCT_MODULE_NAME = BallKnowledge;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		170000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = YS4W3Q38H5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Ball Knowledge";
+				INFOPLIST_KEY_CFBundleName = "Ball Knowledge";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ballknowledge.BallKnowledge;
+				PRODUCT_NAME = "Ball Knowledge";
+				PRODUCT_MODULE_NAME = BallKnowledge;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		170000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ballknowledge.BallKnowledgeTests;
+				PRODUCT_NAME = BallKnowledgeTests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Ball Knowledge.app/Ball Knowledge";
+			};
+			name = Debug;
+		};
+		170000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ballknowledge.BallKnowledgeTests;
+				PRODUCT_NAME = BallKnowledgeTests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Ball Knowledge.app/Ball Knowledge";
+			};
+			name = Release;
+		};
+		170000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		170000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		130000000000000000000001 /* Build configuration list for PBXNativeTarget "BallKnowledge" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				170000000000000000000001 /* Debug */,
+				170000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		130000000000000000000002 /* Build configuration list for PBXNativeTarget "BallKnowledgeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				170000000000000000000003 /* Debug */,
+				170000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		130000000000000000000003 /* Build configuration list for PBXProject "BallKnowledge" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				170000000000000000000005 /* Debug */,
+				170000000000000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 150000000000000000000001 /* Project object */;
+}
