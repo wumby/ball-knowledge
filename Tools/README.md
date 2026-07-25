@@ -4,13 +4,15 @@ Build the local database for every NBA team-season from 1979–80 onward:
 
 ```sh
 python3 Tools/import_historical_rosters.py --start 1979 --end 2026 \
-  --output NBAAuctionDuel/Database/nba_historical_rosters.json
+  --output BallKnowledge/Database/nba_historical_rosters.json
 ```
 
 The importer caches responses in `.cache/nba-rosters`, waits three seconds
-between uncached requests, and retries rate limits. It can safely be rerun: use
-the same cache and output path after an interruption.
+between uncached requests, retries rate limits, and writes resumable progress to
+`nba_historical_rosters.checkpoint.json`. It validates every season's expected
+team count before replacing the app bundle, so an incomplete checkpoint is never
+shipped. It can safely be rerun after an interruption with the same cache and
+output path.
 
-After validating the generated file, replace the current curated
-`nba_seasons.json` bundle and update the Xcode resource reference if the file
-name changes.
+Run `--verify` with the same arguments to recheck a completed archive without
+refetching roster pages.

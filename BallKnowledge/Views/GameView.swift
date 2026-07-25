@@ -5,8 +5,22 @@ struct GameView: View {
     @StateObject private var model: GameViewModel
     init(route: Binding<Route>, difficulty: MatchDifficulty) { _route = route; _model = StateObject(wrappedValue: GameViewModel(difficulty: difficulty)) }
     var body: some View {
-        Group { switch model.phase { case .matching: ProgressView("SETTING THE ARENA…").tint(Color.accent); case .revealing: TeamRouletteView(model: model); case .auction: AuctionView(model: model); case .bidResult: BidResultView(model: model); case .selecting: PlayerSelectionView(model: model); case .draftReveal: DraftRevealView(model: model); case .results: ResultsView(model: model, route: $route) } }
+        Group { switch model.phase { case .matching: if let error = model.loadError { ContentUnavailableView("NBA ARCHIVE UNAVAILABLE", systemImage: "exclamationmark.triangle", description: Text(error)).foregroundStyle(.white) } else { ProgressView("SETTING THE ARENA…").tint(Color.accent) }; case .revealing: TeamRouletteView(model: model); case .auction: AuctionView(model: model); case .bidResult: BidResultView(model: model); case .selecting: PlayerSelectionView(model: model); case .draftReveal: DraftRevealView(model: model); case .reportLoading: FinalReportLoadingView(); case .results: ResultsView(model: model, route: $route) } }
             .task { await model.start() }
+    }
+}
+
+struct FinalReportLoadingView: View {
+    var body: some View {
+        VStack(spacing: 18) {
+            Spacer()
+            ProgressView().controlSize(.large).tint(Color.accent)
+            Text("CALCULATING FINAL REPORT…").font(.title3.weight(.black)).foregroundStyle(Color.accent)
+            Text("Finding the best lineup from each won team-year.").font(.subheadline.weight(.medium)).foregroundStyle(.white.opacity(0.62)).multilineTextAlignment(.center)
+            Spacer()
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -59,7 +73,6 @@ struct DraftMatchupBoard: View {
     let playerRoster: [DraftedPlayer]
     let opponentRoster: [DraftedPlayer]
     let opponentName: String
-    private let positions = ["PG", "SG", "SF", "PF", "C"]
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             rosterColumn("YOUR TEAM", roster: playerRoster, accent: true)
@@ -67,20 +80,17 @@ struct DraftMatchupBoard: View {
         }.padding(14).background(.white.opacity(0.055)).clipShape(RoundedRectangle(cornerRadius: 18))
     }
     private func rosterColumn(_ title: String, roster: [DraftedPlayer], accent: Bool) -> some View {
-        let orderedRoster = roster.sorted { positionRank(for: $0) < positionRank(for: $1) }
+        let slots = TeamSimulator.currentTeamSlots(for: roster)
         return VStack(alignment: .leading, spacing: 5) {
             Text(title).scoreLabel().foregroundStyle(accent ? Color.accent : .white.opacity(0.48))
-            ForEach(0..<5, id: \.self) { index in
-                if index < orderedRoster.count {
-                    HStack(spacing: 6) { Text(orderedRoster[index].season.position).font(.caption.weight(.black)).foregroundStyle(accent ? Color.accent : .white.opacity(0.55)).frame(width: 20, alignment: .leading); Text(orderedRoster[index].season.playerName).font(.subheadline.weight(.black)).lineLimit(1).minimumScaleFactor(0.76) }
+            ForEach(slots) { slot in
+                if let player = slot.player {
+                    HStack(spacing: 6) { Text(slot.position).font(.caption.weight(.black)).foregroundStyle(accent ? Color.accent : .white.opacity(0.55)).frame(width: 20, alignment: .leading); Text(player.season.playerName).font(.subheadline.weight(.black)).lineLimit(1).minimumScaleFactor(0.76) }
                 } else {
-                    HStack(spacing: 6) { Text("—").font(.caption.weight(.black)).frame(width: 20); Text("OPEN SLOT").font(.caption.weight(.bold)).foregroundStyle(.white.opacity(0.28)) }
+                    HStack(spacing: 6) { Text(slot.position).font(.caption.weight(.black)).foregroundStyle(.white.opacity(0.28)).frame(width: 20, alignment: .leading); Text("OPEN SLOT").font(.caption.weight(.bold)).foregroundStyle(.white.opacity(0.28)) }
                 }
         }
         }.frame(maxWidth: .infinity, alignment: .leading)
-    }
-    private func positionRank(for player: DraftedPlayer) -> Int {
-        positions.firstIndex { player.season.position.contains($0) } ?? positions.count
     }
 }
 
@@ -118,7 +128,7 @@ struct TeamRouletteView: View {
     private var sealedPack: some View {
         VStack(spacing: 16) {
             HStack {
-                Text("DYNASTY BID").scoreLabel().foregroundStyle(.black.opacity(0.7))
+                Text("FIVE ALIVE").scoreLabel().foregroundStyle(.black.opacity(0.7))
                 Spacer()
                 Text("SERIES 01").font(.caption2.weight(.black)).foregroundStyle(.black.opacity(0.55))
             }
@@ -205,16 +215,78 @@ struct AuctionView: View {
                 MatchHeader(model: model)
                 if let team = model.engine?.current {
                     AuctionOfferCard(team: team, difficulty: model.difficulty, compact: compact)
-                    AvailablePlayers(team: team, displayPlayers: model.engine?.randomizedDisplayOrder(for: team.players) ?? team.players, difficulty: model.difficulty, compact: compact, selectedPosition: $selectedPosition)
+                    if model.difficulty == .ballKnowledge {
+                        CurrentTeamBoard(roster: model.engine?.playerRoster ?? [])
+                    } else {
+                        AvailablePlayers(team: team, displayPlayers: model.engine?.randomizedDisplayOrder(for: team.players) ?? team.players, difficulty: model.difficulty, compact: compact, selectedPosition: $selectedPosition)
+                    }
                 }
                 Spacer(minLength: 0)
                 if !model.toast.isEmpty { Text(model.toast).font(.caption.weight(.black)).foregroundStyle(Color.accent).lineLimit(1) }
-                DraftedRoster(roster: model.engine?.playerRoster ?? [])
+                if model.difficulty != .ballKnowledge {
+                    DraftedRoster(roster: model.engine?.playerRoster ?? [])
+                }
             }
             .padding(.horizontal, 20).padding(.top, compact ? 8 : 14)
             .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
         }
         .safeAreaInset(edge: .bottom, spacing: 0) { BidActionBar(model: model) }
+    }
+}
+
+struct CurrentTeamBoard: View {
+    let roster: [DraftedPlayer]
+    private var slots: [CurrentTeamSlot] { TeamSimulator.currentTeamSlots(for: roster) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("YOUR CURRENT TEAM").scoreLabel().foregroundStyle(Color.accent)
+                    Text("SCOUTING LOCKED").font(.caption2.weight(.black)).foregroundStyle(.white.opacity(0.42))
+                }
+                Spacer()
+                Text("\(roster.count) / 5 PICKED").scoreLabel().foregroundStyle(.white.opacity(0.72))
+            }
+
+            Text("Only drafted player identities and assigned positions are visible.")
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.white.opacity(0.55))
+
+            VStack(spacing: 9) {
+                ForEach(slots) { slot in
+                    currentTeamRow(slot)
+                }
+            }
+            .frame(maxHeight: .infinity, alignment: .top)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(16)
+        .background(.white.opacity(0.045))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(.white.opacity(0.10)))
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .layoutPriority(1)
+    }
+
+    private func currentTeamRow(_ slot: CurrentTeamSlot) -> some View {
+        HStack(spacing: 14) {
+            Text(slot.position)
+                .font(.title3.weight(.black))
+                .foregroundStyle(slot.player == nil ? .white.opacity(0.35) : Color.accent)
+                .frame(width: 42, alignment: .leading)
+            Rectangle().fill(.white.opacity(0.10)).frame(width: 1)
+            Text(slot.player?.season.playerName ?? "NEED")
+                .font(.title3.weight(.black))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .foregroundStyle(slot.player == nil ? .white.opacity(0.34) : .white)
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, minHeight: 58, alignment: .leading)
+        .padding(.horizontal, 14)
+        .background(slot.player == nil ? .white.opacity(0.035) : Color.accent.opacity(0.11))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(slot.player == nil ? .white.opacity(0.07) : Color.accent.opacity(0.32)))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 }
 
@@ -364,16 +436,15 @@ struct PlayerSelectionView: View {
 
 struct RosterNeedsStrip: View {
     let roster: [DraftedPlayer]
-    private let positions = ["PG", "SG", "SF", "PF", "C"]
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack { Text("YOUR CURRENT TEAM").scoreLabel().foregroundStyle(Color.accent); Spacer(); Text("\(roster.count) / 5 PICKED").scoreLabel() }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 7) {
-                    ForEach(positions, id: \.self) { position in
-                        let player = roster.first { $0.season.position.contains(position) }
+                    ForEach(TeamSimulator.currentTeamSlots(for: roster)) { slot in
+                        let player = slot.player
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(position).scoreLabel().foregroundStyle(player == nil ? .white.opacity(0.38) : Color.accent)
+                            Text(slot.position).scoreLabel().foregroundStyle(player == nil ? .white.opacity(0.38) : Color.accent)
                             Text(player?.season.playerName ?? "NEED").font(.caption.weight(.black)).lineLimit(1).foregroundStyle(player == nil ? .white.opacity(0.42) : .white)
                         }
                         .frame(width: 88, alignment: .leading).padding(9)
@@ -534,7 +605,7 @@ struct ResultsView: View {
         .frame(maxWidth: .infinity)
     }
     private func lineupScoreboard(model: GameViewModel) -> some View { HStack(spacing: 10) { lineupCard("YOUR TEAM", rating: model.playerRatingBreakdown, accent: model.playerRatingBreakdown.finalRating > model.opponentRatingBreakdown.finalRating); Text("VS").font(.caption.weight(.black)).foregroundStyle(.white.opacity(0.45)); lineupCard(model.engine?.opponentName.uppercased() ?? "OPPONENT", rating: model.opponentRatingBreakdown, accent: model.opponentRatingBreakdown.finalRating > model.playerRatingBreakdown.finalRating) }.padding(12).background(.white.opacity(0.07)).clipShape(RoundedRectangle(cornerRadius: 16)) }
-    private func lineupCard(_ title: String, rating: LineupRatingBreakdown, accent: Bool) -> some View { VStack(spacing: 7) { Text(title).scoreLabel().foregroundStyle(accent ? Color.accent : .white.opacity(0.55)); ratingMath("PLAYER TOTAL", String(format: "%.1f", rating.playerTotal), color: .white); ratingMath("CHEMISTRY", "+\(rating.chemistryBonus)", color: Color.accent, detail: rating.chemistryHighlights.isEmpty ? "No chemistry bonus" : rating.chemistryHighlights.prefix(2).joined(separator: "\n")); ratingMath("POSITION FIT", "\(rating.positionPenalty)", color: rating.positionPenalty < 0 ? .orange : Color.accent, detail: rating.missingPositions.isEmpty ? "All five positions covered" : "Missing \(rating.missingPositions.joined(separator: ", "))"); Divider().overlay(.white.opacity(0.14)); Text(rating.finalRating, format: .number.precision(.fractionLength(1))).font(.title.weight(.black)).monospacedDigit().foregroundStyle(accent ? Color.accent : .white); Text("FINAL TEAM RATING").scoreLabel() }.frame(maxWidth: .infinity) }
+    private func lineupCard(_ title: String, rating: LineupRatingBreakdown, accent: Bool) -> some View { VStack(spacing: 7) { Text(title).scoreLabel().foregroundStyle(accent ? Color.accent : .white.opacity(0.55)); ratingMath("PLAYER TOTAL", String(format: "%.1f", rating.playerTotal), color: .white); ratingMath("POSITION FIT", "\(rating.positionPenalty)", color: rating.positionPenalty < 0 ? .orange : Color.accent, detail: rating.missingPositions.isEmpty ? "All five positions covered" : "Missing \(rating.missingPositions.joined(separator: ", "))"); Divider().overlay(.white.opacity(0.14)); Text(rating.finalRating, format: .number.precision(.fractionLength(1))).font(.title.weight(.black)).monospacedDigit().foregroundStyle(accent ? Color.accent : .white); Text("FINAL TEAM RATING").scoreLabel() }.frame(maxWidth: .infinity) }
     private func ratingMath(_ label: String, _ value: String, color: Color, detail: String? = nil) -> some View { VStack(alignment: .leading, spacing: 3) { HStack { Text(label).font(.system(size: 9, weight: .black)).foregroundStyle(.white.opacity(0.58)); Spacer(); Text(value).font(.caption.weight(.black)).monospacedDigit().foregroundStyle(color) }; if let detail { Text(detail).font(.system(size: 9, weight: .bold)).foregroundStyle(.white.opacity(0.64)).lineLimit(2).fixedSize(horizontal: false, vertical: true) } } }
     private func netScoreboard(player: TeamNetRating, opponent: TeamNetRating) -> some View { HStack(spacing: 12) { netCard("YOU", player); Text("VS").font(.caption.weight(.black)).foregroundStyle(.white.opacity(0.45)); netCard("OPP", opponent) }.padding(12).background(.white.opacity(0.07)).clipShape(RoundedRectangle(cornerRadius: 16)) }
     private func netCard(_ title: String, _ rating: TeamNetRating) -> some View { VStack(spacing: 2) { Text(title).scoreLabel(); Text(rating.net >= 0 ? "+\(rating.net)" : "\(rating.net)").font(.title2.weight(.black)).foregroundStyle(Color.accent); Text("OFF \(rating.offense) · DEF \(rating.defense)").font(.caption2.weight(.bold)).foregroundStyle(.white.opacity(0.6)) }.frame(maxWidth: .infinity) }

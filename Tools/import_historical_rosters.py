@@ -18,6 +18,7 @@ import html
 import json
 import re
 import time
+from datetime import datetime, timezone
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -90,8 +91,11 @@ def player_rows(team_html: str) -> list[dict]:
         ft = number(field(row, "ft_pct")) * 100
         efficiency = max(0, fg - 45) * 0.18 + max(0, three - 33) * 0.08 + max(0, ft - 75) * 0.06
         rating = round(min(96, max(60, 60 + points * 0.65 + rebounds * 0.70 + assists * 0.75 + steals * 1.5 + blocks * 1.5 + efficiency)))
+        player_link = re.search(r'<t[dh][^>]*data-stat="name_display"[^>]*>.*?href="/players/[^"]*/([^/".]+)\.html"', row, re.S)
+        if not player_link:
+            raise ValueError(f"Basketball-Reference player identifier missing for {name}")
         players.append({
-            "playerName": name, "position": position, "games": games, "minutes": minutes,
+            "playerID": player_link.group(1), "playerName": name, "position": position, "games": games, "minutes": minutes,
             "points": points, "rebounds": rebounds, "assists": assists, "steals": steals,
             "blocks": blocks, "fgPercent": fg, "threePercent": three, "ftPercent": ft,
             "overallRating": rating,
@@ -103,7 +107,11 @@ def season_label(season_end: int) -> str:
     return f"{season_end - 1}\u2013{str(season_end)[-2:]}"
 
 
-def build(start: int, end: int, cache: Path, pause: float, checkpoint: Path | None = None, existing: list[dict] | None = None) -> list[dict]:
+def write_checkpoint(records: list[dict], checkpoint: Path) -> None:
+    checkpoint.write_text(json.dumps(records, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def build(start: int, end: int, cache: Path, pause: float, checkpoint: Path, existing: list[dict]) -> list[dict]:
     records: list[dict] = existing or []
     completed_ids = {record["id"] for record in records}
     for season_end in range(start + 1, end + 1):
@@ -124,12 +132,35 @@ def build(start: int, end: int, cache: Path, pause: float, checkpoint: Path | No
             records.append({"id": team_id, "team": team, "season": label, "players": normalized})
             completed_ids.add(team_id)
             print(f"Imported {team} {label}: {len(normalized)} players")
-            if checkpoint:
-                checkpoint.write_text(json.dumps(records, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        if checkpoint:
-            checkpoint.write_text(json.dumps(records, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-            print(f"Checkpointed {len(records)} team-seasons through {label}")
+            write_checkpoint(records, checkpoint)
+        write_checkpoint(records, checkpoint)
+        print(f"Checkpointed {len(records)} team-seasons through {label}")
     return records
+
+
+def validate(records: list[dict], start: int, end: int, cache: Path, pause: float) -> None:
+    by_id = {record["id"]: record for record in records}
+    errors = []
+    for season_end in range(start + 1, end + 1):
+        expected = {f"{team.lower()}-{season_end}" for team in team_links(fetch(f"{BASE_URL}/leagues/NBA_{season_end}.html", cache, pause), season_end)}
+        actual = {team_id for team_id in by_id if team_id.endswith(f"-{season_end}")}
+        missing = expected - actual
+        unexpected = actual - expected
+        empty = [team_id for team_id in expected & actual if not by_id[team_id].get("players")]
+        if missing or unexpected or empty:
+            errors.append(f"{season_label(season_end)}: missing={sorted(missing)}, unexpected={sorted(unexpected)}, empty={sorted(empty)}")
+    if errors:
+        raise RuntimeError("Archive validation failed:\n" + "\n".join(errors))
+
+
+def archive_payload(records: list[dict], start: int, end: int) -> dict:
+    return {
+        "schemaVersion": 2,
+        "source": "basketball-reference",
+        "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "coveredSeasons": [season_label(year) for year in range(start + 1, end + 1)],
+        "teamSeasons": records,
+    }
 
 
 def main() -> None:
@@ -138,17 +169,28 @@ def main() -> None:
     parser.add_argument("--end", type=int, default=2026, help="Final season end year (default: 2026)")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--cache", type=Path, default=Path(".cache/nba-rosters"))
+    parser.add_argument("--checkpoint", type=Path, help="Resume state; defaults beside the output file")
     parser.add_argument("--pause", type=float, default=3.0, help="Seconds between uncached requests")
+    parser.add_argument("--verify", action="store_true", help="Validate an existing archive without fetching roster pages")
     args = parser.parse_args()
     args.cache.mkdir(parents=True, exist_ok=True)
     args.output.parent.mkdir(parents=True, exist_ok=True)
+    checkpoint = args.checkpoint or args.output.with_suffix(".checkpoint.json")
     existing = []
-    if args.output.exists():
-        existing = json.loads(args.output.read_text(encoding="utf-8"))
-        print(f"Resuming from {len(existing)} saved team-seasons")
-    teams = build(args.start, args.end, args.cache, args.pause, args.output, existing)
-    args.output.write_text(json.dumps(teams, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"Wrote {len(teams)} team-seasons to {args.output}")
+    resume_source = checkpoint if checkpoint.exists() else args.output
+    if resume_source.exists():
+        loaded = json.loads(resume_source.read_text(encoding="utf-8"))
+        existing = loaded.get("teamSeasons", []) if isinstance(loaded, dict) else loaded
+        print(f"Resuming from {len(existing)} saved team-seasons in {resume_source}")
+    if args.verify:
+        validate(existing, args.start, args.end, args.cache, args.pause)
+        print(f"Verified {len(existing)} team-seasons")
+        return
+    teams = build(args.start, args.end, args.cache, args.pause, checkpoint, existing)
+    validate(teams, args.start, args.end, args.cache, args.pause)
+    args.output.write_text(json.dumps(archive_payload(teams, args.start, args.end), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    checkpoint.unlink(missing_ok=True)
+    print(f"Wrote and validated {len(teams)} team-seasons to {args.output}")
 
 
 if __name__ == "__main__":

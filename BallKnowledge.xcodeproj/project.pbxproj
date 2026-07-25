@@ -19,7 +19,6 @@
 		A10000000000000000000014 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000014 /* StatsView.swift */; };
 		A10000000000000000000010 /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000010 /* GameView.swift */; };
 		A10000000000000000000011 /* DebugMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000011 /* DebugMenu.swift */; };
-		A10000000000000000000012 /* nba_seasons.json in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000012 /* nba_seasons.json */; };
 		A10000000000000000000013 /* nba_historical_rosters.json in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000013 /* nba_historical_rosters.json */; };
 		A20000000000000000000001 /* BallKnowledgeTests/AuctionEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000001 /* BallKnowledgeTests/AuctionEngineTests.swift */; };
 /* End PBXBuildFile section */
@@ -47,7 +46,6 @@
 		B10000000000000000000014 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 		B10000000000000000000010 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
 		B10000000000000000000011 /* DebugMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugMenu.swift; sourceTree = "<group>"; };
-		B10000000000000000000012 /* nba_seasons.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = nba_seasons.json; sourceTree = "<group>"; };
 		B10000000000000000000013 /* nba_historical_rosters.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = nba_historical_rosters.json; sourceTree = "<group>"; };
 		C10000000000000000000001 /* BallKnowledgeTests/AuctionEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BallKnowledgeTests/AuctionEngineTests.swift; sourceTree = "<group>"; };
 		D10000000000000000000001 /* Ball Knowledge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = "Ball Knowledge.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -167,7 +165,6 @@
 		F10000000000000000000012 /* Database */ = {
 			isa = PBXGroup;
 			children = (
-				B10000000000000000000012 /* nba_seasons.json */,
 				B10000000000000000000013 /* nba_historical_rosters.json */,
 			);
 			name = Database;
@@ -252,7 +249,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A10000000000000000000012 /* nba_seasons.json in Resources */,
 				A10000000000000000000013 /* nba_historical_rosters.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

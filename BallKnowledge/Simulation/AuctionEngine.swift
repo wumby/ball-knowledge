@@ -1,6 +1,6 @@
 import Foundation
 
-struct DraftedPlayer: Identifiable, Codable, Hashable { let id: UUID; let season: SeasonRecord; let bid: Int; init(season: SeasonRecord, bid: Int) { id = UUID(); self.season = season; self.bid = bid } }
+struct DraftedPlayer: Identifiable, Codable, Hashable, Sendable { let id: UUID; let season: SeasonRecord; let bid: Int; init(season: SeasonRecord, bid: Int) { id = UUID(); self.season = season; self.bid = bid } }
 
 enum AuctionWinner { case player, opponent }
 
@@ -173,21 +173,12 @@ struct LineupRole: Identifiable, Equatable {
     var id: String { title }
 }
 
-struct LineupChemistry: Equatable {
-    let offenseBonus: Int
-    let defenseBonus: Int
-    let highlights: [String]
-    var totalBonus: Int { offenseBonus + defenseBonus }
-}
-
 struct LineupRatingBreakdown: Equatable {
     let playerTotal: Double
-    let chemistryBonus: Int
     let positionPenalty: Int
-    let chemistryHighlights: [String]
     let missingPositions: [String]
     let assignments: [PositionAssignment]
-    var finalRating: Double { playerTotal + Double(chemistryBonus + positionPenalty) }
+    var finalRating: Double { playerTotal + Double(positionPenalty) }
 }
 
 struct PositionAssignment: Identifiable, Equatable {
@@ -197,7 +188,67 @@ struct PositionAssignment: Identifiable, Equatable {
     var id: String { slot }
 }
 
+/// A display-ready fixed lineup slot for roster views.
+struct CurrentTeamSlot: Identifiable, Equatable {
+    let position: String
+    let player: DraftedPlayer?
+    var id: String { position }
+}
+
 enum TeamSimulator {
+    /// Builds a five-player report lineup by taking one player from every won team-year.
+    /// TeamSeason IDs (rather than franchise IDs) are deliberately used so separate
+    /// historical seasons of the same franchise remain separate offers.
+    static func bestPossibleLineup(from teams: [TeamSeason]) -> [DraftedPlayer] {
+        let slots = ["PG", "SG", "SF", "PF", "C"]
+        let orderedTeams = teams.sorted { $0.id < $1.id }
+        guard !orderedTeams.isEmpty else { return [] }
+
+        var bestLineup: [DraftedPlayer] = []
+        var bestRating = -Double.infinity
+
+        func tieBreakKey(for lineup: [DraftedPlayer]) -> [String] {
+            lineup.map { $0.season.id }.sorted()
+        }
+
+        func isBetter(_ lineup: [DraftedPlayer], than current: [DraftedPlayer], rating: Double) -> Bool {
+            guard rating == bestRating else { return rating > bestRating }
+            return tieBreakKey(for: lineup).lexicographicallyPrecedes(tieBreakKey(for: current))
+        }
+
+        func search(slotIndex: Int, remainingTeams: [TeamSeason], lineup: [DraftedPlayer]) {
+            if remainingTeams.isEmpty || slotIndex == slots.count {
+                let rating = ratingBreakdown(for: lineup).finalRating
+                if isBetter(lineup, than: bestLineup, rating: rating) {
+                    bestRating = rating
+                    bestLineup = lineup
+                }
+                return
+            }
+
+            let slot = slots[slotIndex]
+            let positionMatches = remainingTeams.flatMap { team in
+                team.players.filter { $0.position.contains(slot) }.map { (team, $0) }
+            }
+            let candidates = positionMatches.isEmpty
+                ? remainingTeams.flatMap { team in team.players.map { (team, $0) } }
+                : positionMatches
+
+            for (team, season) in candidates.sorted(by: { lhs, rhs in
+                lhs.0.id == rhs.0.id ? lhs.1.id < rhs.1.id : lhs.0.id < rhs.0.id
+            }) {
+                search(
+                    slotIndex: slotIndex + 1,
+                    remainingTeams: remainingTeams.filter { $0.id != team.id },
+                    lineup: lineup + [DraftedPlayer(season: season, bid: 0)]
+                )
+            }
+        }
+
+        search(slotIndex: 0, remainingTeams: orderedTeams, lineup: [])
+        return bestLineup
+    }
+
     static func bestPossibleLineup(from players: [DraftedPlayer]) -> [DraftedPlayer] {
         let slots = ["PG", "SG", "SF", "PF", "C"]
         guard !players.isEmpty else { return [] }
@@ -234,8 +285,7 @@ enum TeamSimulator {
     static func ratingBreakdown(for roster: [DraftedPlayer]) -> LineupRatingBreakdown {
         let assignments = positionAssignments(for: roster)
         let missing = assignments.filter(\.isOutOfPosition).map(\.slot)
-        let chemistryResult = chemistry(for: roster)
-        return LineupRatingBreakdown(playerTotal: lineupRating(for: roster), chemistryBonus: chemistryResult.totalBonus, positionPenalty: -7 * missing.count, chemistryHighlights: chemistryResult.highlights, missingPositions: missing, assignments: assignments)
+        return LineupRatingBreakdown(playerTotal: lineupRating(for: roster), positionPenalty: -7 * missing.count, missingPositions: missing, assignments: assignments)
     }
     static func positionAssignments(for roster: [DraftedPlayer]) -> [PositionAssignment] {
         let requiredPositions = ["PG", "SG", "SF", "PF", "C"]
@@ -254,6 +304,24 @@ enum TeamSimulator {
         }
         return assignments
     }
+    static func currentTeamSlots(for roster: [DraftedPlayer]) -> [CurrentTeamSlot] {
+        let positions = ["PG", "SG", "SF", "PF", "C"]
+        var unassigned = roster
+        var slots = positions.map { CurrentTeamSlot(position: $0, player: nil) }
+
+        // Keep natural position matches in their home slots before filling any
+        // gaps with duplicate or out-of-position players.
+        for index in slots.indices {
+            if let playerIndex = unassigned.firstIndex(where: { $0.season.position.contains(slots[index].position) }) {
+                slots[index] = CurrentTeamSlot(position: slots[index].position, player: unassigned.remove(at: playerIndex))
+            }
+        }
+
+        for index in slots.indices where slots[index].player == nil && !unassigned.isEmpty {
+            slots[index] = CurrentTeamSlot(position: slots[index].position, player: unassigned.removeFirst())
+        }
+        return slots
+    }
     static func roleAssignments(for roster: [DraftedPlayer]) -> [LineupRole] {
         guard !roster.isEmpty else { return [] }
         let players = roster.map(\.season)
@@ -262,20 +330,6 @@ enum TeamSimulator {
             return LineupRole(title: title, player: player.playerName, strength: Int((player[keyPath: keyPath] * multiplier).rounded()))
         }
         return [role("SCORER", \.points, multiplier: 1), role("PLAYMAKER", \.assists, multiplier: 2), role("GLASS", \.rebounds, multiplier: 1), role("STOPPER", \.steals, multiplier: 10), role("RIM PROTECTOR", \.blocks, multiplier: 10)]
-    }
-    static func chemistry(for roster: [DraftedPlayer]) -> LineupChemistry {
-        let players = roster.map(\.season)
-        guard !players.isEmpty else { return LineupChemistry(offenseBonus: 0, defenseBonus: 0, highlights: []) }
-        let shooters = players.filter { $0.threePercent >= 35 && $0.points >= 10 }.count
-        let playmaking = players.reduce(0) { $0 + $1.assists }
-        let defensivePlaymaking = players.reduce(0) { $0 + $1.steals + $1.blocks }
-        let positions = Set(players.map(\.position)).count
-        var offense = 0; var defense = 0; var highlights: [String] = []
-        if shooters >= 2 { offense += shooters; highlights.append("ELITE SPACING +\(shooters)") }
-        if playmaking >= 18 { offense += 2; highlights.append("BALL MOVEMENT +2") }
-        if defensivePlaymaking >= 8 { defense += 2; highlights.append("DEFENSIVE PRESSURE +2") }
-        if positions >= 4 { defense += 1; highlights.append("BALANCED LINEUP +1") }
-        return LineupChemistry(offenseBonus: offense, defenseBonus: defense, highlights: highlights)
     }
     static func playerImpact(_ player: SeasonRecord) -> Double { player.points + player.assists * 1.4 + player.rebounds * 0.8 + player.steals * 2.5 + player.blocks * 2.5 }
     static func stats(for roster: [DraftedPlayer]) -> TeamStatLine {
@@ -299,8 +353,7 @@ enum TeamSimulator {
         let defensiveImpact = players.reduce(0.0) { total, player in
             total + player.rebounds * 0.45 + player.steals * 2.5 + player.blocks * 2.5 + (Double(player.games) / 82.0) * 0.5
         } / Double(players.count)
-        let chemistry = chemistry(for: roster)
-        return TeamNetRating(offense: Int((102 + offensiveImpact).rounded()) + chemistry.offenseBonus, defense: Int((114 - defensiveImpact).rounded()) - chemistry.defenseBonus)
+        return TeamNetRating(offense: Int((102 + offensiveImpact).rounded()), defense: Int((114 - defensiveImpact).rounded()))
     }
     static func winner(player: [DraftedPlayer], opponent: [DraftedPlayer]) -> String {
         let p = ratingBreakdown(for: player).finalRating

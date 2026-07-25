@@ -12,7 +12,6 @@ struct BallKnowledgeApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
-                .containerRelativeFrame([.horizontal, .vertical])
         }
             .modelContainer(container)
     }

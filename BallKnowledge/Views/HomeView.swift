@@ -14,20 +14,41 @@ struct HomeView: View {
                         HStack(alignment: .top) {
                             TeamBadge(team: "NBA", size: compact ? 54 : 64)
                             VStack(alignment: .leading, spacing: 3) {
-                                Text("DYNASTY BID").font(.title3.weight(.black))
-                                Text("LIVE GAME").scoreLabel().foregroundStyle(Color.accent)
+                                Text("FIVE ALIVE").font(.title3.weight(.black))
                             }
                             Spacer()
                             Image(systemName: "chevron.right").foregroundStyle(.white.opacity(0.45))
                         }
                         Text("Bid on legendary team-years, draft the right player, and outbuild your rival.")
                             .font(.subheadline.weight(.medium)).foregroundStyle(.white.opacity(0.70))
-                        Button { route = .gameSetup } label: { Label("PLAY DYNASTY BID", systemImage: "bolt.fill").frame(maxWidth: .infinity) }.buttonStyle(PrimaryButtonStyle(compact: compact))
+                        Button { route = .gameSetup } label: { Label("PLAY FIVE ALIVE", systemImage: "banknote.fill").frame(maxWidth: .infinity) }.buttonStyle(PrimaryButtonStyle(compact: compact))
                     }
                     .padding(compact ? 15 : 18)
                     .background(LinearGradient(colors: [Color.accent.opacity(0.15), .white.opacity(0.055)], startPoint: .topLeading, endPoint: .bottomTrailing))
                     .overlay(RoundedRectangle(cornerRadius: 22).stroke(Color.accent.opacity(0.32)))
                     .clipShape(RoundedRectangle(cornerRadius: 22))
+
+                    HStack(spacing: 14) {
+                        Image(systemName: "sparkles")
+                            .font(.title2.weight(.black))
+                            .foregroundStyle(.white.opacity(0.34))
+                            .frame(width: 42, height: 42)
+                            .background(.white.opacity(0.055))
+                            .clipShape(RoundedRectangle(cornerRadius: 13))
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("MORE GAMES").scoreLabel()
+                            Text("COMING SOON").font(.headline.weight(.black)).foregroundStyle(.white.opacity(0.68))
+                            Text("More ways to test your basketball knowledge are in the works.")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(.white.opacity(0.42))
+                                .lineLimit(2)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .padding(compact ? 14 : 16)
+                    .background(.white.opacity(0.035))
+                    .overlay(RoundedRectangle(cornerRadius: 18).stroke(.white.opacity(0.08)))
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
                 }
                 .padding(.horizontal, 20).padding(.top, compact ? 14 : 22).padding(.bottom, 18)
             }
@@ -50,7 +71,7 @@ struct GameSetupView: View {
                     HStack(spacing: 14) {
                         TeamBadge(team: "NBA", size: compact ? 54 : 64)
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("DYNASTY BID").font(.system(size: compact ? 30 : 36, weight: .black, design: .rounded))
+                            Text("FIVE ALIVE").font(.system(size: compact ? 30 : 36, weight: .black, design: .rounded))
                             Text("BUILD THE BEST FIVE").scoreLabel().foregroundStyle(Color.accent)
                         }
                     }
@@ -64,7 +85,7 @@ struct GameSetupView: View {
                         Text("SCOUTING LEVEL").scoreLabel()
                         ForEach(MatchDifficulty.allCases) { difficultyCard($0, compact: compact) }
                     }
-                    Button { route = .game } label: { Label("START VS AI", systemImage: "bolt.fill").frame(maxWidth: .infinity) }.buttonStyle(PrimaryButtonStyle(compact: compact))
+                    Button { route = .game } label: { Label("START VS AI", systemImage: "banknote.fill").frame(maxWidth: .infinity) }.buttonStyle(PrimaryButtonStyle(compact: compact))
                 }.padding(.horizontal, 20).padding(.vertical, compact ? 14 : 22)
             }.scrollIndicators(.hidden).frame(width: proxy.size.width, height: proxy.size.height)
         }
@@ -141,7 +162,7 @@ struct TeamBrand {
     }
     static func name(for team: String) -> String {
         let names = [
-            "ATL": "Atlanta Hawks", "BKN": "Brooklyn Nets", "BOS": "Boston Celtics", "CHA": "Charlotte Hornets", "CHH": "Charlotte Hornets", "CHI": "Chicago Bulls", "CLE": "Cleveland Cavaliers", "DAL": "Dallas Mavericks", "DEN": "Denver Nuggets", "DET": "Detroit Pistons", "GSW": "Golden State Warriors", "HOU": "Houston Rockets", "IND": "Indiana Pacers", "LAC": "Los Angeles Clippers", "LAL": "Los Angeles Lakers", "MEM": "Memphis Grizzlies", "MIA": "Miami Heat", "MIL": "Milwaukee Bucks", "MIN": "Minnesota Timberwolves", "NJN": "New Jersey Nets", "NOH": "New Orleans Hornets", "NOK": "New Orleans/Oklahoma City Hornets", "NOP": "New Orleans Pelicans", "NYK": "New York Knicks", "OKC": "Oklahoma City Thunder", "ORL": "Orlando Magic", "PHI": "Philadelphia 76ers", "PHX": "Phoenix Suns", "POR": "Portland Trail Blazers", "SAC": "Sacramento Kings", "SAS": "San Antonio Spurs", "SEA": "Seattle SuperSonics", "TOR": "Toronto Raptors", "UTA": "Utah Jazz", "VAN": "Vancouver Grizzlies", "WAS": "Washington Wizards"
+            "ATL": "Atlanta Hawks", "BKN": "Brooklyn Nets", "BRK": "Brooklyn Nets", "BOS": "Boston Celtics", "CHA": "Charlotte Hornets", "CHH": "Charlotte Hornets", "CHI": "Chicago Bulls", "CLE": "Cleveland Cavaliers", "DAL": "Dallas Mavericks", "DEN": "Denver Nuggets", "DET": "Detroit Pistons", "GSW": "Golden State Warriors", "HOU": "Houston Rockets", "IND": "Indiana Pacers", "KCK": "Kansas City Kings", "LAC": "Los Angeles Clippers", "LAL": "Los Angeles Lakers", "MEM": "Memphis Grizzlies", "MIA": "Miami Heat", "MIL": "Milwaukee Bucks", "MIN": "Minnesota Timberwolves", "NJN": "New Jersey Nets", "NOH": "New Orleans Hornets", "NOK": "New Orleans/Oklahoma City Hornets", "NOP": "New Orleans Pelicans", "NYK": "New York Knicks", "OKC": "Oklahoma City Thunder", "ORL": "Orlando Magic", "PHI": "Philadelphia 76ers", "PHO": "Phoenix Suns", "PHX": "Phoenix Suns", "POR": "Portland Trail Blazers", "SAC": "Sacramento Kings", "SAS": "San Antonio Spurs", "SDC": "San Diego Clippers", "SEA": "Seattle SuperSonics", "TOR": "Toronto Raptors", "UTA": "Utah Jazz", "VAN": "Vancouver Grizzlies", "WAS": "Washington Wizards", "WSB": "Washington Bullets"
         ]
         return names[team] ?? team
     }

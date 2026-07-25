@@ -6,9 +6,20 @@ struct RootView: View {
     var body: some View {
         ZStack {
             ArenaBackground()
-            Group { switch route { case .home: HomeHub(route: $route, difficulty: $difficulty); case .gameSetup: GameSetupView(route: $route, difficulty: $difficulty); case .game: GameView(route: $route, difficulty: difficulty) } }
+            Group {
+                switch route {
+                case .home:
+                    HomeHub(route: $route, difficulty: $difficulty)
+                case .gameSetup:
+                    GameSetupView(route: $route, difficulty: $difficulty)
+                case .game:
+                    GameView(route: $route, difficulty: difficulty)
+                }
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // This is the actual screen-sized container. It must retain its full
+        // height when a child text field presents the keyboard.
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .preferredColorScheme(.dark)
     }
@@ -46,6 +57,5 @@ private struct HomeHub: View {
             .padding(.horizontal, 28).padding(.top, 7).padding(.bottom, 4)
             .background(.ultraThinMaterial)
         }
-        .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 }
