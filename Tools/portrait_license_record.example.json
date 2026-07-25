@@ -1,0 +1,17 @@
+{
+  "licenseID": "vendor-contract-2026-001",
+  "version": "1.0",
+  "vendor": "Approved Sports Photo Vendor",
+  "status": "approved",
+  "validFrom": "2026-01-01",
+  "validThrough": "2029-12-31",
+  "grants": {
+    "mobileAppDistribution": true,
+    "offlineBundling": true,
+    "worldwide": true,
+    "cropResize": true,
+    "requiresInAppCredit": false
+  },
+  "requiredCreditLanguage": "",
+  "executedLicenseReference": "legal/contracts/vendor-contract-2026-001.pdf"
+}

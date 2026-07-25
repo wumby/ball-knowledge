@@ -33,7 +33,7 @@ struct BidResultView: View {
             Text(model.isForcedAward ? "ROSTER FULL" : (playerWon ? "AUCTION WON" : "AUCTION LOST")).scoreLabel().foregroundStyle(playerWon ? Color.accent : .white.opacity(0.55))
             Image(systemName: model.isForcedAward ? "forward.fill" : (playerWon ? "trophy.fill" : "gavel.fill")).font(.system(size: 54)).foregroundStyle(playerWon ? Color.accent : .white.opacity(0.55))
             Text(model.isForcedAward ? (playerWon ? "TEAM AWARDED TO YOU" : "TEAM AWARDED TO OPPONENT") : (playerWon ? "YOU WON THE BID" : "OPPONENT WON THE BID")).font(.system(size: 32, weight: .black, design: .rounded)).multilineTextAlignment(.center)
-            if let team = model.engine?.current { VStack(spacing: 12) { TeamBadge(team: team.team, size: 58); Text(team.team).font(.title.weight(.black)); Text(team.season).font(.headline).foregroundStyle(.white.opacity(0.6)); if model.isForcedAward { Text("BIDDING VOID · ROSTER FULL").scoreLabel().padding(.top, 4) } else { HStack(spacing: 12) { bidScore("YOU", bid: model.playerBid, won: playerWon); Text("VS").font(.caption.weight(.black)).foregroundStyle(.white.opacity(0.45)); bidScore("OPPONENT", bid: model.opponentBid, won: !playerWon) } } }.padding(22).frame(maxWidth: .infinity).background(.white.opacity(0.07)).clipShape(RoundedRectangle(cornerRadius: 22)) }
+            if let team = model.engine?.current { VStack(spacing: 12) { TeamLogo(team: team.team, season: team.season, size: 58); Text(team.team).font(.title.weight(.black)); Text(team.season).font(.headline).foregroundStyle(.white.opacity(0.6)); if model.isForcedAward { Text("BIDDING VOID · ROSTER FULL").scoreLabel().padding(.top, 4) } else { HStack(spacing: 12) { bidScore("YOU", bid: model.playerBid, won: playerWon); Text("VS").font(.caption.weight(.black)).foregroundStyle(.white.opacity(0.45)); bidScore("OPPONENT", bid: model.opponentBid, won: !playerWon) } } }.padding(22).frame(maxWidth: .infinity).background(.white.opacity(0.07)).clipShape(RoundedRectangle(cornerRadius: 22)) }
             Text(playerWon ? "Your player selection is coming up." : "Opponent pick incoming.").font(.subheadline.weight(.medium)).foregroundStyle(.white.opacity(0.62)).multilineTextAlignment(.center)
             Spacer()
         }.padding(24).task { try? await Task.sleep(for: .milliseconds(2600)); model.continueAfterBid() }
@@ -50,7 +50,7 @@ struct DraftRevealView: View {
             Text(playerWon ? "YOU DRAFTED" : "OPPONENT DRAFTED").scoreLabel().foregroundStyle(playerWon ? Color.accent : .white.opacity(0.55))
             if let drafted = model.revealedPlayer {
                 VStack(spacing: 12) {
-                    TeamBadge(team: drafted.season.team, size: 82)
+                    HStack(spacing: 14) { PlayerPortrait(player: drafted.season, size: 96); TeamLogo(team: drafted.season.team, season: drafted.season.season, size: 58) }
                     Text(drafted.season.playerName).font(.system(size: 44, weight: .black, design: .rounded)).minimumScaleFactor(0.58).multilineTextAlignment(.center)
                     Text("\(drafted.season.position) · \(drafted.season.team) \(drafted.season.season)").font(.headline.weight(.bold)).foregroundStyle(Color.accent)
                     if model.difficulty == .easy {
@@ -157,7 +157,7 @@ struct TeamRouletteView: View {
             Text(offerRevealed ? "UP FOR AUCTION" : "SCANNING")
                 .scoreLabel()
                 .foregroundStyle(Color.accent)
-            TeamBadge(team: team.team, size: 112)
+            TeamLogo(team: team.team, season: team.season, size: 112)
                 .shadow(color: Color.accent.opacity(offerRevealed ? 0.5 : 0.18), radius: offerRevealed ? 22 : 8)
             Text(TeamBrand.name(for: team.team))
                 .font(.system(size: 31, weight: .black, design: .rounded))
@@ -208,6 +208,7 @@ struct MatchHeader: View {
 struct AuctionView: View {
     @ObservedObject var model: GameViewModel
     @State private var selectedPosition: String?
+    @State private var isCurrentTeamExpanded = false
     var body: some View {
         GeometryReader { proxy in
             let compact = proxy.size.height < 700
@@ -218,14 +219,15 @@ struct AuctionView: View {
                     if model.difficulty == .ballKnowledge {
                         CurrentTeamBoard(roster: model.engine?.playerRoster ?? [])
                     } else {
+                        ExpandableCurrentTeamPanel(
+                            roster: model.engine?.playerRoster ?? [],
+                            isExpanded: $isCurrentTeamExpanded
+                        )
                         AvailablePlayers(team: team, displayPlayers: model.engine?.randomizedDisplayOrder(for: team.players) ?? team.players, difficulty: model.difficulty, compact: compact, selectedPosition: $selectedPosition)
                     }
                 }
                 Spacer(minLength: 0)
                 if !model.toast.isEmpty { Text(model.toast).font(.caption.weight(.black)).foregroundStyle(Color.accent).lineLimit(1) }
-                if model.difficulty != .ballKnowledge {
-                    DraftedRoster(roster: model.engine?.playerRoster ?? [])
-                }
             }
             .padding(.horizontal, 20).padding(.top, compact ? 8 : 14)
             .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
@@ -296,7 +298,7 @@ struct AuctionOfferCard: View {
         VStack(alignment: .leading, spacing: 7) {
             Text("UP FOR AUCTION").scoreLabel().foregroundStyle(Color.accent)
             HStack(alignment: .center, spacing: 11) {
-                TeamBadge(team: team.team, size: compact ? 44 : 50)
+                TeamLogo(team: team.team, season: team.season, size: compact ? 44 : 50)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(TeamBrand.name(for: team.team))
                         .font(.system(size: compact ? 22 : 26, weight: .black, design: .rounded))
@@ -345,7 +347,7 @@ struct ScoutingPlayerCard: View {
             if showStats {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 10) {
-                        TeamBadge(team: player.team, size: 36)
+                        PlayerPortrait(player: player, size: 36, context: .draftSelection)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(player.playerName).font(.headline.weight(.black)).lineLimit(1).minimumScaleFactor(0.78).layoutPriority(1)
                             Text(player.position).font(.caption2.weight(.black)).foregroundStyle(Color.accent)
@@ -361,7 +363,7 @@ struct ScoutingPlayerCard: View {
                 }
             } else {
                 HStack(spacing: 10) {
-                    TeamBadge(team: player.team, size: 36)
+                    PlayerPortrait(player: player, size: 36, context: .draftSelection)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(player.playerName).font(.headline.weight(.black)).lineLimit(1).minimumScaleFactor(0.78).layoutPriority(1)
                         Text(player.position).font(.caption2.weight(.black)).foregroundStyle(Color.accent)
@@ -412,7 +414,7 @@ struct PlayerSelectionView: View {
             VStack(spacing: compact ? 8 : 12) {
                 MatchHeader(model: model)
                 if let team = model.engine?.current {
-                    HStack { TeamBadge(team: team.team, size: 42); VStack(alignment: .leading, spacing: 2) { Text("YOU WON THE AUCTION").scoreLabel().foregroundStyle(Color.accent); Text("\(team.team) · \(team.season)").font(compact ? .title3.weight(.black) : .title2.weight(.black)) }; Spacer() }.padding(.vertical, 6)
+                    HStack { TeamLogo(team: team.team, season: team.season, size: 42); VStack(alignment: .leading, spacing: 2) { Text("YOU WON THE AUCTION").scoreLabel().foregroundStyle(Color.accent); Text("\(team.team) · \(team.season)").font(compact ? .title3.weight(.black) : .title2.weight(.black)) }; Spacer() }.padding(.vertical, 6)
                     HStack {
                         Text("SELECT A PLAYER").scoreLabel()
                         Spacer()
@@ -467,7 +469,7 @@ struct PlayerPickRow: View {
                 if difficulty == .easy {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack(spacing: 10) {
-                            TeamBadge(team: player.team, size: 36)
+                            PlayerPortrait(player: player, size: 36, context: .draftSelection)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(player.playerName).font(.headline.weight(.black)).lineLimit(1).minimumScaleFactor(0.78).layoutPriority(1)
                                 Text(player.position).font(.caption2.weight(.black)).foregroundStyle(Color.accent)
@@ -484,7 +486,7 @@ struct PlayerPickRow: View {
                     }
                 } else {
                     HStack(spacing: 10) {
-                        TeamBadge(team: player.team, size: 36)
+                        PlayerPortrait(player: player, size: 36, context: .draftSelection)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(player.playerName).font(.headline.weight(.black)).lineLimit(1).minimumScaleFactor(0.78).layoutPriority(1)
                             Text(player.position).font(.caption2.weight(.black)).foregroundStyle(Color.accent)
@@ -545,7 +547,86 @@ struct PositionFilterBar: View {
     }
 }
 
-struct DraftedRoster: View { let roster: [DraftedPlayer]; var body: some View { VStack(alignment: .leading, spacing: 6) { Text("YOUR DRAFTED PLAYERS").scoreLabel(); if roster.isEmpty { Text("No players drafted yet").font(.caption.weight(.medium)).foregroundStyle(.white.opacity(0.45)) } else { ScrollView(.horizontal, showsIndicators: false) { HStack(spacing: 7) { ForEach(roster) { player in VStack(alignment: .leading, spacing: 2) { Text(player.season.playerName).font(.caption.weight(.black)).lineLimit(1); Text(player.season.position).font(.caption2.weight(.black)).foregroundStyle(Color.accent) }.frame(width: 104, alignment: .leading).padding(9).background(.white.opacity(0.075)).clipShape(RoundedRectangle(cornerRadius: 10)) } } } } }.frame(maxWidth: .infinity, alignment: .leading).padding(11).background(.white.opacity(0.045)).clipShape(RoundedRectangle(cornerRadius: 14)) } }
+struct CurrentTeamPanelState: Equatable {
+    let isExpanded: Bool
+    let slots: [CurrentTeamSlot]
+
+    init(roster: [DraftedPlayer], isExpanded: Bool) {
+        self.isExpanded = isExpanded
+        self.slots = TeamSimulator.currentTeamSlots(for: roster)
+    }
+}
+
+struct ExpandableCurrentTeamPanel: View {
+    let roster: [DraftedPlayer]
+    @Binding var isExpanded: Bool
+
+    private var state: CurrentTeamPanelState {
+        CurrentTeamPanelState(roster: roster, isExpanded: isExpanded)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.22)) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Text("YOUR CURRENT TEAM")
+                        .scoreLabel()
+                        .foregroundStyle(Color.accent)
+                    Spacer(minLength: 0)
+                    Text("\(roster.count) / 5 PICKED")
+                        .scoreLabel()
+                        .foregroundStyle(.white.opacity(0.72))
+                    Image(systemName: state.isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption.weight(.black))
+                        .foregroundStyle(.white.opacity(0.72))
+                        .frame(width: 16)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if state.isExpanded {
+                VStack(spacing: 7) {
+                    ForEach(state.slots) { slot in
+                        HStack(spacing: 10) {
+                            Text(slot.position)
+                                .scoreLabel()
+                                .foregroundStyle(slot.player == nil ? .white.opacity(0.38) : Color.accent)
+                                .frame(width: 28, alignment: .leading)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(slot.player?.season.playerName ?? "OPEN SLOT")
+                                    .font(.caption.weight(.black))
+                                    .lineLimit(1)
+                                    .foregroundStyle(slot.player == nil ? .white.opacity(0.42) : .white)
+                                if let player = slot.player {
+                                    Text(player.season.season)
+                                        .font(.caption2.weight(.bold))
+                                        .foregroundStyle(.white.opacity(0.55))
+                                }
+                            }
+                            Spacer(minLength: 0)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 30, alignment: .leading)
+                        .padding(.horizontal, 10)
+                        .background(slot.player == nil ? .white.opacity(0.035) : Color.accent.opacity(0.10))
+                        .clipShape(RoundedRectangle(cornerRadius: 9))
+                    }
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(11)
+        .background(.white.opacity(0.045))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.08)))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .animation(.easeInOut(duration: 0.22), value: state.isExpanded)
+    }
+}
 
 struct ResultsView: View {
     @ObservedObject var model: GameViewModel; @Binding var route: Route
@@ -658,7 +739,7 @@ struct BestPossibleTeamCard: View {
         Group {
             if let drafted {
                 VStack(alignment: alignRight ? .trailing : .leading, spacing: 2) {
-                    HStack(spacing: 5) { if !alignRight { TeamBadge(team: drafted.season.team, size: 22) }; Text("\(slot) · \(drafted.season.playerName)").font(.footnote.weight(.black)).lineLimit(1); if alignRight { TeamBadge(team: drafted.season.team, size: 22) } }
+                    HStack(spacing: 5) { if !alignRight { PlayerPortrait(player: drafted.season, size: 22) }; Text("\(slot) · \(drafted.season.playerName)").font(.footnote.weight(.black)).lineLimit(1); if alignRight { PlayerPortrait(player: drafted.season, size: 22) } }
                     Text(drafted.season.season).font(.caption2.weight(.black)).foregroundStyle(.white.opacity(0.56))
                     Text("\(drafted.season.points, specifier: "%.1f") PTS · \(drafted.season.rebounds, specifier: "%.1f") REB · \(drafted.season.assists, specifier: "%.1f") AST").font(.system(size: 9, weight: .bold)).foregroundStyle(.white.opacity(0.72)).lineLimit(1)
                     Text("\(drafted.season.steals, specifier: "%.1f") STL · \(drafted.season.blocks, specifier: "%.1f") BLK").font(.system(size: 9, weight: .bold)).foregroundStyle(.white.opacity(0.58)).lineLimit(1)
@@ -697,7 +778,7 @@ struct FinalMatchupBoard: View {
         Group {
             if let drafted {
                 VStack(alignment: alignRight ? .trailing : .leading, spacing: 2) {
-                    HStack(spacing: 5) { if !alignRight { TeamBadge(team: drafted.season.team, size: 25) }; Text("\(slot) · \(drafted.season.playerName)").font(.footnote.weight(.black)).lineLimit(1); if alignRight { TeamBadge(team: drafted.season.team, size: 25) } }
+                    HStack(spacing: 5) { if !alignRight { PlayerPortrait(player: drafted.season, size: 25) }; Text("\(slot) · \(drafted.season.playerName)").font(.footnote.weight(.black)).lineLimit(1); if alignRight { PlayerPortrait(player: drafted.season, size: 25) } }
                     Text(drafted.season.season).font(.caption2.weight(.black)).foregroundStyle(.white.opacity(0.56))
                     Text("\(drafted.season.points, specifier: "%.1f") PTS · \(drafted.season.rebounds, specifier: "%.1f") REB · \(drafted.season.assists, specifier: "%.1f") AST").font(.system(size: 9, weight: .bold)).foregroundStyle(.white.opacity(0.72)).lineLimit(1)
                     Text("\(drafted.season.steals, specifier: "%.1f") STL · \(drafted.season.blocks, specifier: "%.1f") BLK").font(.system(size: 9, weight: .bold)).foregroundStyle(.white.opacity(0.58)).lineLimit(1)

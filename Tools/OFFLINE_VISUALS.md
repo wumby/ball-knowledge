@@ -1,0 +1,12 @@
+# Offline visual asset ingestion
+
+1. The App Store-safe configuration uses native generated avatars for every player and bundles no third-party player photos. `python3 Tools/migrate_portraits_to_generated_avatars.py` removes any previously bundled player portraits. For a future licensed-photo catalog, use `PORTRAIT_VENDOR_BRIEF.md` and retain an executed license record using `portrait_license_record.example.json`.
+2. `python3 Tools/import_player_portraits.py` restores a partial Basketball Reference catalog for local development/testing only. It records `developmentReferencePhotos` and `Source permission required before distribution`; it is not a commercial license and cannot satisfy the licensed-photo release gate. Run `python3 Tools/build_team_season_portrait_coverage.py` afterwards to regenerate the draft fairness policy and report.
+3. Crop portraits and logos to square, app-sized PNGs (recommended 512×512) with transparent logo backgrounds where applicable.
+4. A future commercial-photo delivery can be imported with `python3 Tools/import_licensed_portraits.py DELIVERY.json LICENSE.json MAPPINGS.json --delivery-dir DELIVERY_DIRECTORY`. The importer requires an approved vendor-ID mapping with review evidence, writes one square `player_<playerID>` asset, and replaces the full portrait catalog. `--allow-partial` is only for a vendor sample and cannot pass the licensed-photo gate.
+5. Name logo files with the era key in `OfflineVisualManifest.json` (for example, `team_njn_1976_2011.png`) and run `python3 Tools/import_team_logos.py <approved-logo-directory>`. The importer creates the Xcode image sets and normalizes every input to a 512×512 PNG.
+6. Record `team`, inclusive `firstSeason`/`lastSeason`, `source`, and `rights` metadata for every logo era in `OfflineVisualManifest.json`.
+7. `Tools/licensed_portrait_import_report.json` records coverage, the license/version, unresolved roster IDs, and every manual-review decision. It must report 3,819/3,819 before a licensed-photo release.
+8. Run `python3 Tools/validate_offline_visuals.py` before committing. It validates that generated-avatar releases bundle no player photos, development-reference catalogs retain their non-commercial source metadata, and licensed-photo releases require one readable, checksum-verified portrait and approved license record per roster player. Existing logo-era checks remain in place.
+
+No visual is downloaded at runtime. Missing or unapproved assets intentionally render the built-in portrait or team-badge fallback.

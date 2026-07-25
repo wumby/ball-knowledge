@@ -1,0 +1,12 @@
+{
+  "mappings": [
+    {
+      "vendorPlayerID": "vendor-player-000001",
+      "playerID": "stable-roster-player-id",
+      "reviewStatus": "approved",
+      "reviewedBy": "reviewer@example.com",
+      "reviewedAt": "2026-07-25T12:00:00Z",
+      "evidence": "Matched vendor ID, birth date, and NBA career context against the roster record."
+    }
+  ]
+}

@@ -96,6 +96,22 @@ final class AuctionEngineTests: XCTestCase {
         XCTAssertEqual(assignedPlayers.filter { $0.id == shootingGuard.id }.count, 1)
         XCTAssertEqual(assignedPlayers.map(\.season.playerName), ["Combo", "Guard"])
     }
+    func testCollapsedCurrentTeamPanelStateKeepsPositionOrderedSlots() {
+        let center = DraftedPlayer(season: SeasonRecord(id: "center", playerName: "Center", season: "S", team: "T", position: "C", overallRating: 80), bid: 1)
+        let state = CurrentTeamPanelState(roster: [center], isExpanded: false)
+
+        XCTAssertFalse(state.isExpanded)
+        XCTAssertEqual(state.slots.map(\.position), ["PG", "SG", "SF", "PF", "C"])
+        XCTAssertEqual(state.slots.map { $0.player?.season.playerName }, [nil, nil, nil, nil, "Center"])
+    }
+    func testExpandedCurrentTeamPanelStateShowsAllFiveSlots() {
+        let shootingGuard = DraftedPlayer(season: SeasonRecord(id: "guard", playerName: "Guard", season: "S", team: "T", position: "SG", overallRating: 80), bid: 1)
+        let state = CurrentTeamPanelState(roster: [shootingGuard], isExpanded: true)
+
+        XCTAssertTrue(state.isExpanded)
+        XCTAssertEqual(state.slots.count, 5)
+        XCTAssertEqual(state.slots[1].player?.season.playerName, "Guard")
+    }
     func testRepositoryProvidesTenDeterministicOffers() async throws {
         let first = try await BundledSeasonRepository.randomTeams(count: 10, seed: 4)
         let second = try await BundledSeasonRepository.randomTeams(count: 10, seed: 4)
@@ -109,6 +125,57 @@ final class AuctionEngineTests: XCTestCase {
         XCTAssertEqual(database.searchPlayers("Chris Paul").map(\.id), ["exact", "same-name", "prefix"])
         XCTAssertEqual(database.searchPlayers("Paul").count, 3)
     }
+    func testOfflineVisualCatalogUsesOneStablePortraitKeyAndHistoricalLogoEras() {
+        XCTAssertEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "NJN", season: "2011–12"), "team_njn_1997_2011")
+        XCTAssertEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "BRK", season: "2012–13"), "team_brk_2012_2025")
+        XCTAssertEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "SEA", season: "2007–08"), "team_sea_2001_2007")
+        XCTAssertEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "OKC", season: "2008–09"), "team_okc_2008_2025")
+        XCTAssertNil(OfflineVisualCatalog.expectedTeamLogoName(team: "TST", season: "2024–25"))
+        XCTAssertEqual(OfflineVisualCatalog.portraitAssetName(for: "lebronj01"), OfflineVisualCatalog.portraitAssetName(for: "LEBRONJ01"))
+    }
+    func testDraftPortraitCoverageUsesStrictMoreThanHalfThreshold() {
+        XCTAssertFalse(OfflineVisualCatalog.shouldSuppressDraftPortraits(missingHeadshots: 2, rosterCount: 4))
+        XCTAssertTrue(OfflineVisualCatalog.shouldSuppressDraftPortraits(missingHeadshots: 3, rosterCount: 4))
+    }
+    func testDraftPortraitPolicyHidesCoveredPlayerOnlyForSuppressedTeamSeason() {
+        let covered = OfflineVisualCatalog.TeamSeasonPortraitCoverage(team: "COV", season: "2024–25", rosterCount: 4, availableHeadshots: 2, missingHeadshots: 2, suppressDraftPortraits: false)
+        let suppressed = OfflineVisualCatalog.TeamSeasonPortraitCoverage(team: "SUP", season: "2024–25", rosterCount: 4, availableHeadshots: 1, missingHeadshots: 3, suppressDraftPortraits: true)
+        XCTAssertEqual(OfflineVisualCatalog.portraitPresentation(team: "COV", season: "2024–25", context: .draftSelection, hasAvailableHeadshot: true, coverage: covered), .realHeadshot)
+        XCTAssertEqual(OfflineVisualCatalog.portraitPresentation(team: "SUP", season: "2024–25", context: .draftSelection, hasAvailableHeadshot: true, coverage: suppressed), .generatedAvatar)
+    }
+    func testStandardPortraitPolicyStillUsesAvailableHeadshotForSuppressedTeamSeason() {
+        let suppressed = OfflineVisualCatalog.TeamSeasonPortraitCoverage(team: "SUP", season: "2024–25", rosterCount: 4, availableHeadshots: 1, missingHeadshots: 3, suppressDraftPortraits: true)
+        XCTAssertEqual(OfflineVisualCatalog.portraitPresentation(team: "SUP", season: "2024–25", context: .standard, hasAvailableHeadshot: true, coverage: suppressed), .realHeadshot)
+        XCTAssertEqual(OfflineVisualCatalog.portraitPresentation(team: "SUP", season: "2024–25", context: .standard, hasAvailableHeadshot: false, coverage: suppressed), .generatedAvatar)
+    }
+    func testHistoricalLogoTransitionsUseTheDisplayedSeason() {
+        XCTAssertEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "VAN", season: "2000–01"), "team_van_1995_2000")
+        XCTAssertEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "MEM", season: "2001–02"), "team_mem_2001_2003")
+        XCTAssertEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "CHH", season: "2001–02"), "team_chh_1988_2001")
+        XCTAssertEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "NOH", season: "2002–03"), "team_noh_2002_2004")
+        XCTAssertEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "NOK", season: "2005–06"), "team_nok_2005_2006")
+        XCTAssertEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "NOP", season: "2013–14"), "team_nop_2013_2025")
+        XCTAssertEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "WSB", season: "1996–97"), "team_wsb_1987_1996")
+        XCTAssertEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "WAS", season: "1997–98"), "team_was_1997_2006")
+        XCTAssertEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "CHA", season: "2013–14"), "team_cha_2012_2013")
+        XCTAssertEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "CHO", season: "2014–15"), "team_cho_2014_2025")
+    }
+    func testSameCodeRebrandUsesDifferentEraAssets() {
+        XCTAssertNotEqual(
+            OfflineVisualCatalog.expectedTeamLogoName(team: "PHO", season: "1991–92"),
+            OfflineVisualCatalog.expectedTeamLogoName(team: "PHO", season: "1992–93")
+        )
+    }
+    func testArchiveDerivedLakersAndWizardsBoundaries() {
+        XCTAssertNotEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "LAL", season: "2000–01"),
+                          OfflineVisualCatalog.expectedTeamLogoName(team: "LAL", season: "2001–02"))
+        XCTAssertNotEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "WAS", season: "2006–07"),
+                          OfflineVisualCatalog.expectedTeamLogoName(team: "WAS", season: "2007–08"))
+        XCTAssertNotEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "WAS", season: "2010–11"),
+                          OfflineVisualCatalog.expectedTeamLogoName(team: "WAS", season: "2011–12"))
+        XCTAssertNotEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "WAS", season: "2014–15"),
+                          OfflineVisualCatalog.expectedTeamLogoName(team: "WAS", season: "2015–16"))
+    }
     func testPlayerFiltersIntersectAndFranchiseHistoryKeepsOriginalCodes() {
         let oldNet = SeasonRecord(id: "net", playerID: "player", playerName: "Test Player", season: "2011–12", team: "NJN", position: "PG-SG", overallRating: 80)
         let brooklyn = SeasonRecord(id: "brooklyn", playerID: "player", playerName: "Test Player", season: "2013–14", team: "BRK", position: "PG", overallRating: 80)
@@ -116,6 +183,11 @@ final class AuctionEngineTests: XCTestCase {
         let profile = database.searchPlayers("Test Player")[0]
         XCTAssertEqual(database.teamSeasonsByFranchise["BRK"]?.map(\.team), ["BRK", "NJN"])
         XCTAssertEqual(database.rows(for: profile, season: "2011–12", franchise: "BRK", position: "SG").map(\.id), ["net"])
+    }
+    func testHornetsCodesGroupIntoTheirActualFranchiseHistories() {
+        XCTAssertEqual(NBAStatsDatabase.franchiseCode(for: "CHO"), "CHA")
+        XCTAssertEqual(NBAStatsDatabase.franchiseCode(for: "CHA"), "CHA")
+        XCTAssertEqual(NBAStatsDatabase.franchiseCode(for: "CHH"), "NOP")
     }
     func testSeasonLeadersAggregateTradedPlayerAndOrderTopTen() {
         let tradedA = SeasonRecord(id: "trade-a", playerID: "traded", playerName: "Traded Star", season: "2020–21", team: "AAA", position: "PG", games: 20, minutes: 30, points: 20, rebounds: 4, assists: 8, steals: 1, blocks: 0.2, fgPercent: 40, threePercent: 30, ftPercent: 70, overallRating: 80)

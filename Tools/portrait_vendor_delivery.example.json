@@ -1,0 +1,17 @@
+{
+  "vendor": "Approved Sports Photo Vendor",
+  "deliveryReference": "Vendor secure delivery 2026-07-25",
+  "assets": [
+    {
+      "vendorAssetID": "photo-000001",
+      "vendorPlayerID": "vendor-player-000001",
+      "file": "photo-000001.jpg",
+      "fullName": "Example Player",
+      "birthDate": "1990-01-01",
+      "careerContext": "NBA 2012-2024",
+      "sourceURL": "https://vendor.example/assets/photo-000001",
+      "creator": "Photographer Name",
+      "credit": "Vendor credit, if required"
+    }
+  ]
+}

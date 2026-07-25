@@ -49,7 +49,7 @@ struct NBAPlayerProfile: Identifiable, Hashable, Sendable {
 struct NBAFranchise: Identifiable, Hashable, Sendable {
     let id: String
     let teamCodes: [String]
-    var name: String { TeamBrand.name(for: id) }
+    var name: String { id == "CHA" && teamCodes.contains("CHO") ? "Charlotte Hornets" : TeamBrand.name(for: id) }
 }
 
 enum LeaderStat: String, CaseIterable, Identifiable, Sendable {
@@ -206,7 +206,7 @@ struct NBAStatsDatabase: Sendable {
     }
 
     static func franchiseCode(for team: String) -> String {
-        ["NJN": "BRK", "VAN": "MEM", "SEA": "OKC", "KCK": "SAC", "SDC": "LAC", "WSB": "WAS", "NOH": "NOP", "NOK": "NOP", "PHO": "PHX"][team] ?? team
+        ["NJN": "BRK", "VAN": "MEM", "SEA": "OKC", "KCK": "SAC", "SDC": "LAC", "WSB": "WAS", "CHH": "NOP", "CHA": "CHA", "CHO": "CHA", "NOH": "NOP", "NOK": "NOP", "PHO": "PHX"][team] ?? team
     }
 
     static func normalize(_ value: String) -> String {

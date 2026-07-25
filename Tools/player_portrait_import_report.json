@@ -1,0 +1,6384 @@
+{
+  "totalRosterPlayers": 3819,
+  "coveredRosterPlayers": 2544,
+  "coveragePercent": 66.61,
+  "addedThisRun": 2544,
+  "alreadyPresentAssetSets": 0,
+  "unavailableOrFailed": [
+    {
+      "playerID": "abdulma02",
+      "playerName": "Mahmoud Abdul-Rauf",
+      "reason": "not found"
+    },
+    {
+      "playerID": "abdulta01",
+      "playerName": "Tariq Abdul-Wahad",
+      "reason": "not found"
+    },
+    {
+      "playerID": "abernto01",
+      "playerName": "Tom Abernethy",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ackeral01",
+      "playerName": "Alex Acker",
+      "reason": "not found"
+    },
+    {
+      "playerID": "acresma01",
+      "playerName": "Mark Acres",
+      "reason": "not found"
+    },
+    {
+      "playerID": "adamsha01",
+      "playerName": "Hassan Adams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "addisra01",
+      "playerName": "Rafael Addison",
+      "reason": "not found"
+    },
+    {
+      "playerID": "aleksch01",
+      "playerName": "Chuck Aleksinas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "alexaco01",
+      "playerName": "Cory Alexander",
+      "reason": "not found"
+    },
+    {
+      "playerID": "alexaco02",
+      "playerName": "Courtney Alexander",
+      "reason": "not found"
+    },
+    {
+      "playerID": "alexaga01",
+      "playerName": "Gary Alexander",
+      "reason": "not found"
+    },
+    {
+      "playerID": "alforst01",
+      "playerName": "Steve Alford",
+      "reason": "not found"
+    },
+    {
+      "playerID": "allenra01",
+      "playerName": "Randy Allen",
+      "reason": "not found"
+    },
+    {
+      "playerID": "allumda01",
+      "playerName": "Darrell Allums",
+      "reason": "not found"
+    },
+    {
+      "playerID": "alumape01",
+      "playerName": "Peter Aluma",
+      "reason": "not found"
+    },
+    {
+      "playerID": "amayaas01",
+      "playerName": "Ashraf Amaya",
+      "reason": "not found"
+    },
+    {
+      "playerID": "anderdw01",
+      "playerName": "Dwight Anderson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "anderer01",
+      "playerName": "Eric Anderson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "andergr01",
+      "playerName": "Greg Anderson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "anderjj01",
+      "playerName": "J.J. Anderson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "andermi01",
+      "playerName": "Michael Anderson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "anderri01",
+      "playerName": "Richard Anderson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "andersh01",
+      "playerName": "Shandon Anderson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "andrima01",
+      "playerName": "Martynas Andriu\u0161kevi\u010dius",
+      "reason": "not found"
+    },
+    {
+      "playerID": "anslemi01",
+      "playerName": "Michael Ansley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "anstech01",
+      "playerName": "Chris Anstey",
+      "reason": "not found"
+    },
+    {
+      "playerID": "araujra01",
+      "playerName": "Rafael Ara\u00fajo",
+      "reason": "not found"
+    },
+    {
+      "playerID": "archiro01",
+      "playerName": "Robert Archibald",
+      "reason": "not found"
+    },
+    {
+      "playerID": "arlaujo01",
+      "playerName": "Joe Arlauckas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "augusja01",
+      "playerName": "James Augustine",
+      "reason": "not found"
+    },
+    {
+      "playerID": "austike01",
+      "playerName": "Ken Austin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "aventan01",
+      "playerName": "Anthony Avent",
+      "reason": "not found"
+    },
+    {
+      "playerID": "averywi01",
+      "playerName": "William Avery",
+      "reason": "not found"
+    },
+    {
+      "playerID": "awtrede01",
+      "playerName": "Dennis Awtrey",
+      "reason": "not found"
+    },
+    {
+      "playerID": "babicmi01",
+      "playerName": "Milo\u0161 Babi\u0107",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bagarda01",
+      "playerName": "Dalibor Bagari\u0107",
+      "reason": "not found"
+    },
+    {
+      "playerID": "baileca01",
+      "playerName": "Carl Bailey",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bailegu01",
+      "playerName": "Gus Bailey",
+      "reason": "not found"
+    },
+    {
+      "playerID": "baileto01",
+      "playerName": "Toby Bailey",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bakerla01",
+      "playerName": "Mark Baker",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bakerma01",
+      "playerName": "Maurice Baker",
+      "reason": "not found"
+    },
+    {
+      "playerID": "balad01",
+      "playerName": "Adama-Alpha Bal",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ballce01",
+      "playerName": "Cedric Ball",
+      "reason": "not found"
+    },
+    {
+      "playerID": "banksge01",
+      "playerName": "Gene Banks",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bannike01",
+      "playerName": "Ken Bannister",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bantomi01",
+      "playerName": "Mike Bantom",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bardost01",
+      "playerName": "Steve Bardo",
+      "reason": "not found"
+    },
+    {
+      "playerID": "barkler01",
+      "playerName": "Erick Barkley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "barrean01",
+      "playerName": "Andre Barrett",
+      "reason": "not found"
+    },
+    {
+      "playerID": "barrydr01",
+      "playerName": "Drew Barry",
+      "reason": "not found"
+    },
+    {
+      "playerID": "basdeed01",
+      "playerName": "Eddie Basden",
+      "reason": "not found"
+    },
+    {
+      "playerID": "basseti01",
+      "playerName": "Tim Bassett",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bastoma01",
+      "playerName": "Maceo Baston",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bateeme01",
+      "playerName": "Mengke Bateer",
+      "reason": "not found"
+    },
+    {
+      "playerID": "batesbi01",
+      "playerName": "Billy Ray Bates",
+      "reason": "not found"
+    },
+    {
+      "playerID": "batises01",
+      "playerName": "Esteban Batista",
+      "reason": "not found"
+    },
+    {
+      "playerID": "batismi01",
+      "playerName": "Mike Batiste",
+      "reason": "not found"
+    },
+    {
+      "playerID": "battlke01",
+      "playerName": "Kenny Battle",
+      "reason": "not found"
+    },
+    {
+      "playerID": "battoda01",
+      "playerName": "Dave Batton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "baxtelo01",
+      "playerName": "Lonny Baxter",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bazarse01",
+      "playerName": "Sergei Bazarevich",
+      "reason": "not found"
+    },
+    {
+      "playerID": "beaslje01",
+      "playerName": "Jerome Beasley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "beckco01",
+      "playerName": "Corey Beck",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bedfowi01",
+      "playerName": "William Bedford",
+      "reason": "not found"
+    },
+    {
+      "playerID": "behagro01",
+      "playerName": "Ron Behagen",
+      "reason": "not found"
+    },
+    {
+      "playerID": "belltr01",
+      "playerName": "Troy Bell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bendejo01",
+      "playerName": "Jonathan Bender",
+      "reason": "not found"
+    },
+    {
+      "playerID": "benjaco01",
+      "playerName": "Corey Benjamin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "benneel01",
+      "playerName": "Elmer Bennett",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bennema01",
+      "playerName": "Mario Bennett",
+      "reason": "not found"
+    },
+    {
+      "playerID": "benneme01",
+      "playerName": "Mel Bennett",
+      "reason": "not found"
+    },
+    {
+      "playerID": "benneto01",
+      "playerName": "Tony Bennett",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bennewi01",
+      "playerName": "Winston Bennett",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bensoke01",
+      "playerName": "Kent Benson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "berryri01",
+      "playerName": "Ricky Berry",
+      "reason": "not found"
+    },
+    {
+      "playerID": "berrywa01",
+      "playerName": "Walter Berry",
+      "reason": "not found"
+    },
+    {
+      "playerID": "beshode01",
+      "playerName": "Del Beshore",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bibbyhe01",
+      "playerName": "Henry Bibby",
+      "reason": "not found"
+    },
+    {
+      "playerID": "biniojo01",
+      "playerName": "Joe Binion",
+      "reason": "not found"
+    },
+    {
+      "playerID": "blabuw01",
+      "playerName": "Uwe Blab",
+      "reason": "not found"
+    },
+    {
+      "playerID": "blackal01",
+      "playerName": "Alex Blackwell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "blackco01",
+      "playerName": "Cory Blackwell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "blackja01",
+      "playerName": "James Blackwell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "blackna01",
+      "playerName": "Nate Blackwell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "blackno01",
+      "playerName": "Norman Black",
+      "reason": "not found"
+    },
+    {
+      "playerID": "blalowi01",
+      "playerName": "Will Blalock",
+      "reason": "not found"
+    },
+    {
+      "playerID": "blantri01",
+      "playerName": "Ricky Blanton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "blounco01",
+      "playerName": "Corie Blount",
+      "reason": "not found"
+    },
+    {
+      "playerID": "blumera01",
+      "playerName": "Ray Blume",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bobbito01",
+      "playerName": "Tony Bobbitt",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bohanet01",
+      "playerName": "Etdrick Bohannon",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bondwa01",
+      "playerName": "Walter Bond",
+      "reason": "not found"
+    },
+    {
+      "playerID": "boneyde01",
+      "playerName": "Dexter Boney",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bonnean01",
+      "playerName": "Anthony Bonner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bookeme01",
+      "playerName": "Melvin Booker",
+      "reason": "not found"
+    },
+    {
+      "playerID": "boothca01",
+      "playerName": "Calvin Booth",
+      "reason": "not found"
+    },
+    {
+      "playerID": "borchcu01",
+      "playerName": "Curtis Borchardt",
+      "reason": "not found"
+    },
+    {
+      "playerID": "borrela01",
+      "playerName": "Lazaro Borrell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bostola01",
+      "playerName": "Lawrence Boston",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bosweto01",
+      "playerName": "Tom Boswell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "boumtru01",
+      "playerName": "Ruben Boumtje-Boumtje",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bowdlca01",
+      "playerName": "Cal Bowdler",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bowmair01",
+      "playerName": "Ira Bowman",
+      "reason": "not found"
+    },
+    {
+      "playerID": "boycedo01",
+      "playerName": "Donnie Boyce",
+      "reason": "not found"
+    },
+    {
+      "playerID": "boynewi01",
+      "playerName": "Winford Boynes",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bozemce01",
+      "playerName": "Cedric Bozeman",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bradlal01",
+      "playerName": "Alonzo Bradley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bradlal02",
+      "playerName": "Alex Bradley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bradlch01",
+      "playerName": "Charles Bradley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bradlmi01",
+      "playerName": "Michael Bradley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bradtma01",
+      "playerName": "Mark Bradtke",
+      "reason": "not found"
+    },
+    {
+      "playerID": "braggma01",
+      "playerName": "Marques Bragg",
+      "reason": "not found"
+    },
+    {
+      "playerID": "braggto01",
+      "playerName": "Torraye Braggs",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bramlaj01",
+      "playerName": "A.J. Bramlett",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brancad01",
+      "playerName": "Adrian Branch",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bransbr01",
+      "playerName": "Brad Branson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bratzmi01",
+      "playerName": "Mike Bratz",
+      "reason": "not found"
+    },
+    {
+      "playerID": "breauti01",
+      "playerName": "Tim Breaux",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bremejr01",
+      "playerName": "J.R. Bremer",
+      "reason": "not found"
+    },
+    {
+      "playerID": "breweja01",
+      "playerName": "Jamison Brewer",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brewero01",
+      "playerName": "Ron Brewer",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bristal01",
+      "playerName": "Allan Bristow",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brittda01",
+      "playerName": "Dave Britton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brittmi01",
+      "playerName": "Mike Brittain",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brogaji01",
+      "playerName": "Jim Brogan",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brookke01",
+      "playerName": "Kevin Brooks",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brooksc01",
+      "playerName": "Scott Brooks",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brownch01",
+      "playerName": "Chucky Brown",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brownda02",
+      "playerName": "Damone Brown",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brownde02",
+      "playerName": "Devin Brown",
+      "reason": "not found"
+    },
+    {
+      "playerID": "browner01",
+      "playerName": "Ernest Brown",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brownge02",
+      "playerName": "Gerald Brown",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brownjo01",
+      "playerName": "John Brown",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brownle02",
+      "playerName": "Lewis Brown",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brownma01",
+      "playerName": "Marcus Brown",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brownmy01",
+      "playerName": "Myron Brown",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brownra01",
+      "playerName": "Raymond Brown",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brownri01",
+      "playerName": "Rickey Brown",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brownro02",
+      "playerName": "Roger Brown",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brownti01",
+      "playerName": "Tierre Brown",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brundst01",
+      "playerName": "Stanley Brundy",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brunsri01",
+      "playerName": "Rick Brunson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bryanel01",
+      "playerName": "Elijah Bryant",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bryanjo01",
+      "playerName": "Joe Bryant",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bryanwa01",
+      "playerName": "Wallace Bryant",
+      "reason": "not found"
+    },
+    {
+      "playerID": "brynto01",
+      "playerName": "Torgeir Bryn",
+      "reason": "not found"
+    },
+    {
+      "playerID": "buckngr01",
+      "playerName": "Greg Buckner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bucknqu01",
+      "playerName": "Quinn Buckner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "bucknst01",
+      "playerName": "Steve Bucknall",
+      "reason": "not found"
+    },
+    {
+      "playerID": "buforro01",
+      "playerName": "Rodney Buford",
+      "reason": "not found"
+    },
+    {
+      "playerID": "burkepa01",
+      "playerName": "Pat Burke",
+      "reason": "not found"
+    },
+    {
+      "playerID": "burkmro01",
+      "playerName": "Roger Burkman",
+      "reason": "not found"
+    },
+    {
+      "playerID": "burksan01",
+      "playerName": "Antonio Burks",
+      "reason": "not found"
+    },
+    {
+      "playerID": "burleke01",
+      "playerName": "Kevin Burleson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "burleto01",
+      "playerName": "Tom Burleson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "burnsda01",
+      "playerName": "David Burns",
+      "reason": "not found"
+    },
+    {
+      "playerID": "burnsev01",
+      "playerName": "Evers Burns",
+      "reason": "not found"
+    },
+    {
+      "playerID": "burroju01",
+      "playerName": "Junior Burrough",
+      "reason": "not found"
+    },
+    {
+      "playerID": "burtoty01",
+      "playerName": "Tyler Burton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "burtowi01",
+      "playerName": "Willie Burton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "burttst01",
+      "playerName": "Steve Burtt",
+      "reason": "not found"
+    },
+    {
+      "playerID": "butlegr01",
+      "playerName": "Greg Butler",
+      "reason": "not found"
+    },
+    {
+      "playerID": "butleja01",
+      "playerName": "Jackie Butler",
+      "reason": "not found"
+    },
+    {
+      "playerID": "butlemi02",
+      "playerName": "Mitchell Butler",
+      "reason": "not found"
+    },
+    {
+      "playerID": "byrnema01",
+      "playerName": "Marty Byrnes",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cabarza01",
+      "playerName": "\u017darko \u010cabarkapa",
+      "reason": "not found"
+    },
+    {
+      "playerID": "caldwad01",
+      "playerName": "Adrian Caldwell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "calhoco01",
+      "playerName": "Corky Calhoun",
+      "reason": "not found"
+    },
+    {
+      "playerID": "calipde01",
+      "playerName": "Demetrius Calip",
+      "reason": "not found"
+    },
+    {
+      "playerID": "callori01",
+      "playerName": "Rick Calloway",
+      "reason": "not found"
+    },
+    {
+      "playerID": "calvima01",
+      "playerName": "Mack Calvin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cambrde01",
+      "playerName": "Dexter Cambridge",
+      "reason": "not found"
+    },
+    {
+      "playerID": "campbto01",
+      "playerName": "Tony Campbell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "carlige01",
+      "playerName": "Geno Carlisle",
+      "reason": "not found"
+    },
+    {
+      "playerID": "carrco01",
+      "playerName": "Cory Carr",
+      "reason": "not found"
+    },
+    {
+      "playerID": "carribo01",
+      "playerName": "Bob Carrington",
+      "reason": "not found"
+    },
+    {
+      "playerID": "carrke01",
+      "playerName": "Kenny Carr",
+      "reason": "not found"
+    },
+    {
+      "playerID": "carruji01",
+      "playerName": "Jimmy Carruth",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cartebu01",
+      "playerName": "Butch Carter",
+      "reason": "not found"
+    },
+    {
+      "playerID": "carteho01",
+      "playerName": "Howard Carter",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cartema01",
+      "playerName": "Maurice Carter",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cartere01",
+      "playerName": "Reggie Carter",
+      "reason": "not found"
+    },
+    {
+      "playerID": "catchha01",
+      "playerName": "Harvey Catchings",
+      "reason": "not found"
+    },
+    {
+      "playerID": "catoke01",
+      "playerName": "Kelvin Cato",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cattabo01",
+      "playerName": "Bobby Cattage",
+      "reason": "not found"
+    },
+    {
+      "playerID": "causwdu01",
+      "playerName": "Duane Causwell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cavenro01",
+      "playerName": "Ron Cavenall",
+      "reason": "not found"
+    },
+    {
+      "playerID": "celesjo01",
+      "playerName": "John Celestand",
+      "reason": "not found"
+    },
+    {
+      "playerID": "chalmli01",
+      "playerName": "Lionel Chalmers",
+      "reason": "not found"
+    },
+    {
+      "playerID": "champmi01",
+      "playerName": "Mike Champion",
+      "reason": "not found"
+    },
+    {
+      "playerID": "chanedo01",
+      "playerName": "Don Chaney",
+      "reason": "not found"
+    },
+    {
+      "playerID": "charllo01",
+      "playerName": "Lorenzo Charles",
+      "reason": "not found"
+    },
+    {
+      "playerID": "chievde01",
+      "playerName": "Derrick Chievous",
+      "reason": "not found"
+    },
+    {
+      "playerID": "chilcpe01",
+      "playerName": "Pete Chilcutt",
+      "reason": "not found"
+    },
+    {
+      "playerID": "childra01",
+      "playerName": "Randolph Childress",
+      "reason": "not found"
+    },
+    {
+      "playerID": "churcro01",
+      "playerName": "Robert Churchwell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "clarkca01",
+      "playerName": "Carlos Clark",
+      "reason": "not found"
+    },
+    {
+      "playerID": "claxtch01",
+      "playerName": "Charles Claxton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cleamji01",
+      "playerName": "Jim Cleamons",
+      "reason": "not found"
+    },
+    {
+      "playerID": "closske01",
+      "playerName": "Keith Closs",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cofferi01",
+      "playerName": "Richard Coffey",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cofiefr01",
+      "playerName": "Fred Cofield",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cokerjo01",
+      "playerName": "John Coker",
+      "reason": "not found"
+    },
+    {
+      "playerID": "colemno01",
+      "playerName": "Norris Coleman",
+      "reason": "not found"
+    },
+    {
+      "playerID": "colliar01",
+      "playerName": "Art Collins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "collido02",
+      "playerName": "Don Collins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "collija01",
+      "playerName": "James Collins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "collija02",
+      "playerName": "Jason Collier",
+      "reason": "not found"
+    },
+    {
+      "playerID": "combsle01",
+      "playerName": "Leroy Combs",
+      "reason": "not found"
+    },
+    {
+      "playerID": "comegda01",
+      "playerName": "Dallas Comegys",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cookan01",
+      "playerName": "Anthony Cook",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cookeda01",
+      "playerName": "David Cooke",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cookje01",
+      "playerName": "Jeff Cook",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cookom01",
+      "playerName": "Omar Cook",
+      "reason": "not found"
+    },
+    {
+      "playerID": "coopedu01",
+      "playerName": "Duane Cooper",
+      "reason": "not found"
+    },
+    {
+      "playerID": "coopejo01",
+      "playerName": "Joe Cooper",
+      "reason": "not found"
+    },
+    {
+      "playerID": "coopewa01",
+      "playerName": "Wayne Cooper",
+      "reason": "not found"
+    },
+    {
+      "playerID": "copato01",
+      "playerName": "Tom Copa",
+      "reason": "not found"
+    },
+    {
+      "playerID": "copelho01",
+      "playerName": "Hollis Copeland",
+      "reason": "not found"
+    },
+    {
+      "playerID": "copella01",
+      "playerName": "Lanard Copeland",
+      "reason": "not found"
+    },
+    {
+      "playerID": "corchch01",
+      "playerName": "Chris Corchiani",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cottoja02",
+      "playerName": "James Cotton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "coughjo01",
+      "playerName": "John Coughran",
+      "reason": "not found"
+    },
+    {
+      "playerID": "courtjo01",
+      "playerName": "Joe Courtney",
+      "reason": "not found"
+    },
+    {
+      "playerID": "coxch01",
+      "playerName": "Chubby Cox",
+      "reason": "not found"
+    },
+    {
+      "playerID": "crawfjo01",
+      "playerName": "Joe Crawford",
+      "reason": "not found"
+    },
+    {
+      "playerID": "creviro01",
+      "playerName": "Ron Crevier",
+      "reason": "not found"
+    },
+    {
+      "playerID": "crispjo01",
+      "playerName": "Joe Crispin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "crissch01",
+      "playerName": "Charlie Criss",
+      "reason": "not found"
+    },
+    {
+      "playerID": "critewi01",
+      "playerName": "Winston Crite",
+      "reason": "not found"
+    },
+    {
+      "playerID": "crittja01",
+      "playerName": "Javaris Crittenton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "crompge01",
+      "playerName": "Geoff Crompton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "crosbte01",
+      "playerName": "Terry Crosby",
+      "reason": "not found"
+    },
+    {
+      "playerID": "crossje01",
+      "playerName": "Jeff Cross",
+      "reason": "not found"
+    },
+    {
+      "playerID": "crossru01",
+      "playerName": "Russell Cross",
+      "reason": "not found"
+    },
+    {
+      "playerID": "crottjo01",
+      "playerName": "John Crotty",
+      "reason": "not found"
+    },
+    {
+      "playerID": "crowdco01",
+      "playerName": "Corey Crowder",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cumbeja01",
+      "playerName": "Jarron Cumberland",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cummipa01",
+      "playerName": "Pat Cummings",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cunniwi01",
+      "playerName": "William Cunningham",
+      "reason": "not found"
+    },
+    {
+      "playerID": "curcira01",
+      "playerName": "Radisav \u0106ur\u010di\u0107",
+      "reason": "not found"
+    },
+    {
+      "playerID": "curetea01",
+      "playerName": "Earl Cureton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "curlebi01",
+      "playerName": "Bill Curley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "curryja01",
+      "playerName": "JamesOn Curry",
+      "reason": "not found"
+    },
+    {
+      "playerID": "cvetkra01",
+      "playerName": "Rastko Cvetkovi\u0107",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dailequ01",
+      "playerName": "Quintin Dailey",
+      "reason": "not found"
+    },
+    {
+      "playerID": "danieer01",
+      "playerName": "Erik Daniels",
+      "reason": "not found"
+    },
+    {
+      "playerID": "daniell01",
+      "playerName": "Lloyd Daniels",
+      "reason": "not found"
+    },
+    {
+      "playerID": "danilsa01",
+      "playerName": "Sasha Danilovi\u0107",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dareyi01",
+      "playerName": "Yinka Dare",
+      "reason": "not found"
+    },
+    {
+      "playerID": "davidje01",
+      "playerName": "Jermareo Davidson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "davisbe01",
+      "playerName": "Ben Davis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "davisbr02",
+      "playerName": "Brian Davis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "davisch02",
+      "playerName": "Charles Davis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "davisem01",
+      "playerName": "Emanual Davis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "davisha01",
+      "playerName": "Harry Davis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "davisjo01",
+      "playerName": "Johnny Davis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "davisma01",
+      "playerName": "Mark Davis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "davismi03",
+      "playerName": "Mike Davis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "davismo01",
+      "playerName": "Monti Davis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "davispa01",
+      "playerName": "Paul Davis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "davisri01",
+      "playerName": "Ricky Davis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "davisro01",
+      "playerName": "Ron Davis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "daviste01",
+      "playerName": "Terry Davis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dawkijo01",
+      "playerName": "Johnny Dawkins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dawkipa01",
+      "playerName": "Paul Dawkins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dawsoto01",
+      "playerName": "Tony Dawson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dayeda01",
+      "playerName": "Darren Daye",
+      "reason": "not found"
+    },
+    {
+      "playerID": "deanegr01",
+      "playerName": "Greg Deane",
+      "reason": "not found"
+    },
+    {
+      "playerID": "deherte01",
+      "playerName": "Terry Dehere",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dembofe01",
+      "playerName": "Fennis Dembo",
+      "reason": "not found"
+    },
+    {
+      "playerID": "demicla01",
+      "playerName": "Larry Demic",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dempsde01",
+      "playerName": "Dell Demps",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dennake01",
+      "playerName": "Kenny Dennard",
+      "reason": "not found"
+    },
+    {
+      "playerID": "diazgu01",
+      "playerName": "Guillermo D\u00edaz",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dickada01",
+      "playerName": "Dan Dickau",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dickeka01",
+      "playerName": "Kaniel Dickens",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dienetr01",
+      "playerName": "Travis Diener",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dietrco01",
+      "playerName": "Coby Dietrick",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dillami01",
+      "playerName": "Mickey Dillard",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dinkiby01",
+      "playerName": "Byron Dinkins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dixonju01",
+      "playerName": "Juan Dixon",
+      "reason": "not found"
+    },
+    {
+      "playerID": "djordal01",
+      "playerName": "Aleksandar Djordjevic",
+      "reason": "not found"
+    },
+    {
+      "playerID": "donovbi01",
+      "playerName": "Billy Donovan",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dorseja01",
+      "playerName": "Jacky Dorsey",
+      "reason": "not found"
+    },
+    {
+      "playerID": "doubyqu01",
+      "playerName": "Quincy Douby",
+      "reason": "not found"
+    },
+    {
+      "playerID": "douglbr01",
+      "playerName": "Bruce Douglas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dougljo01",
+      "playerName": "John Douglas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "douglle01",
+      "playerName": "Leon Douglas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "doziete01",
+      "playerName": "Terry Dozier",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dreilgr01",
+      "playerName": "Greg Dreiling",
+      "reason": "not found"
+    },
+    {
+      "playerID": "drewbr01",
+      "playerName": "Bryce Drew",
+      "reason": "not found"
+    },
+    {
+      "playerID": "drewla01",
+      "playerName": "Larry Drew",
+      "reason": "not found"
+    },
+    {
+      "playerID": "driggna01",
+      "playerName": "Nate Driggers",
+      "reason": "not found"
+    },
+    {
+      "playerID": "drobnpr01",
+      "playerName": "Predrag Drobnjak",
+      "reason": "not found"
+    },
+    {
+      "playerID": "drollra01",
+      "playerName": "Ralph Drollinger",
+      "reason": "not found"
+    },
+    {
+      "playerID": "duckwke01",
+      "playerName": "Kevin Duckworth",
+      "reason": "not found"
+    },
+    {
+      "playerID": "duerote01",
+      "playerName": "Terry Duerod",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dumasri02",
+      "playerName": "Richard Dumas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dumasto01",
+      "playerName": "Tony Dumas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dunlemi01",
+      "playerName": "Mike Dunleavy",
+      "reason": "not found"
+    },
+    {
+      "playerID": "durenjo01",
+      "playerName": "John Duren",
+      "reason": "not found"
+    },
+    {
+      "playerID": "durhapa01",
+      "playerName": "Pat Durham",
+      "reason": "not found"
+    },
+    {
+      "playerID": "durrade01",
+      "playerName": "Devin Durrant",
+      "reason": "not found"
+    },
+    {
+      "playerID": "dykemcr01",
+      "playerName": "Craig Dykema",
+      "reason": "not found"
+    },
+    {
+      "playerID": "earlac01",
+      "playerName": "Acie Earl",
+      "reason": "not found"
+    },
+    {
+      "playerID": "eavesje01",
+      "playerName": "Jerry Eaves",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ebind01",
+      "playerName": "Ndudi Ebi",
+      "reason": "not found"
+    },
+    {
+      "playerID": "eddiepa01",
+      "playerName": "Patrick Eddie",
+      "reason": "not found"
+    },
+    {
+      "playerID": "edelike01",
+      "playerName": "Kenton Edelin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "edmonke01",
+      "playerName": "Keith Edmonson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "edneyty01",
+      "playerName": "Tyus Edney",
+      "reason": "not found"
+    },
+    {
+      "playerID": "edwarbi01",
+      "playerName": "Bill Edwards",
+      "reason": "not found"
+    },
+    {
+      "playerID": "edwarbl01",
+      "playerName": "Blue Edwards",
+      "reason": "not found"
+    },
+    {
+      "playerID": "edwarco01",
+      "playerName": "Corsley Edwards",
+      "reason": "not found"
+    },
+    {
+      "playerID": "edwarfr01",
+      "playerName": "Franklin Edwards",
+      "reason": "not found"
+    },
+    {
+      "playerID": "edwarja02",
+      "playerName": "Jay Edwards",
+      "reason": "not found"
+    },
+    {
+      "playerID": "edwarjo01",
+      "playerName": "John Edwards",
+      "reason": "not found"
+    },
+    {
+      "playerID": "edwarke01",
+      "playerName": "Kevin Edwards",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ekeziob01",
+      "playerName": "Obinna Ekezie",
+      "reason": "not found"
+    },
+    {
+      "playerID": "elamikh01",
+      "playerName": "Khalid El-Amin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "elliobo01",
+      "playerName": "Bob Elliott",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ellisbo02",
+      "playerName": "Bo Ellis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ellisha01",
+      "playerName": "Harold Ellis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ellisle02",
+      "playerName": "LeRon Ellis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ellispe01",
+      "playerName": "Pervis Ellison",
+      "reason": "not found"
+    },
+    {
+      "playerID": "elmorle01",
+      "playerName": "Len Elmore",
+      "reason": "not found"
+    },
+    {
+      "playerID": "englewa01",
+      "playerName": "Wayne Engelstad",
+      "reason": "not found"
+    },
+    {
+      "playerID": "engliaj01",
+      "playerName": "A.J. English",
+      "reason": "not found"
+    },
+    {
+      "playerID": "englijo01",
+      "playerName": "Jo Jo English",
+      "reason": "not found"
+    },
+    {
+      "playerID": "eschmev01",
+      "playerName": "Evan Eschmeyer",
+      "reason": "not found"
+    },
+    {
+      "playerID": "esposvi01",
+      "playerName": "Vincenzo Esposito",
+      "reason": "not found"
+    },
+    {
+      "playerID": "evansbr01",
+      "playerName": "Brian Evans",
+      "reason": "not found"
+    },
+    {
+      "playerID": "evansea01",
+      "playerName": "Earl Evans",
+      "reason": "not found"
+    },
+    {
+      "playerID": "evansmi01",
+      "playerName": "Mike Evans",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ewingda01",
+      "playerName": "Daniel Ewing",
+      "reason": "not found"
+    },
+    {
+      "playerID": "farmede01",
+      "playerName": "Desmon Farmer",
+      "reason": "not found"
+    },
+    {
+      "playerID": "farmeji01",
+      "playerName": "Jim Farmer",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fazekni01",
+      "playerName": "Nick Fazekas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "feickja01",
+      "playerName": "Jamie Feick",
+      "reason": "not found"
+    },
+    {
+      "playerID": "feitlda01",
+      "playerName": "Dave Feitl",
+      "reason": "not found"
+    },
+    {
+      "playerID": "felixno01",
+      "playerName": "Noel Felix",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fergude01",
+      "playerName": "Desmond Ferguson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fernser01",
+      "playerName": "Eric Fernsten",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ferrero01",
+      "playerName": "Rolando Ferreira",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fieldke01",
+      "playerName": "Kenny Fields",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fishma01",
+      "playerName": "Matt Fish",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fitchge01",
+      "playerName": "Gerald Fitch",
+      "reason": "not found"
+    },
+    {
+      "playerID": "florelu01",
+      "playerName": "Luis Flores",
+      "reason": "not found"
+    },
+    {
+      "playerID": "flowebr01",
+      "playerName": "Bruce Flowers",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fontais01",
+      "playerName": "Isaac Fontaine",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fordal01",
+      "playerName": "Alphonso Ford",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fordal02",
+      "playerName": "Alton Ford",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fordch01",
+      "playerName": "Chris Ford",
+      "reason": "not found"
+    },
+    {
+      "playerID": "forddo01",
+      "playerName": "Don Ford",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fordph01",
+      "playerName": "Phil Ford",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fordsh01",
+      "playerName": "Sherell Ford",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fordsh02",
+      "playerName": "Sharrod Ford",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fostero01",
+      "playerName": "Rod Foster",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fotsian01",
+      "playerName": "Antonis Fotsis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fowlktr01",
+      "playerName": "Tremaine Fowlkes",
+      "reason": "not found"
+    },
+    {
+      "playerID": "frahmri01",
+      "playerName": "Richie Frahm",
+      "reason": "not found"
+    },
+    {
+      "playerID": "frankte01",
+      "playerName": "Tellis Frank",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fredean01",
+      "playerName": "Anthony Frederick",
+      "reason": "not found"
+    },
+    {
+      "playerID": "freijma01",
+      "playerName": "Matt Freije",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fullehi01",
+      "playerName": "Hiram Fuller",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fulleto01",
+      "playerName": "Tony Fuller",
+      "reason": "not found"
+    },
+    {
+      "playerID": "fulleto02",
+      "playerName": "Todd Fuller",
+      "reason": "not found"
+    },
+    {
+      "playerID": "furlote01",
+      "playerName": "Terry Furlow",
+      "reason": "not found"
+    },
+    {
+      "playerID": "gaide01",
+      "playerName": "Deng Gai",
+      "reason": "not found"
+    },
+    {
+      "playerID": "gainere01",
+      "playerName": "Reece Gaines",
+      "reason": "not found"
+    },
+    {
+      "playerID": "galemi01",
+      "playerName": "Mike Gale",
+      "reason": "not found"
+    },
+    {
+      "playerID": "gallach01",
+      "playerName": "Chad Gallagher",
+      "reason": "not found"
+    },
+    {
+      "playerID": "garbajo01",
+      "playerName": "Jorge Garbajosa",
+      "reason": "not found"
+    },
+    {
+      "playerID": "garceru01",
+      "playerName": "Rub\u00e9n Garc\u00e9s",
+      "reason": "not found"
+    },
+    {
+      "playerID": "garcial01",
+      "playerName": "Alex Garcia",
+      "reason": "not found"
+    },
+    {
+      "playerID": "garcian01",
+      "playerName": "Andersson Garcia",
+      "reason": "not found"
+    },
+    {
+      "playerID": "gardnth01",
+      "playerName": "Thomas Gardner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "garlaga01",
+      "playerName": "Gary Garland",
+      "reason": "not found"
+    },
+    {
+      "playerID": "garnebi02",
+      "playerName": "Bill Garnett",
+      "reason": "not found"
+    },
+    {
+      "playerID": "garnech01",
+      "playerName": "Chris Garner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "garreca01",
+      "playerName": "Calvin Garrett",
+      "reason": "not found"
+    },
+    {
+      "playerID": "garrijo01",
+      "playerName": "John Garris",
+      "reason": "not found"
+    },
+    {
+      "playerID": "garriki01",
+      "playerName": "Kiwane Lemorris Garris",
+      "reason": "not found"
+    },
+    {
+      "playerID": "garrito01",
+      "playerName": "Tom Garrick",
+      "reason": "not found"
+    },
+    {
+      "playerID": "gatlich01",
+      "playerName": "Chris Gatling",
+      "reason": "not found"
+    },
+    {
+      "playerID": "gazean01",
+      "playerName": "Andrew Gaze",
+      "reason": "not found"
+    },
+    {
+      "playerID": "gearyre01",
+      "playerName": "Reggie Geary",
+      "reason": "not found"
+    },
+    {
+      "playerID": "georgta01",
+      "playerName": "Tate George",
+      "reason": "not found"
+    },
+    {
+      "playerID": "gerargu01",
+      "playerName": "Gus Gerard",
+      "reason": "not found"
+    },
+    {
+      "playerID": "gervide01",
+      "playerName": "Derrick Gervin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "gibsomi01",
+      "playerName": "Mike Gibson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "giddejr01",
+      "playerName": "J.R. Giddens",
+      "reason": "not found"
+    },
+    {
+      "playerID": "gillebe01",
+      "playerName": "Ben Gillery",
+      "reason": "not found"
+    },
+    {
+      "playerID": "givenja01",
+      "playerName": "Jack Givens",
+      "reason": "not found"
+    },
+    {
+      "playerID": "glassge01",
+      "playerName": "Gerald Glass",
+      "reason": "not found"
+    },
+    {
+      "playerID": "glennmi01",
+      "playerName": "Mike Glenn",
+      "reason": "not found"
+    },
+    {
+      "playerID": "glynian01",
+      "playerName": "Andreas Glyniadakis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "godfrda01",
+      "playerName": "Dan Godfread",
+      "reason": "not found"
+    },
+    {
+      "playerID": "goldwan01",
+      "playerName": "Anthony Goldwire",
+      "reason": "not found"
+    },
+    {
+      "playerID": "gondrgl01",
+      "playerName": "Glen Gondrezick",
+      "reason": "not found"
+    },
+    {
+      "playerID": "gondrgr01",
+      "playerName": "Grant Gondrezick",
+      "reason": "not found"
+    },
+    {
+      "playerID": "goodrst01",
+      "playerName": "Steve Goodrich",
+      "reason": "not found"
+    },
+    {
+      "playerID": "gordola01",
+      "playerName": "Lancaster Gordon",
+      "reason": "not found"
+    },
+    {
+      "playerID": "graceri01",
+      "playerName": "Ricky Grace",
+      "reason": "not found"
+    },
+    {
+      "playerID": "grahagr01",
+      "playerName": "Greg Graham",
+      "reason": "not found"
+    },
+    {
+      "playerID": "grahaor01",
+      "playerName": "Orlando Graham",
+      "reason": "not found"
+    },
+    {
+      "playerID": "grahapa01",
+      "playerName": "Paul Graham",
+      "reason": "not found"
+    },
+    {
+      "playerID": "grandji01",
+      "playerName": "Jim Grandholm",
+      "reason": "not found"
+    },
+    {
+      "playerID": "grandro01",
+      "playerName": "Ron Grandison",
+      "reason": "not found"
+    },
+    {
+      "playerID": "grangst01",
+      "playerName": "Stewart Granger",
+      "reason": "not found"
+    },
+    {
+      "playerID": "grantga01",
+      "playerName": "Gary Grant",
+      "reason": "not found"
+    },
+    {
+      "playerID": "grantgr01",
+      "playerName": "Greg Grant",
+      "reason": "not found"
+    },
+    {
+      "playerID": "grantjo01",
+      "playerName": "Josh Grant",
+      "reason": "not found"
+    },
+    {
+      "playerID": "grantpa01",
+      "playerName": "Paul Grant",
+      "reason": "not found"
+    },
+    {
+      "playerID": "gravebu01",
+      "playerName": "Butch Graves",
+      "reason": "not found"
+    },
+    {
+      "playerID": "grayde01",
+      "playerName": "Devin Gray",
+      "reason": "not found"
+    },
+    {
+      "playerID": "grayev01",
+      "playerName": "Evric Gray",
+      "reason": "not found"
+    },
+    {
+      "playerID": "grayha01",
+      "playerName": "Hayden Gray",
+      "reason": "not found"
+    },
+    {
+      "playerID": "grayst01",
+      "playerName": "Stuart Gray",
+      "reason": "not found"
+    },
+    {
+      "playerID": "graysy01",
+      "playerName": "Sylvester Gray",
+      "reason": "not found"
+    },
+    {
+      "playerID": "greende01",
+      "playerName": "Devin Green",
+      "reason": "not found"
+    },
+    {
+      "playerID": "greenke01",
+      "playerName": "Ken Green",
+      "reason": "not found"
+    },
+    {
+      "playerID": "greenke02",
+      "playerName": "Kenny Green",
+      "reason": "not found"
+    },
+    {
+      "playerID": "greenli01",
+      "playerName": "Litterial Green",
+      "reason": "not found"
+    },
+    {
+      "playerID": "greenmi01",
+      "playerName": "Mike Green",
+      "reason": "not found"
+    },
+    {
+      "playerID": "greense01",
+      "playerName": "Sean Green",
+      "reason": "not found"
+    },
+    {
+      "playerID": "greenta01",
+      "playerName": "Taurean Green",
+      "reason": "not found"
+    },
+    {
+      "playerID": "greerly01",
+      "playerName": "Lynn Greer",
+      "reason": "not found"
+    },
+    {
+      "playerID": "gregocl01",
+      "playerName": "Claude Gregory",
+      "reason": "not found"
+    },
+    {
+      "playerID": "greigjo01",
+      "playerName": "John Greig",
+      "reason": "not found"
+    },
+    {
+      "playerID": "greveke01",
+      "playerName": "Kevin Grevey",
+      "reason": "not found"
+    },
+    {
+      "playerID": "griffed01",
+      "playerName": "Eddie Griffin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "griffpa01",
+      "playerName": "Paul Griffin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "griffta01",
+      "playerName": "Taylor Griffin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "grimmde01",
+      "playerName": "Derek Grimm",
+      "reason": "not found"
+    },
+    {
+      "playerID": "grundan01",
+      "playerName": "Anthony Grundy",
+      "reason": "not found"
+    },
+    {
+      "playerID": "grunfer01",
+      "playerName": "Ernie Grunfeld",
+      "reason": "not found"
+    },
+    {
+      "playerID": "gudmupe01",
+      "playerName": "P\u00e9tur Gu\u00f0mundsson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "guibean01",
+      "playerName": "Andr\u00e9s Guibert",
+      "reason": "not found"
+    },
+    {
+      "playerID": "guidija01",
+      "playerName": "Jay Guidinger",
+      "reason": "not found"
+    },
+    {
+      "playerID": "guytoaj01",
+      "playerName": "A.J. Guyton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "haffnsc01",
+      "playerName": "Scott Haffner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hagangl01",
+      "playerName": "Glenn Hagan",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hairsma01",
+      "playerName": "Malik Hairston",
+      "reason": "not found"
+    },
+    {
+      "playerID": "haislma01",
+      "playerName": "Marcus Haislip",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hallmi01",
+      "playerName": "Mike Hall",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hamilro01",
+      "playerName": "Roy Hamilton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hamilta01",
+      "playerName": "Tang Hamilton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hamilth01",
+      "playerName": "Thomas Hamilton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hamilze01",
+      "playerName": "Zendon Hamilton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hammige01",
+      "playerName": "Geert Hammink",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hancoda01",
+      "playerName": "Darrin Hancock",
+      "reason": "not found"
+    },
+    {
+      "playerID": "handlbe01",
+      "playerName": "Ben Handlogten",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hansetr01",
+      "playerName": "Travis Hansen",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hansore01",
+      "playerName": "Reggie Hanson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hanzlbi01",
+      "playerName": "Bill Hanzlik",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hardyal01",
+      "playerName": "Alan Hardy",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hardyja01",
+      "playerName": "James Hardy",
+      "reason": "not found"
+    },
+    {
+      "playerID": "harmoje01",
+      "playerName": "Jerome Harmon",
+      "reason": "not found"
+    },
+    {
+      "playerID": "harpemi01",
+      "playerName": "Mike Harper",
+      "reason": "not found"
+    },
+    {
+      "playerID": "harriad01",
+      "playerName": "Adam Harrington",
+      "reason": "not found"
+    },
+    {
+      "playerID": "harrida01",
+      "playerName": "David Harrison",
+      "reason": "not found"
+    },
+    {
+      "playerID": "harriju01",
+      "playerName": "Junior Harrington",
+      "reason": "not found"
+    },
+    {
+      "playerID": "harriot01",
+      "playerName": "Othella Harrington",
+      "reason": "not found"
+    },
+    {
+      "playerID": "harrist01",
+      "playerName": "Steve Harris",
+      "reason": "not found"
+    },
+    {
+      "playerID": "harrito01",
+      "playerName": "Tony Harris",
+      "reason": "not found"
+    },
+    {
+      "playerID": "harvean01",
+      "playerName": "Antonio Harvey",
+      "reason": "not found"
+    },
+    {
+      "playerID": "harvedo01",
+      "playerName": "Donnell Harvey",
+      "reason": "not found"
+    },
+    {
+      "playerID": "haskisc01",
+      "playerName": "Scott Haskin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hassejo01",
+      "playerName": "Joe Hassett",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hastisc01",
+      "playerName": "Scott Hastings",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hastoki01",
+      "playerName": "Kirk Haston",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hawesst01",
+      "playerName": "Steve Hawes",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hawkiju01",
+      "playerName": "Juaquin Hawkins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hawkimi01",
+      "playerName": "Michael Hawkins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hayesst01",
+      "playerName": "Steve Hayes",
+      "reason": "not found"
+    },
+    {
+      "playerID": "healsh01",
+      "playerName": "Shane Heal",
+      "reason": "not found"
+    },
+    {
+      "playerID": "heggsal01",
+      "playerName": "Alvin Heggs",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hendece01",
+      "playerName": "Cedric Henderson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hendece02",
+      "playerName": "Cedric Henderson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hendeda01",
+      "playerName": "Dave Henderson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hendeje01",
+      "playerName": "Jerome Henderson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hendejr01",
+      "playerName": "J.R. Henderson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hendeke01",
+      "playerName": "Kevin Henderson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hendrma01",
+      "playerName": "Mark Hendrickson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "henryca01",
+      "playerName": "Carl Henry",
+      "reason": "not found"
+    },
+    {
+      "playerID": "henryco01",
+      "playerName": "Conner Henry",
+      "reason": "not found"
+    },
+    {
+      "playerID": "henrysk01",
+      "playerName": "Skeeter Henry",
+      "reason": "not found"
+    },
+    {
+      "playerID": "herreca01",
+      "playerName": "Carl Herrera",
+      "reason": "not found"
+    },
+    {
+      "playerID": "herrmwa01",
+      "playerName": "Walter Herrmann",
+      "reason": "not found"
+    },
+    {
+      "playerID": "herroke01",
+      "playerName": "Keith Herron",
+      "reason": "not found"
+    },
+    {
+      "playerID": "higgimi01",
+      "playerName": "Mike Higgins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "higgiro01",
+      "playerName": "Rod Higgins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "higgise01",
+      "playerName": "Sean Higgins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "higgske01",
+      "playerName": "Kenny Higgs",
+      "reason": "not found"
+    },
+    {
+      "playerID": "highjo01",
+      "playerName": "Johnny High",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hillar01",
+      "playerName": "Armond Hill",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hillmda01",
+      "playerName": "Darnell Hillman",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hillst01",
+      "playerName": "Steven Hill",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hitero01",
+      "playerName": "Robert Hite",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hodgedo01",
+      "playerName": "Donald Hodge",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hodgeju01",
+      "playerName": "Julius Hodge",
+      "reason": "not found"
+    },
+    {
+      "playerID": "holcora01",
+      "playerName": "Randy Holcomb",
+      "reason": "not found"
+    },
+    {
+      "playerID": "holtomi01",
+      "playerName": "Michael Holton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "honeyje01",
+      "playerName": "Jerald Honeycutt",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hoodde01",
+      "playerName": "Derek Hood",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hoppeda01",
+      "playerName": "Dave Hoppen",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hordgce01",
+      "playerName": "Cedrick Hordges",
+      "reason": "not found"
+    },
+    {
+      "playerID": "horfoti01",
+      "playerName": "Tito Horford",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hortoed01",
+      "playerName": "Ed Horton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "houstby01",
+      "playerName": "Byron Houston",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hovasto01",
+      "playerName": "Tom Hovasse",
+      "reason": "not found"
+    },
+    {
+      "playerID": "howarbr01",
+      "playerName": "Brian Howard",
+      "reason": "not found"
+    },
+    {
+      "playerID": "howarst01",
+      "playerName": "Stephen Howard",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hubbaph01",
+      "playerName": "Phil Hubbard",
+      "reason": "not found"
+    },
+    {
+      "playerID": "huffmna01",
+      "playerName": "Nate Huffman",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hugheed01",
+      "playerName": "Eddie Hughes",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hugheki01",
+      "playerName": "Kim Hughes",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hugheri01",
+      "playerName": "Alfredrick Hughes",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hugheri02",
+      "playerName": "Rick Hughes",
+      "reason": "not found"
+    },
+    {
+      "playerID": "humphry01",
+      "playerName": "Ryan Humphrey",
+      "reason": "not found"
+    },
+    {
+      "playerID": "huntebr01",
+      "playerName": "Brandon Hunter",
+      "reason": "not found"
+    },
+    {
+      "playerID": "huntece01",
+      "playerName": "Cedric Hunter",
+      "reason": "not found"
+    },
+    {
+      "playerID": "huntech01",
+      "playerName": "Chris Hunter",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hunteot01",
+      "playerName": "Othello Hunter",
+      "reason": "not found"
+    },
+    {
+      "playerID": "huntest01",
+      "playerName": "Steven Hunter",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hurlebo01",
+      "playerName": "Bobby Hurley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "hustoge01",
+      "playerName": "Geoff Huston",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ilicmi01",
+      "playerName": "Mile Ili\u0107",
+      "reason": "not found"
+    },
+    {
+      "playerID": "irvinby01",
+      "playerName": "Byron Irvin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "iuzzomi01",
+      "playerName": "Mike Iuzzolino",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jacksce01",
+      "playerName": "Cedric Jackson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jacksja01",
+      "playerName": "Jaren Jackson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jacksje01",
+      "playerName": "Jermaine Jackson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jacksmi02",
+      "playerName": "Michael Jackson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jacksmy01",
+      "playerName": "Myron Jackson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jacksra01",
+      "playerName": "Ralph Jackson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jacksra02",
+      "playerName": "Randell Jackson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jacksst01",
+      "playerName": "Stanley Jackson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jacksto02",
+      "playerName": "Tony Jackson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jackstr01",
+      "playerName": "Tracy Jackson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jacobca01",
+      "playerName": "Casey Jacobsen",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jacobsa01",
+      "playerName": "Sam Jacobson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jamerda01",
+      "playerName": "Dave Jamerson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jameshe01",
+      "playerName": "Henry James",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jamesti01",
+      "playerName": "Tim James",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jasiksa01",
+      "playerName": "\u0160ar\u016bnas Jasikevi\u010dius",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jawaina01",
+      "playerName": "Nathan Jawai",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jeelaab01",
+      "playerName": "Abdul Jeelani",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jeffech01",
+      "playerName": "Chris Jefferies",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jeffedo01",
+      "playerName": "Dontell Jefferson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jenkiho01",
+      "playerName": "Horace Jenkins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jennike01",
+      "playerName": "Keith Jennings",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jentch01",
+      "playerName": "Chris Jent",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jepsele01",
+      "playerName": "Les Jepsen",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsbr01",
+      "playerName": "Britton Johnsen",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsbu01",
+      "playerName": "Buck Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsch02",
+      "playerName": "Cheese Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsch06",
+      "playerName": "Chaney Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnscl01",
+      "playerName": "Clemon Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnscl02",
+      "playerName": "Clay Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsda01",
+      "playerName": "Dave Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsda02",
+      "playerName": "Darryl Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsde02",
+      "playerName": "DeMarco Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnser01",
+      "playerName": "Eric Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsfr01",
+      "playerName": "Frank Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsge02",
+      "playerName": "George Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsji01",
+      "playerName": "Jim Johnstone",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsjo01",
+      "playerName": "John Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnska01",
+      "playerName": "Kannard Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnske01",
+      "playerName": "Ken Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnske03",
+      "playerName": "Ken Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsle01",
+      "playerName": "Lee Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsli01",
+      "playerName": "Linton Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsna01",
+      "playerName": "Nate Johnston",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsol01",
+      "playerName": "Ollie Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsre01",
+      "playerName": "Reggie Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsst02",
+      "playerName": "Steffond Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "johnsst03",
+      "playerName": "Steve Johnson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonesal01",
+      "playerName": "Alvin Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonesan01",
+      "playerName": "Anthony Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonesas01",
+      "playerName": "Askia Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonesbi01",
+      "playerName": "Bill Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonesbo02",
+      "playerName": "Bobby Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonesca01",
+      "playerName": "Caldwell Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonesch01",
+      "playerName": "Charles Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonesch02",
+      "playerName": "Charles Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonesch03",
+      "playerName": "Charles Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonesdw01",
+      "playerName": "Dwight Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonesea01",
+      "playerName": "Earl Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonesed01",
+      "playerName": "Edgar Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "joneshu01",
+      "playerName": "Hutch Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonesju01",
+      "playerName": "Jumaine Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonesma01",
+      "playerName": "Major Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonesma02",
+      "playerName": "Mark Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonesma03",
+      "playerName": "Mark Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonesoz01",
+      "playerName": "Ozell Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonespo01",
+      "playerName": "Popeye Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jonessh01",
+      "playerName": "Shelton Jones",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jordaad01",
+      "playerName": "Adonis Jordan",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jordaed01",
+      "playerName": "Eddie Jordan",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jordare01",
+      "playerName": "Reggie Jordan",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jordath01",
+      "playerName": "Thomas Jordan",
+      "reason": "not found"
+    },
+    {
+      "playerID": "jordawa01",
+      "playerName": "Walter Jordan",
+      "reason": "not found"
+    },
+    {
+      "playerID": "josepga01",
+      "playerName": "Garth Joseph",
+      "reason": "not found"
+    },
+    {
+      "playerID": "josepyv01",
+      "playerName": "Yvon Joseph",
+      "reason": "not found"
+    },
+    {
+      "playerID": "judkije01",
+      "playerName": "Jeff Judkins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kasunma01",
+      "playerName": "Mario Kasun",
+      "reason": "not found"
+    },
+    {
+      "playerID": "keacl01",
+      "playerName": "Clarence Kea",
+      "reason": "not found"
+    },
+    {
+      "playerID": "keeliha01",
+      "playerName": "Harold Keeling",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kellocl01",
+      "playerName": "Clark Kellogg",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kelsegr01",
+      "playerName": "Greg Kelser",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kemptti01",
+      "playerName": "Tim Kempton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kentja01",
+      "playerName": "Jayson Kent",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kernejo01",
+      "playerName": "Jonathan Kerner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kesslal01",
+      "playerName": "Alec Kessler",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ketnela01",
+      "playerName": "Lari Ketner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "keysra01",
+      "playerName": "Randolph Keys",
+      "reason": "not found"
+    },
+    {
+      "playerID": "khryavi01",
+      "playerName": "Viktor Khryapa",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kiddwa01",
+      "playerName": "Warren Kidd",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kiffiir01",
+      "playerName": "Irv Kiffin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kilpaca01",
+      "playerName": "Carl Kilpatrick",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kimblbo01",
+      "playerName": "Bo Kimble",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kimbrst01",
+      "playerName": "Stan Kimbrough",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kinchch01",
+      "playerName": "Chad Kinch",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kingch01",
+      "playerName": "Chris King",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kingfr01",
+      "playerName": "Frankie King",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kingge02",
+      "playerName": "Gerard King",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kingji02",
+      "playerName": "Jimmy King",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kingre01",
+      "playerName": "Reggie King",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kingri01",
+      "playerName": "Rich King",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kingst01",
+      "playerName": "Stacey King",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kitchcu01",
+      "playerName": "Curtis Kitchen",
+      "reason": "not found"
+    },
+    {
+      "playerID": "knighbr02",
+      "playerName": "Brandin Knight",
+      "reason": "not found"
+    },
+    {
+      "playerID": "knighto01",
+      "playerName": "Toby Knight",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kofoeba01",
+      "playerName": "Bart Kofoed",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kopicjo01",
+      "playerName": "Joe Kopicki",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kornefr01",
+      "playerName": "Frank Kornet",
+      "reason": "not found"
+    },
+    {
+      "playerID": "korolya01",
+      "playerName": "Yaroslav Korolev",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kramear01",
+      "playerName": "Arvid Kramer",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kramejo01",
+      "playerName": "Joel Kramer",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kreklwa01",
+      "playerName": "Wayne Kreklow",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kuczebr01",
+      "playerName": "Bruce Kuczenski",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kuestjo01",
+      "playerName": "John Kuester",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kunneke01",
+      "playerName": "Kevin Kunnert",
+      "reason": "not found"
+    },
+    {
+      "playerID": "kutluib01",
+      "playerName": "Ibo Kutluay",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lafayol01",
+      "playerName": "Oliver Lafayette",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lagarto01",
+      "playerName": "Tom LaGarde",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lambejo01",
+      "playerName": "John Lambert",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lampema01",
+      "playerName": "Maciej Lampe",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lampje01",
+      "playerName": "Jeff Lamp",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lamplji01",
+      "playerName": "Jim Lampley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lamplse01",
+      "playerName": "Sean Lampley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "laneje01",
+      "playerName": "Jerome Lane",
+      "reason": "not found"
+    },
+    {
+      "playerID": "langan02",
+      "playerName": "Antonio Lang",
+      "reason": "not found"
+    },
+    {
+      "playerID": "langdtr01",
+      "playerName": "Trajan Langdon",
+      "reason": "not found"
+    },
+    {
+      "playerID": "langfke01",
+      "playerName": "Keith Langford",
+      "reason": "not found"
+    },
+    {
+      "playerID": "langhda01",
+      "playerName": "Dan Langhi",
+      "reason": "not found"
+    },
+    {
+      "playerID": "langja01",
+      "playerName": "James Lang",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lasmest01",
+      "playerName": "St\u00e9phane Lasme",
+      "reason": "not found"
+    },
+    {
+      "playerID": "laudepr01",
+      "playerName": "Priest Lauderdale",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lawreed01",
+      "playerName": "Edmund Lawrence",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lawsoja01",
+      "playerName": "Jason Lawson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "leboje01",
+      "playerName": "Jeff Lebo",
+      "reason": "not found"
+    },
+    {
+      "playerID": "leedo01",
+      "playerName": "Doug Lee",
+      "reason": "not found"
+    },
+    {
+      "playerID": "leeku01",
+      "playerName": "Kurk Lee",
+      "reason": "not found"
+    },
+    {
+      "playerID": "leero01",
+      "playerName": "Ron Lee",
+      "reason": "not found"
+    },
+    {
+      "playerID": "leero02",
+      "playerName": "Rock Lee",
+      "reason": "not found"
+    },
+    {
+      "playerID": "legleti01",
+      "playerName": "Tim Legler",
+      "reason": "not found"
+    },
+    {
+      "playerID": "leonaga01",
+      "playerName": "Gary Leonard",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lestero01",
+      "playerName": "Ronnie Lester",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lettcl01",
+      "playerName": "Clifford Lett",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lewisce01",
+      "playerName": "Cedric Lewis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lewisma01",
+      "playerName": "Martin Lewis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lewisqu01",
+      "playerName": "Quincy Lewis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lewisra01",
+      "playerName": "Ralph Lewis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lichtto01",
+      "playerName": "Todd Lichti",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lingest01",
+      "playerName": "Steve Lingenfelter",
+      "reason": "not found"
+    },
+    {
+      "playerID": "livinra01",
+      "playerName": "Randy Livingston",
+      "reason": "not found"
+    },
+    {
+      "playerID": "llamaho01",
+      "playerName": "Horacio Llamas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lloydle01",
+      "playerName": "Lewis Lloyd",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lloydsc01",
+      "playerName": "Scott Lloyd",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lockhda01",
+      "playerName": "Darrell Lockhart",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lockhia01",
+      "playerName": "Ian Lockhart",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lockro01",
+      "playerName": "Rob Lock",
+      "reason": "not found"
+    },
+    {
+      "playerID": "loderke01",
+      "playerName": "Kevin Loder",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lohaubr01",
+      "playerName": "Brad Lohaus",
+      "reason": "not found"
+    },
+    {
+      "playerID": "longar01",
+      "playerName": "Art Long",
+      "reason": "not found"
+    },
+    {
+      "playerID": "longjo01",
+      "playerName": "John Long",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lopezfe01",
+      "playerName": "Felipe L\u00f3pez",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lopezra01",
+      "playerName": "Ra\u00fcl L\u00f3pez",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lorthry01",
+      "playerName": "Ryan Lorthridge",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lowesi01",
+      "playerName": "Sidney Lowe",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lucasjo01",
+      "playerName": "John Lucas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lundbga01",
+      "playerName": "Gabriel Lundberg",
+      "reason": "not found"
+    },
+    {
+      "playerID": "lynchke01",
+      "playerName": "Kevin Lynch",
+      "reason": "not found"
+    },
+    {
+      "playerID": "macijar01",
+      "playerName": "Arvydas Macijauskas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mackema01",
+      "playerName": "Malcolm Mackey",
+      "reason": "not found"
+    },
+    {
+      "playerID": "macklru01",
+      "playerName": "Rudy Macklin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mackol01",
+      "playerName": "Ollie Mack",
+      "reason": "not found"
+    },
+    {
+      "playerID": "macksa01",
+      "playerName": "Sam Mack",
+      "reason": "not found"
+    },
+    {
+      "playerID": "macledo01",
+      "playerName": "Don MacLean",
+      "reason": "not found"
+    },
+    {
+      "playerID": "maconma01",
+      "playerName": "Mark Macon",
+      "reason": "not found"
+    },
+    {
+      "playerID": "maddoti01",
+      "playerName": "Tito Maddox",
+      "reason": "not found"
+    },
+    {
+      "playerID": "madkige01",
+      "playerName": "Gerald Madkins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "magleda01",
+      "playerName": "Dave Magley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "majorre01",
+      "playerName": "Renaldo Major",
+      "reason": "not found"
+    },
+    {
+      "playerID": "malovst01",
+      "playerName": "Steve Malovic",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mannipa01",
+      "playerName": "Pace Mannion",
+      "reason": "not found"
+    },
+    {
+      "playerID": "manniri01",
+      "playerName": "Rich Manning",
+      "reason": "not found"
+    },
+    {
+      "playerID": "marblro01",
+      "playerName": "Roy Marble",
+      "reason": "not found"
+    },
+    {
+      "playerID": "markoda01",
+      "playerName": "Damir Markota",
+      "reason": "not found"
+    },
+    {
+      "playerID": "marshra01",
+      "playerName": "Rawle Marshall",
+      "reason": "not found"
+    },
+    {
+      "playerID": "martibi01",
+      "playerName": "Bill Martin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "martibo01",
+      "playerName": "Bob Martin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "martibr01",
+      "playerName": "Brian Martin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "marticu01",
+      "playerName": "Cuonzo Martin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "martife01",
+      "playerName": "Fernando Mart\u00edn",
+      "reason": "not found"
+    },
+    {
+      "playerID": "martije01",
+      "playerName": "Jeff Martin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "martima01",
+      "playerName": "Maurice Martin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "matthwe01",
+      "playerName": "Wes Matthews",
+      "reason": "not found"
+    },
+    {
+      "playerID": "maxeyma01",
+      "playerName": "Marlon Maxey",
+      "reason": "not found"
+    },
+    {
+      "playerID": "maybele01",
+      "playerName": "Lee Mayberry",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mayesth01",
+      "playerName": "Tharon Mayes",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mayfibi01",
+      "playerName": "Bill Mayfield",
+      "reason": "not found"
+    },
+    {
+      "playerID": "maysc01",
+      "playerName": "Scott May",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mayse01",
+      "playerName": "Sean May",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mbengbe01",
+      "playerName": "Bez Mbeng",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mccanbo01",
+      "playerName": "Bob McCann",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mccanme01",
+      "playerName": "Mel McCants",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mccanra01",
+      "playerName": "Rashad McCants",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mccaran01",
+      "playerName": "Andre McCarter",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mccarke01",
+      "playerName": "Kelly McCarty",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mccasam01",
+      "playerName": "Amal McCaskill",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mccladw01",
+      "playerName": "Dwayne McClain",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mcclida01",
+      "playerName": "Dan McClintock",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mccorke01",
+      "playerName": "Keith McCord",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mccoyje01",
+      "playerName": "Jelani McCoy",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mccrach01",
+      "playerName": "Chris McCray",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mccrasc01",
+      "playerName": "Scooter McCray",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mcculjo01",
+      "playerName": "John McCullough",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mcdancl01",
+      "playerName": "Clint McDaniel",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mcdonbe01",
+      "playerName": "Ben McDonald",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mcdonmi01",
+      "playerName": "Michael McDonald",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mcdowha01",
+      "playerName": "Hank McDowell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mcelrji01",
+      "playerName": "Jim McElroy",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mcfariv01",
+      "playerName": "Ivan McFarlin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mcgeemi01",
+      "playerName": "Mike McGee",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mcgrica01",
+      "playerName": "Cameron McGriff",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mckenfo01",
+      "playerName": "Forrest McKenzie",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mckinbi01",
+      "playerName": "Billy McKinney",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mckinca01",
+      "playerName": "Carlton McKinney",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mcphepa01",
+      "playerName": "Paul McPherson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mcqueco01",
+      "playerName": "Cozell McQueen",
+      "reason": "not found"
+    },
+    {
+      "playerID": "meeda01",
+      "playerName": "Darnell Mee",
+      "reason": "not found"
+    },
+    {
+      "playerID": "meentsc01",
+      "playerName": "Scott Meents",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mengejo01",
+      "playerName": "John Mengelt",
+      "reason": "not found"
+    },
+    {
+      "playerID": "meriwjo01",
+      "playerName": "Joe Meriweather",
+      "reason": "not found"
+    },
+    {
+      "playerID": "meyerda01",
+      "playerName": "Dave Meyers",
+      "reason": "not found"
+    },
+    {
+      "playerID": "meyerlo01",
+      "playerName": "Loren Meyer",
+      "reason": "not found"
+    },
+    {
+      "playerID": "michela01",
+      "playerName": "Larry Micheaux",
+      "reason": "not found"
+    },
+    {
+      "playerID": "milicma01",
+      "playerName": "Marko Mili\u010d",
+      "reason": "not found"
+    },
+    {
+      "playerID": "millean01",
+      "playerName": "Anthony Miller",
+      "reason": "not found"
+    },
+    {
+      "playerID": "millebo01",
+      "playerName": "Bob Miller",
+      "reason": "not found"
+    },
+    {
+      "playerID": "milledi01",
+      "playerName": "Dick Miller",
+      "reason": "not found"
+    },
+    {
+      "playerID": "minerha01",
+      "playerName": "Harold Miner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "miskija01",
+      "playerName": "Jason Miskiri",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mitchto01",
+      "playerName": "Todd Mitchell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mobleer01",
+      "playerName": "Eric Mobley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "moneyer01",
+      "playerName": "Eric Money",
+      "reason": "not found"
+    },
+    {
+      "playerID": "moniase01",
+      "playerName": "Sergei Monia",
+      "reason": "not found"
+    },
+    {
+      "playerID": "montrer01",
+      "playerName": "Eric Montross",
+      "reason": "not found"
+    },
+    {
+      "playerID": "moorean01",
+      "playerName": "Andre Moore",
+      "reason": "not found"
+    },
+    {
+      "playerID": "moorelo01",
+      "playerName": "Lowes Moore",
+      "reason": "not found"
+    },
+    {
+      "playerID": "moorero01",
+      "playerName": "Ron Moore",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mooretr01",
+      "playerName": "Tracy Moore",
+      "reason": "not found"
+    },
+    {
+      "playerID": "moralal01",
+      "playerName": "Alex Morales",
+      "reason": "not found"
+    },
+    {
+      "playerID": "morgagu01",
+      "playerName": "Guy Morgan",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mornida01",
+      "playerName": "Darren Morningstar",
+      "reason": "not found"
+    },
+    {
+      "playerID": "morriis01",
+      "playerName": "Isaiah Morris",
+      "reason": "not found"
+    },
+    {
+      "playerID": "morrimi01",
+      "playerName": "Mike Morrison",
+      "reason": "not found"
+    },
+    {
+      "playerID": "morrira01",
+      "playerName": "Randolph Morris",
+      "reason": "not found"
+    },
+    {
+      "playerID": "morrite01",
+      "playerName": "Terence Morris",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mortodw01",
+      "playerName": "Dwayne Morton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mortojo01",
+      "playerName": "John Morton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mortori01",
+      "playerName": "Richard Morton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mosspe01",
+      "playerName": "Perry Moss",
+      "reason": "not found"
+    },
+    {
+      "playerID": "motenla01",
+      "playerName": "Lawrence Moten",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mundtto01",
+      "playerName": "Todd Mundt",
+      "reason": "not found"
+    },
+    {
+      "playerID": "munkch01",
+      "playerName": "Chris Munk",
+      "reason": "not found"
+    },
+    {
+      "playerID": "murdoer01",
+      "playerName": "Eric Murdock",
+      "reason": "not found"
+    },
+    {
+      "playerID": "murphja01",
+      "playerName": "Jay Murphy",
+      "reason": "not found"
+    },
+    {
+      "playerID": "murphro01",
+      "playerName": "Ronnie Murphy",
+      "reason": "not found"
+    },
+    {
+      "playerID": "murphto01",
+      "playerName": "Tod Murphy",
+      "reason": "not found"
+    },
+    {
+      "playerID": "murrala01",
+      "playerName": "Lamond Murray",
+      "reason": "not found"
+    },
+    {
+      "playerID": "mustaje01",
+      "playerName": "Jerrod Mustaf",
+      "reason": "not found"
+    },
+    {
+      "playerID": "muursma01",
+      "playerName": "Martin M\u00fc\u00fcrsepp",
+      "reason": "not found"
+    },
+    {
+      "playerID": "nailole01",
+      "playerName": "Lee Nailon",
+      "reason": "not found"
+    },
+    {
+      "playerID": "nathaho01",
+      "playerName": "Howard Nathan",
+      "reason": "not found"
+    },
+    {
+      "playerID": "nattke01",
+      "playerName": "Kenny Natt",
+      "reason": "not found"
+    },
+    {
+      "playerID": "navarju01",
+      "playerName": "Juan Carlos Navarro",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ndiayma01",
+      "playerName": "Makhtar N'Diaye",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ndiayma02",
+      "playerName": "Mamadou N'Diaye",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ndongbo01",
+      "playerName": "Boniface N'Dong",
+      "reason": "not found"
+    },
+    {
+      "playerID": "nealcr01",
+      "playerName": "Craig Neal",
+      "reason": "not found"
+    },
+    {
+      "playerID": "nelsode01",
+      "playerName": "DeMarcus Nelson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "nelsogr02",
+      "playerName": "Grant Nelson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "nembhru01",
+      "playerName": "Ruben Nembhard",
+      "reason": "not found"
+    },
+    {
+      "playerID": "nesslma01",
+      "playerName": "Martin Nessley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "nevitch01",
+      "playerName": "Chuck Nevitt",
+      "reason": "not found"
+    },
+    {
+      "playerID": "newbeme01",
+      "playerName": "Melvin Newbern",
+      "reason": "not found"
+    },
+    {
+      "playerID": "newbiiv01",
+      "playerName": "Ivano Newbill",
+      "reason": "not found"
+    },
+    {
+      "playerID": "newblir01",
+      "playerName": "Ira Newble",
+      "reason": "not found"
+    },
+    {
+      "playerID": "newmajo01",
+      "playerName": "Johnny Newman",
+      "reason": "not found"
+    },
+    {
+      "playerID": "nichode01",
+      "playerName": "Demetris Nichols",
+      "reason": "not found"
+    },
+    {
+      "playerID": "nickega01",
+      "playerName": "Gaylon Nickerson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "nicksca01",
+      "playerName": "Carl Nicks",
+      "reason": "not found"
+    },
+    {
+      "playerID": "nilesmi01",
+      "playerName": "Mike Niles",
+      "reason": "not found"
+    },
+    {
+      "playerID": "nixdy01",
+      "playerName": "Dyron Nix",
+      "reason": "not found"
+    },
+    {
+      "playerID": "noelda01",
+      "playerName": "David Noel",
+      "reason": "not found"
+    },
+    {
+      "playerID": "nordgje01",
+      "playerName": "Jeff Nordgaard",
+      "reason": "not found"
+    },
+    {
+      "playerID": "norriau01",
+      "playerName": "Audie Norris",
+      "reason": "not found"
+    },
+    {
+      "playerID": "norrimo01",
+      "playerName": "Moochie Norris",
+      "reason": "not found"
+    },
+    {
+      "playerID": "norrisy01",
+      "playerName": "Sylvester Norris",
+      "reason": "not found"
+    },
+    {
+      "playerID": "nuttde01",
+      "playerName": "Dennis Nutt",
+      "reason": "not found"
+    },
+    {
+      "playerID": "nwosuju01",
+      "playerName": "Julius Nwosu",
+      "reason": "not found"
+    },
+    {
+      "playerID": "obannch01",
+      "playerName": "Charles O'Bannon",
+      "reason": "not found"
+    },
+    {
+      "playerID": "obanned01",
+      "playerName": "Ed O'Bannon",
+      "reason": "not found"
+    },
+    {
+      "playerID": "odurojo01",
+      "playerName": "Josh Oduro",
+      "reason": "not found"
+    },
+    {
+      "playerID": "oggal01",
+      "playerName": "Alan Ogg",
+      "reason": "not found"
+    },
+    {
+      "playerID": "okanito01",
+      "playerName": "Toby Okani",
+      "reason": "not found"
+    },
+    {
+      "playerID": "okoremi01",
+      "playerName": "Mike O'Koren",
+      "reason": "not found"
+    },
+    {
+      "playerID": "oldhaja01",
+      "playerName": "Jawann Oldham",
+      "reason": "not found"
+    },
+    {
+      "playerID": "olivebr01",
+      "playerName": "Brian Oliver",
+      "reason": "not found"
+    },
+    {
+      "playerID": "olivede01",
+      "playerName": "Dean Oliver",
+      "reason": "not found"
+    },
+    {
+      "playerID": "oliveji01",
+      "playerName": "Jimmy Oliver",
+      "reason": "not found"
+    },
+    {
+      "playerID": "olivejo01",
+      "playerName": "John Olive",
+      "reason": "not found"
+    },
+    {
+      "playerID": "orrlo01",
+      "playerName": "Louis Orr",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ortizjo01",
+      "playerName": "Jos\u00e9 Ortiz",
+      "reason": "not found"
+    },
+    {
+      "playerID": "osullda01",
+      "playerName": "Dan O'Sullivan",
+      "reason": "not found"
+    },
+    {
+      "playerID": "othicma01",
+      "playerName": "Matt Othick",
+      "reason": "not found"
+    },
+    {
+      "playerID": "owensan01",
+      "playerName": "Andre Owens",
+      "reason": "not found"
+    },
+    {
+      "playerID": "owensbi01",
+      "playerName": "Billy Owens",
+      "reason": "not found"
+    },
+    {
+      "playerID": "owensch01",
+      "playerName": "Chris Owens",
+      "reason": "not found"
+    },
+    {
+      "playerID": "owenske01",
+      "playerName": "Keith Owens",
+      "reason": "not found"
+    },
+    {
+      "playerID": "owesra01",
+      "playerName": "Ray Owes",
+      "reason": "not found"
+    },
+    {
+      "playerID": "oyedeol01",
+      "playerName": "Olumide Oyedeji",
+      "reason": "not found"
+    },
+    {
+      "playerID": "padgesc01",
+      "playerName": "Scott Padgett",
+      "reason": "not found"
+    },
+    {
+      "playerID": "paigeja01",
+      "playerName": "Jaysean Paige",
+      "reason": "not found"
+    },
+    {
+      "playerID": "palmewa01",
+      "playerName": "Walter Palmer",
+      "reason": "not found"
+    },
+    {
+      "playerID": "pankoan01",
+      "playerName": "Andy Panko",
+      "reason": "not found"
+    },
+    {
+      "playerID": "parkeso01",
+      "playerName": "Sonny Parker",
+      "reason": "not found"
+    },
+    {
+      "playerID": "paspaza01",
+      "playerName": "\u017darko Paspalj",
+      "reason": "not found"
+    },
+    {
+      "playerID": "patrimy01",
+      "playerName": "Myles Patrick",
+      "reason": "not found"
+    },
+    {
+      "playerID": "pattean01",
+      "playerName": "Andrae Patterson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "payneke01",
+      "playerName": "Kenny Payne",
+      "reason": "not found"
+    },
+    {
+      "playerID": "peckwi01",
+      "playerName": "Wiley Peck",
+      "reason": "not found"
+    },
+    {
+      "playerID": "pedulse01",
+      "playerName": "Sean Pedulla",
+      "reason": "not found"
+    },
+    {
+      "playerID": "pellosa01",
+      "playerName": "Sam Pellom",
+      "reason": "not found"
+    },
+    {
+      "playerID": "penbemi01",
+      "playerName": "Mike Penberthy",
+      "reason": "not found"
+    },
+    {
+      "playerID": "penigde01",
+      "playerName": "Desmond Penigar",
+      "reason": "not found"
+    },
+    {
+      "playerID": "penneki01",
+      "playerName": "Kirk Penney",
+      "reason": "not found"
+    },
+    {
+      "playerID": "peplomi01",
+      "playerName": "Mike Peplowski",
+      "reason": "not found"
+    },
+    {
+      "playerID": "perduwi01",
+      "playerName": "Will Perdue",
+      "reason": "not found"
+    },
+    {
+      "playerID": "perovko01",
+      "playerName": "Kosta Perovi\u0107",
+      "reason": "not found"
+    },
+    {
+      "playerID": "perryel01",
+      "playerName": "Elliot Perry",
+      "reason": "not found"
+    },
+    {
+      "playerID": "petruri01",
+      "playerName": "Richard Petru\u0161ka",
+      "reason": "not found"
+    },
+    {
+      "playerID": "pheglro01",
+      "playerName": "Roger Phegley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "phelpde01",
+      "playerName": "Derrick Phelps",
+      "reason": "not found"
+    },
+    {
+      "playerID": "phelpmi01",
+      "playerName": "Michael Phelps",
+      "reason": "not found"
+    },
+    {
+      "playerID": "philled01",
+      "playerName": "Eddie Phillips",
+      "reason": "not found"
+    },
+    {
+      "playerID": "pietkst01",
+      "playerName": "Stan Pietkiewicz",
+      "reason": "not found"
+    },
+    {
+      "playerID": "pincked01",
+      "playerName": "Ed Pinckney",
+      "reason": "not found"
+    },
+    {
+      "playerID": "pinknke01",
+      "playerName": "Kevinn Pinkney",
+      "reason": "not found"
+    },
+    {
+      "playerID": "pinonjo01",
+      "playerName": "John Pinone",
+      "reason": "not found"
+    },
+    {
+      "playerID": "piotrto01",
+      "playerName": "Tom Piotrowski",
+      "reason": "not found"
+    },
+    {
+      "playerID": "pittmch01",
+      "playerName": "Charles Pittman",
+      "reason": "not found"
+    },
+    {
+      "playerID": "planizo01",
+      "playerName": "Zoran Planini\u0107",
+      "reason": "not found"
+    },
+    {
+      "playerID": "plummga01",
+      "playerName": "Gary Plummer",
+      "reason": "not found"
+    },
+    {
+      "playerID": "podkopa01",
+      "playerName": "Pavel Podkolzin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "poleedw01",
+      "playerName": "Dwayne Polee",
+      "reason": "not found"
+    },
+    {
+      "playerID": "popeda01",
+      "playerName": "David Pope",
+      "reason": "not found"
+    },
+    {
+      "playerID": "popema01",
+      "playerName": "Mark Pope",
+      "reason": "not found"
+    },
+    {
+      "playerID": "popsoda01",
+      "playerName": "Dave Popson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "poquebe01",
+      "playerName": "Ben Poquette",
+      "reason": "not found"
+    },
+    {
+      "playerID": "portech01",
+      "playerName": "Chris Porter",
+      "reason": "not found"
+    },
+    {
+      "playerID": "postela01",
+      "playerName": "Lavor Postell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "powelka01",
+      "playerName": "Kasib Powell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "powelro01",
+      "playerName": "Roger Powell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "pressdo01",
+      "playerName": "Dominic Pressley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "pricebr01",
+      "playerName": "Brent Price",
+      "reason": "not found"
+    },
+    {
+      "playerID": "priceto01",
+      "playerName": "Tony Price",
+      "reason": "not found"
+    },
+    {
+      "playerID": "pritcke01",
+      "playerName": "Kevin Pritchard",
+      "reason": "not found"
+    },
+    {
+      "playerID": "profila01",
+      "playerName": "Laron Profit",
+      "reason": "not found"
+    },
+    {
+      "playerID": "pullaan01",
+      "playerName": "Anthony Pullard",
+      "reason": "not found"
+    },
+    {
+      "playerID": "quinnbr01",
+      "playerName": "Brian Quinnett",
+      "reason": "not found"
+    },
+    {
+      "playerID": "radfoma01",
+      "playerName": "Mark Radford",
+      "reason": "not found"
+    },
+    {
+      "playerID": "radjadi01",
+      "playerName": "Dino Radja",
+      "reason": "not found"
+    },
+    {
+      "playerID": "radojal01",
+      "playerName": "Aleksandar Radojevi\u0107",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rainsed01",
+      "playerName": "Ed Rains",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rakocig01",
+      "playerName": "Igor Rako\u010devi\u0107",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ramospe01",
+      "playerName": "Peter John Ramos",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rankwa01",
+      "playerName": "Wally Rank",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rautile01",
+      "playerName": "Leo Rautins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rayal01",
+      "playerName": "Allan Ray",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rayja01",
+      "playerName": "James Ray",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rebraze01",
+      "playerName": "\u017deljko Rebra\u010da",
+      "reason": "not found"
+    },
+    {
+      "playerID": "redmoma01",
+      "playerName": "Marlon Redmond",
+      "reason": "not found"
+    },
+    {
+      "playerID": "reedju01",
+      "playerName": "Justin Reed",
+      "reason": "not found"
+    },
+    {
+      "playerID": "reidbi01",
+      "playerName": "Billy Reid",
+      "reason": "not found"
+    },
+    {
+      "playerID": "reiddo01",
+      "playerName": "Don Reid",
+      "reason": "not found"
+    },
+    {
+      "playerID": "reidjr01",
+      "playerName": "J.R. Reid",
+      "reason": "not found"
+    },
+    {
+      "playerID": "reineja01",
+      "playerName": "Jared Reiner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rellfri01",
+      "playerName": "Richard Rellford",
+      "reason": "not found"
+    },
+    {
+      "playerID": "renchte01",
+      "playerName": "Terrence Rencher",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rentzef01",
+      "playerName": "Efthimios Rentzias",
+      "reason": "not found"
+    },
+    {
+      "playerID": "respesh01",
+      "playerName": "Shawn Respert",
+      "reason": "not found"
+    },
+    {
+      "playerID": "restake01",
+      "playerName": "Kevin Restani",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rhodero01",
+      "playerName": "Rodrick Rhodes",
+      "reason": "not found"
+    },
+    {
+      "playerID": "richach01",
+      "playerName": "Chris Richard",
+      "reason": "not found"
+    },
+    {
+      "playerID": "richacl01",
+      "playerName": "Clint Richardson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "richaje01",
+      "playerName": "Jeremy Richardson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "richano01",
+      "playerName": "Norm Richardson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "richmka01",
+      "playerName": "Kadary Richmond",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rigauan01",
+      "playerName": "Antoine Rigaudeau",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rivasra01",
+      "playerName": "Ram\u00f3n Rivas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "riverda01",
+      "playerName": "David Rivers",
+      "reason": "not found"
+    },
+    {
+      "playerID": "roberan01",
+      "playerName": "Anthony Roberts",
+      "reason": "not found"
+    },
+    {
+      "playerID": "roberla01",
+      "playerName": "Lawrence Roberts",
+      "reason": "not found"
+    },
+    {
+      "playerID": "roberry01",
+      "playerName": "Ryan Robertson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "roberte01",
+      "playerName": "Terrance Roberson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "robeyri01",
+      "playerName": "Rick Robey",
+      "reason": "not found"
+    },
+    {
+      "playerID": "robinbe01",
+      "playerName": "Bernard Robinson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "robinbi01",
+      "playerName": "Bill Robinzine",
+      "reason": "not found"
+    },
+    {
+      "playerID": "robinch01",
+      "playerName": "Chris Robinson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "robinja01",
+      "playerName": "Jackie Robinson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "robinja02",
+      "playerName": "James Robinson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "robinja03",
+      "playerName": "Jamal Robinson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "robinol01",
+      "playerName": "Oliver Robinson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "robinwa01",
+      "playerName": "Wayne Robinson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rochejo01",
+      "playerName": "John Roche",
+      "reason": "not found"
+    },
+    {
+      "playerID": "roelo01",
+      "playerName": "Lou Roe",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rogerca01",
+      "playerName": "Carlos Rogers",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rogerjo01",
+      "playerName": "Johnny Rogers",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rogerro02",
+      "playerName": "Roy Rogers",
+      "reason": "not found"
+    },
+    {
+      "playerID": "romarlo01",
+      "playerName": "Lorenzo Romar",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rosero01",
+      "playerName": "Rob Rose",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rothdo01",
+      "playerName": "Doug Roth",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rothsc01",
+      "playerName": "Scott Roth",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rowanro01",
+      "playerName": "Ron Rowan",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rowinji01",
+      "playerName": "Jim Rowinski",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rowlade01",
+      "playerName": "Derrick Rowland",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rowsobr01",
+      "playerName": "Brian Rowsom",
+      "reason": "not found"
+    },
+    {
+      "playerID": "roziecl01",
+      "playerName": "Clifford Rozier",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ruckegu01",
+      "playerName": "Guy Rucker",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ruddde01",
+      "playerName": "Delaney Rudd",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ruffitr01",
+      "playerName": "Trevor Ruffin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ruscost01",
+      "playerName": "Stefano Rusconi",
+      "reason": "not found"
+    },
+    {
+      "playerID": "rushka01",
+      "playerName": "Kareem Rush",
+      "reason": "not found"
+    },
+    {
+      "playerID": "russewa01",
+      "playerName": "Walker Russell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "salvake01",
+      "playerName": "Kevin Salvadori",
+      "reason": "not found"
+    },
+    {
+      "playerID": "samakso01",
+      "playerName": "Soumaila Samake",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sambch01",
+      "playerName": "Cheikh Samb",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sampsja01",
+      "playerName": "Jamal Sampson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sanchpe01",
+      "playerName": "Pepe S\u00e1nchez",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sandefr01",
+      "playerName": "Frankie Sanders",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sandeme01",
+      "playerName": "Melvin Sanders",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sandemi01",
+      "playerName": "Mike Sanders",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sandfpa01",
+      "playerName": "Payton Sandfort",
+      "reason": "not found"
+    },
+    {
+      "playerID": "santida01",
+      "playerName": "Daniel Santiago",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sapplwa01",
+      "playerName": "Wayne Sappleton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sasseja01",
+      "playerName": "Jason Sasser",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sasseje01",
+      "playerName": "Jeryl Sasser",
+      "reason": "not found"
+    },
+    {
+      "playerID": "satteke01",
+      "playerName": "Kenny Satterfield",
+      "reason": "not found"
+    },
+    {
+      "playerID": "savovpr01",
+      "playerName": "Predrag Savovi\u0107",
+      "reason": "not found"
+    },
+    {
+      "playerID": "scaleal01",
+      "playerName": "Alex Scales",
+      "reason": "not found"
+    },
+    {
+      "playerID": "scalede01",
+      "playerName": "DeWayne Scales",
+      "reason": "not found"
+    },
+    {
+      "playerID": "schefst01",
+      "playerName": "Steve Scheffler",
+      "reason": "not found"
+    },
+    {
+      "playerID": "schefto01",
+      "playerName": "Tom Scheffler",
+      "reason": "not found"
+    },
+    {
+      "playerID": "schenlu01",
+      "playerName": "Luke Schenscher",
+      "reason": "not found"
+    },
+    {
+      "playerID": "schindw01",
+      "playerName": "Dwayne Schintzius",
+      "reason": "not found"
+    },
+    {
+      "playerID": "schoeru01",
+      "playerName": "Russ Schoene",
+      "reason": "not found"
+    },
+    {
+      "playerID": "schwejo01",
+      "playerName": "John Schweitz",
+      "reason": "not found"
+    },
+    {
+      "playerID": "scottbr01",
+      "playerName": "Brent Scott",
+      "reason": "not found"
+    },
+    {
+      "playerID": "scottja01",
+      "playerName": "James Scott",
+      "reason": "not found"
+    },
+    {
+      "playerID": "scottsh01",
+      "playerName": "Shawnelle Scott",
+      "reason": "not found"
+    },
+    {
+      "playerID": "scotttr01",
+      "playerName": "Tre Scott",
+      "reason": "not found"
+    },
+    {
+      "playerID": "scurrca01",
+      "playerName": "Carey Scurry",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sealssh01",
+      "playerName": "Shea Seals",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sealyma01",
+      "playerName": "Malik Sealy",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sellebr01",
+      "playerName": "Brad Sellers",
+      "reason": "not found"
+    },
+    {
+      "playerID": "senesa01",
+      "playerName": "Mouhamed Sene",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sesayan01",
+      "playerName": "Ansu Sesay",
+      "reason": "not found"
+    },
+    {
+      "playerID": "seungha01",
+      "playerName": "Ha Seung-Jin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sewelto01",
+      "playerName": "Tom Sewell",
+      "reason": "not found"
+    },
+    {
+      "playerID": "shammgo01",
+      "playerName": "God Shammgod",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sharpwa01",
+      "playerName": "Walter Sharpe",
+      "reason": "not found"
+    },
+    {
+      "playerID": "shaskjo01",
+      "playerName": "John Shasky",
+      "reason": "not found"
+    },
+    {
+      "playerID": "shawca01",
+      "playerName": "Casey Shaw",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sheltcr01",
+      "playerName": "Craig Shelton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sheltlo01",
+      "playerName": "Lonnie Shelton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sheppje01",
+      "playerName": "Jeff Sheppard",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sheroed01",
+      "playerName": "Ed Sherod",
+      "reason": "not found"
+    },
+    {
+      "playerID": "shirlpa01",
+      "playerName": "Paul Shirley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "shousde01",
+      "playerName": "Dexter Shouse",
+      "reason": "not found"
+    },
+    {
+      "playerID": "shumajo01",
+      "playerName": "John Shumate",
+      "reason": "not found"
+    },
+    {
+      "playerID": "silaspa01",
+      "playerName": "Paul Silas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "simiewa01",
+      "playerName": "Wayne Simien",
+      "reason": "not found"
+    },
+    {
+      "playerID": "simmoce01",
+      "playerName": "Cedric Simmons",
+      "reason": "not found"
+    },
+    {
+      "playerID": "simmoli01",
+      "playerName": "Lionel Simmons",
+      "reason": "not found"
+    },
+    {
+      "playerID": "simonmi01",
+      "playerName": "Miles Simon",
+      "reason": "not found"
+    },
+    {
+      "playerID": "simsal01",
+      "playerName": "Alvin Sims",
+      "reason": "not found"
+    },
+    {
+      "playerID": "simsco01",
+      "playerName": "Courtney Sims",
+      "reason": "not found"
+    },
+    {
+      "playerID": "singlmc01",
+      "playerName": "McKinley Singleton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "singlse01",
+      "playerName": "Sean Singletary",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sittoch01",
+      "playerName": "Charlie Sitton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "skinnal01",
+      "playerName": "Al Skinner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "slatere01",
+      "playerName": "Reggie Slater",
+      "reason": "not found"
+    },
+    {
+      "playerID": "slaugjo01",
+      "playerName": "Jose Slaughter",
+      "reason": "not found"
+    },
+    {
+      "playerID": "slokaur01",
+      "playerName": "Uro\u0161 Slokar",
+      "reason": "not found"
+    },
+    {
+      "playerID": "slubyto01",
+      "playerName": "Tom Sluby",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smartke01",
+      "playerName": "Keith Smart",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithch02",
+      "playerName": "Charles Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithch03",
+      "playerName": "Chris Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithcl01",
+      "playerName": "Clinton Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithdo03",
+      "playerName": "Doug Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithdo04",
+      "playerName": "Donta Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithja01",
+      "playerName": "Jabari Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithji01",
+      "playerName": "Jim Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithke03",
+      "playerName": "Keith Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithla02",
+      "playerName": "LaBradford Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithle01",
+      "playerName": "Leon Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithmi01",
+      "playerName": "Michael Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithmi02",
+      "playerName": "Michael Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithmi03",
+      "playerName": "Mike Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithot01",
+      "playerName": "Otis Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithre01",
+      "playerName": "Reggie Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithro01",
+      "playerName": "Robert Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithsa02",
+      "playerName": "Sam Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithst02",
+      "playerName": "Stevin Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithst03",
+      "playerName": "Steven Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithth01",
+      "playerName": "Theron Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smithwi02",
+      "playerName": "Willie Smith",
+      "reason": "not found"
+    },
+    {
+      "playerID": "smrekmi01",
+      "playerName": "Mike Smrek",
+      "reason": "not found"
+    },
+    {
+      "playerID": "snydeki01",
+      "playerName": "Kirk Snyder",
+      "reason": "not found"
+    },
+    {
+      "playerID": "soberri01",
+      "playerName": "Ricky Sobers",
+      "reason": "not found"
+    },
+    {
+      "playerID": "solomwi01",
+      "playerName": "Will Solomon",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sowpa01",
+      "playerName": "Pape Sow",
+      "reason": "not found"
+    },
+    {
+      "playerID": "spanaji01",
+      "playerName": "Jim Spanarkel",
+      "reason": "not found"
+    },
+    {
+      "playerID": "spencan01",
+      "playerName": "Andre Spencer",
+      "reason": "not found"
+    },
+    {
+      "playerID": "spencel01",
+      "playerName": "Elmore Spencer",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sprigla01",
+      "playerName": "Larry Spriggs",
+      "reason": "not found"
+    },
+    {
+      "playerID": "stackry01",
+      "playerName": "Ryan Stack",
+      "reason": "not found"
+    },
+    {
+      "playerID": "stacoke01",
+      "playerName": "Kevin Stacom",
+      "reason": "not found"
+    },
+    {
+      "playerID": "stanste01",
+      "playerName": "Terence Stansbury",
+      "reason": "not found"
+    },
+    {
+      "playerID": "steigma01",
+      "playerName": "Matt Steigenga",
+      "reason": "not found"
+    },
+    {
+      "playerID": "stepavl01",
+      "playerName": "Vladimir Stepania",
+      "reason": "not found"
+    },
+    {
+      "playerID": "stephev01",
+      "playerName": "Everette Stephens",
+      "reason": "not found"
+    },
+    {
+      "playerID": "stephjo01",
+      "playerName": "Joe Stephens",
+      "reason": "not found"
+    },
+    {
+      "playerID": "steppbr01",
+      "playerName": "Brook Steppe",
+      "reason": "not found"
+    },
+    {
+      "playerID": "steveba01",
+      "playerName": "Barry Stevens",
+      "reason": "not found"
+    },
+    {
+      "playerID": "stewake01",
+      "playerName": "Kebu Stewart",
+      "reason": "not found"
+    },
+    {
+      "playerID": "stewala01",
+      "playerName": "Larry Stewart",
+      "reason": "not found"
+    },
+    {
+      "playerID": "stewami01",
+      "playerName": "Michael Stewart",
+      "reason": "not found"
+    },
+    {
+      "playerID": "stokeed01",
+      "playerName": "Ed Stokes",
+      "reason": "not found"
+    },
+    {
+      "playerID": "stokegr01",
+      "playerName": "Greg Stokes",
+      "reason": "not found"
+    },
+    {
+      "playerID": "storeaw01",
+      "playerName": "Awvee Storey",
+      "reason": "not found"
+    },
+    {
+      "playerID": "stoudsa01",
+      "playerName": "Salim Stoudamire",
+      "reason": "not found"
+    },
+    {
+      "playerID": "stricma01",
+      "playerName": "Mark Strickland",
+      "reason": "not found"
+    },
+    {
+      "playerID": "stroejo01",
+      "playerName": "John Stroeder",
+      "reason": "not found"
+    },
+    {
+      "playerID": "strotla01",
+      "playerName": "Lamont Strothers",
+      "reason": "not found"
+    },
+    {
+      "playerID": "stroujo01",
+      "playerName": "John Stroud",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sumptba01",
+      "playerName": "Barry Sumpter",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sundobr01",
+      "playerName": "Bruno \u0160undov",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sundvjo01",
+      "playerName": "Jon Sundvold",
+      "reason": "not found"
+    },
+    {
+      "playerID": "suttlda01",
+      "playerName": "Dane Suttle",
+      "reason": "not found"
+    },
+    {
+      "playerID": "suttogr01",
+      "playerName": "Greg Sutton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "swiftro01",
+      "playerName": "Robert Swift",
+      "reason": "not found"
+    },
+    {
+      "playerID": "swinsaa01",
+      "playerName": "Aaron Swinson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "sykesla01",
+      "playerName": "Larry Sykes",
+      "reason": "not found"
+    },
+    {
+      "playerID": "szabobr01",
+      "playerName": "Brett Szabo",
+      "reason": "not found"
+    },
+    {
+      "playerID": "tabusyu01",
+      "playerName": "Yuta Tabuse",
+      "reason": "not found"
+    },
+    {
+      "playerID": "taftch01",
+      "playerName": "Chris Taft",
+      "reason": "not found"
+    },
+    {
+      "playerID": "tarladr01",
+      "playerName": "Dragan Tarla\u0107",
+      "reason": "not found"
+    },
+    {
+      "playerID": "tatumea01",
+      "playerName": "Earl Tatum",
+      "reason": "not found"
+    },
+    {
+      "playerID": "tayloan01",
+      "playerName": "Anthony Taylor",
+      "reason": "not found"
+    },
+    {
+      "playerID": "taylodo01",
+      "playerName": "Donell Taylor",
+      "reason": "not found"
+    },
+    {
+      "playerID": "tayloja01",
+      "playerName": "Jay Taylor",
+      "reason": "not found"
+    },
+    {
+      "playerID": "tayloje01",
+      "playerName": "Jeff Taylor",
+      "reason": "not found"
+    },
+    {
+      "playerID": "taylojo01",
+      "playerName": "Johnny Taylor",
+      "reason": "not found"
+    },
+    {
+      "playerID": "taylole01",
+      "playerName": "Leonard Taylor",
+      "reason": "not found"
+    },
+    {
+      "playerID": "tayloma01",
+      "playerName": "Maurice Taylor",
+      "reason": "not found"
+    },
+    {
+      "playerID": "taylomi01",
+      "playerName": "Mike Taylor",
+      "reason": "not found"
+    },
+    {
+      "playerID": "taylovi01",
+      "playerName": "Vince Taylor",
+      "reason": "not found"
+    },
+    {
+      "playerID": "terryca01",
+      "playerName": "Carlos Terry",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thibepe01",
+      "playerName": "Peter Thibeaux",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thirdda01",
+      "playerName": "David Thirdkill",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thomabi01",
+      "playerName": "Billy Thomas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thomaca01",
+      "playerName": "Carl Thomas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thomach01",
+      "playerName": "Charles Thomas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thomair01",
+      "playerName": "Irving Thomas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thomaja01",
+      "playerName": "Jamel Thomas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thomaja02",
+      "playerName": "James Thomas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thomaji01",
+      "playerName": "Jim Thomas",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thompbe01",
+      "playerName": "Bernard Thompson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thompbi01",
+      "playerName": "Billy Thompson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thompco01",
+      "playerName": "Corny Thompson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thompdi01",
+      "playerName": "Dijon Thompson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thompke01",
+      "playerName": "Kevin Thompson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thompla01",
+      "playerName": "LaSalle Thompson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thomppa01",
+      "playerName": "Paul Thompson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thompst01",
+      "playerName": "Stephen Thompson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "thornbo01",
+      "playerName": "Bob Thornton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "tillida01",
+      "playerName": "Darren Tillis",
+      "reason": "not found"
+    },
+    {
+      "playerID": "tolbera01",
+      "playerName": "Ray Tolbert",
+      "reason": "not found"
+    },
+    {
+      "playerID": "toneyan01",
+      "playerName": "Andrew Toney",
+      "reason": "not found"
+    },
+    {
+      "playerID": "toneyse01",
+      "playerName": "Sedric Toney",
+      "reason": "not found"
+    },
+    {
+      "playerID": "toolsan01",
+      "playerName": "Andy Toolson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "toonebe01",
+      "playerName": "Bernard Toone",
+      "reason": "not found"
+    },
+    {
+      "playerID": "torreos01",
+      "playerName": "\u00d3scar Torres",
+      "reason": "not found"
+    },
+    {
+      "playerID": "towerke01",
+      "playerName": "Keith Tower",
+      "reason": "not found"
+    },
+    {
+      "playerID": "towneli01",
+      "playerName": "Linton Townes",
+      "reason": "not found"
+    },
+    {
+      "playerID": "townsra01",
+      "playerName": "Raymond Townsend",
+      "reason": "not found"
+    },
+    {
+      "playerID": "trepaje01",
+      "playerName": "Jeff Trepagnier",
+      "reason": "not found"
+    },
+    {
+      "playerID": "trybace01",
+      "playerName": "Cezary Tryba\u0144ski",
+      "reason": "not found"
+    },
+    {
+      "playerID": "tuckean01",
+      "playerName": "Anthony Tucker",
+      "reason": "not found"
+    },
+    {
+      "playerID": "turkcmi01",
+      "playerName": "Mirsad T\u00fcrkcan",
+      "reason": "not found"
+    },
+    {
+      "playerID": "turnean01",
+      "playerName": "Andre Turner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "turneel01",
+      "playerName": "Elston Turner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "turnehe02",
+      "playerName": "Henry Turner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "turnejo01",
+      "playerName": "John Turner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "turpime01",
+      "playerName": "Melvin Turpin",
+      "reason": "not found"
+    },
+    {
+      "playerID": "twardda01",
+      "playerName": "Dave Twardzik",
+      "reason": "not found"
+    },
+    {
+      "playerID": "tylerbj01",
+      "playerName": "B.J. Tyler",
+      "reason": "not found"
+    },
+    {
+      "playerID": "ukicro01",
+      "playerName": "Roko Uki\u0107",
+      "reason": "not found"
+    },
+    {
+      "playerID": "upshake01",
+      "playerName": "Kelvin Upshaw",
+      "reason": "not found"
+    },
+    {
+      "playerID": "valenda01",
+      "playerName": "Darnell Valentine",
+      "reason": "not found"
+    },
+    {
+      "playerID": "valenro01",
+      "playerName": "Ronnie Valentine",
+      "reason": "not found"
+    },
+    {
+      "playerID": "vanbrja01",
+      "playerName": "Jan van Breda Kolff",
+      "reason": "not found"
+    },
+    {
+      "playerID": "vandelo01",
+      "playerName": "Logan Vander Velden",
+      "reason": "not found"
+    },
+    {
+      "playerID": "vanosni01",
+      "playerName": "Nick Vanos",
+      "reason": "not found"
+    },
+    {
+      "playerID": "vanteda01",
+      "playerName": "David Vanterpool",
+      "reason": "not found"
+    },
+    {
+      "playerID": "vardara01",
+      "playerName": "Ratko Varda",
+      "reason": "not found"
+    },
+    {
+      "playerID": "vaughja01",
+      "playerName": "Jacque Vaughn",
+      "reason": "not found"
+    },
+    {
+      "playerID": "verhope01",
+      "playerName": "Pete Verhoeven",
+      "reason": "not found"
+    },
+    {
+      "playerID": "vetragu01",
+      "playerName": "Gundars V\u0113tra",
+      "reason": "not found"
+    },
+    {
+      "playerID": "viannjo01",
+      "playerName": "Jo\u00e3o Vianna",
+      "reason": "not found"
+    },
+    {
+      "playerID": "vincima01",
+      "playerName": "Marcus Vinicius",
+      "reason": "not found"
+    },
+    {
+      "playerID": "vinsofr01",
+      "playerName": "Fred Vinson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "vocega01",
+      "playerName": "Gary Voce",
+      "reason": "not found"
+    },
+    {
+      "playerID": "vranesl01",
+      "playerName": "Slavko Vrane\u0161",
+      "reason": "not found"
+    },
+    {
+      "playerID": "vrankst01",
+      "playerName": "Stojko Vrankovi\u0107",
+      "reason": "not found"
+    },
+    {
+      "playerID": "vromabr01",
+      "playerName": "Brett Vroman",
+      "reason": "not found"
+    },
+    {
+      "playerID": "vromaja01",
+      "playerName": "Jackson Vroman",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wadema01",
+      "playerName": "Mark Wade",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wagneda02",
+      "playerName": "Dajuan Wagner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wagnemi01",
+      "playerName": "Milt Wagner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "waitegr01",
+      "playerName": "Granville Waiters",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wakefan01",
+      "playerName": "Andre Wakefield",
+      "reason": "not found"
+    },
+    {
+      "playerID": "walkefo01",
+      "playerName": "Foots Walker",
+      "reason": "not found"
+    },
+    {
+      "playerID": "walkeke01",
+      "playerName": "Kenny Walker",
+      "reason": "not found"
+    },
+    {
+      "playerID": "walkewa01",
+      "playerName": "Wally Walker",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wallajo01",
+      "playerName": "John Wallace",
+      "reason": "not found"
+    },
+    {
+      "playerID": "walleja01",
+      "playerName": "Jamie Waller",
+      "reason": "not found"
+    },
+    {
+      "playerID": "walshma01",
+      "playerName": "Matt Walsh",
+      "reason": "not found"
+    },
+    {
+      "playerID": "waltere01",
+      "playerName": "Rex Walters",
+      "reason": "not found"
+    },
+    {
+      "playerID": "waltoll01",
+      "playerName": "Lloyd Walton",
+      "reason": "not found"
+    },
+    {
+      "playerID": "warribr01",
+      "playerName": "Bryan Warrick",
+      "reason": "not found"
+    },
+    {
+      "playerID": "washbch01",
+      "playerName": "Chris Washburn",
+      "reason": "not found"
+    },
+    {
+      "playerID": "washida01",
+      "playerName": "Darius Washington",
+      "reason": "not found"
+    },
+    {
+      "playerID": "washidu01",
+      "playerName": "Duane Washington",
+      "reason": "not found"
+    },
+    {
+      "playerID": "washier01",
+      "playerName": "Eric Washington",
+      "reason": "not found"
+    },
+    {
+      "playerID": "washike01",
+      "playerName": "Kermit Washington",
+      "reason": "not found"
+    },
+    {
+      "playerID": "washipe01",
+      "playerName": "Pearl Washington",
+      "reason": "not found"
+    },
+    {
+      "playerID": "washiri01",
+      "playerName": "Richard Washington",
+      "reason": "not found"
+    },
+    {
+      "playerID": "watsoja01",
+      "playerName": "Jamie Watson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "weathcl01",
+      "playerName": "Clarence Weatherspoon",
+      "reason": "not found"
+    },
+    {
+      "playerID": "weathni01",
+      "playerName": "Nick Weatherspoon",
+      "reason": "not found"
+    },
+    {
+      "playerID": "webstje01",
+      "playerName": "Jeff Webster",
+      "reason": "not found"
+    },
+    {
+      "playerID": "webstma01",
+      "playerName": "Marvin Webster",
+      "reason": "not found"
+    },
+    {
+      "playerID": "weidnbr01",
+      "playerName": "Brant Weidner",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wellsbu01",
+      "playerName": "Bubba Wells",
+      "reason": "not found"
+    },
+    {
+      "playerID": "welpch01",
+      "playerName": "Chris Welp",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wenstma01",
+      "playerName": "Matt Wenstrom",
+      "reason": "not found"
+    },
+    {
+      "playerID": "werdaro01",
+      "playerName": "Robert Werdann",
+      "reason": "not found"
+    },
+    {
+      "playerID": "whalero01",
+      "playerName": "Robert Whaley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "whatlen01",
+      "playerName": "Ennis Whatley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wheatde01",
+      "playerName": "DeJuan Wheat",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wheelcl01",
+      "playerName": "Clinton Wheeler",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wheelty01",
+      "playerName": "Tyson Wheeler",
+      "reason": "not found"
+    },
+    {
+      "playerID": "whitedo01",
+      "playerName": "Donald Whiteside",
+      "reason": "not found"
+    },
+    {
+      "playerID": "whiteer01",
+      "playerName": "Eric White",
+      "reason": "not found"
+    },
+    {
+      "playerID": "whiteja01",
+      "playerName": "Jahidi White",
+      "reason": "not found"
+    },
+    {
+      "playerID": "whiteje01",
+      "playerName": "Jerome Whitehead",
+      "reason": "not found"
+    },
+    {
+      "playerID": "whitera01",
+      "playerName": "Randy White",
+      "reason": "not found"
+    },
+    {
+      "playerID": "whitero01",
+      "playerName": "Rory White",
+      "reason": "not found"
+    },
+    {
+      "playerID": "whitero02",
+      "playerName": "Rodney White",
+      "reason": "not found"
+    },
+    {
+      "playerID": "whiteru01",
+      "playerName": "Rudy White",
+      "reason": "not found"
+    },
+    {
+      "playerID": "whiteto01",
+      "playerName": "Tony White",
+      "reason": "not found"
+    },
+    {
+      "playerID": "whitewi01",
+      "playerName": "Willie White",
+      "reason": "not found"
+    },
+    {
+      "playerID": "whitfdw01",
+      "playerName": "Dwayne Whitfield",
+      "reason": "not found"
+    },
+    {
+      "playerID": "whitnha02",
+      "playerName": "Hawkeye Whitney",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wiggimi01",
+      "playerName": "Mitchell Wiggins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wileymi01",
+      "playerName": "Michael Wiley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wileymo01",
+      "playerName": "Morlon Wiley",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wilkebo01",
+      "playerName": "Bob Wilkerson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wilkeja02",
+      "playerName": "James Wilkes",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wilkida01",
+      "playerName": "Dale Wilkinson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wilkied01",
+      "playerName": "Eddie Lee Wilkins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wilkije01",
+      "playerName": "Jeff Wilkins",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willico01",
+      "playerName": "Corey Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willidu01",
+      "playerName": "Duck Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willifr01",
+      "playerName": "Freeman Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willifr02",
+      "playerName": "Frank Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willigu02",
+      "playerName": "Guy Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willija03",
+      "playerName": "Jay Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "williju01",
+      "playerName": "Justin Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willike03",
+      "playerName": "Kenny Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willilo01",
+      "playerName": "Lorenzo Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willimi03",
+      "playerName": "Mike Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willimo01",
+      "playerName": "Monty Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willipe01",
+      "playerName": "Pete Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willira01",
+      "playerName": "Ray Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "williri01",
+      "playerName": "Rickey Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "williro02",
+      "playerName": "Rob Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willisa02",
+      "playerName": "Sam Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willisc01",
+      "playerName": "Scott Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willisl01",
+      "playerName": "Sly Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willitr01",
+      "playerName": "Travis Williams",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willobi01",
+      "playerName": "Bill Willoughby",
+      "reason": "not found"
+    },
+    {
+      "playerID": "willode01",
+      "playerName": "Dedric Willoughby",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wilsobu01",
+      "playerName": "Bubba Wilson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wilsomi01",
+      "playerName": "Michael Wilson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wilsoni01",
+      "playerName": "Nikita Wilson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wilsoot01",
+      "playerName": "Othell Wilson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wilsori01",
+      "playerName": "Rick Wilson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wilsori02",
+      "playerName": "Ricky Wilson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "winchke01",
+      "playerName": "Kennard Winchester",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wingada01",
+      "playerName": "David Wingate",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wingfdo01",
+      "playerName": "Dontonio Wingfield",
+      "reason": "not found"
+    },
+    {
+      "playerID": "winslri01",
+      "playerName": "Rickie Winslow",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wintetr01",
+      "playerName": "Trevor Winter",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wintevo01",
+      "playerName": "Voise Winters",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wittsga01",
+      "playerName": "Garry Witts",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wolkoru01",
+      "playerName": "Rub\u00e9n Wolkowyski",
+      "reason": "not found"
+    },
+    {
+      "playerID": "woodal01",
+      "playerName": "Al Wood",
+      "reason": "not found"
+    },
+    {
+      "playerID": "woodda01",
+      "playerName": "David Wood",
+      "reason": "not found"
+    },
+    {
+      "playerID": "woodho01",
+      "playerName": "Howard Wood",
+      "reason": "not found"
+    },
+    {
+      "playerID": "woodslo01",
+      "playerName": "Loren Woods",
+      "reason": "not found"
+    },
+    {
+      "playerID": "woodsmi01",
+      "playerName": "Mike Woodson",
+      "reason": "not found"
+    },
+    {
+      "playerID": "woodsqy01",
+      "playerName": "Qyntel Woods",
+      "reason": "not found"
+    },
+    {
+      "playerID": "woodsra01",
+      "playerName": "Randy Woods",
+      "reason": "not found"
+    },
+    {
+      "playerID": "workmha01",
+      "playerName": "Haywoode Workman",
+      "reason": "not found"
+    },
+    {
+      "playerID": "worthsa01",
+      "playerName": "Sam Worthen",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wrighbr01",
+      "playerName": "Brad Wright",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wrighbr02",
+      "playerName": "Bracey Wright",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wrighho02",
+      "playerName": "Howard Wright",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wrighla01",
+      "playerName": "Larry Wright",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wrighlu01",
+      "playerName": "Luther Wright",
+      "reason": "not found"
+    },
+    {
+      "playerID": "wyndeaj01",
+      "playerName": "A.J. Wynder",
+      "reason": "not found"
+    },
+    {
+      "playerID": "yarbrvi01",
+      "playerName": "Vincent Yarbrough",
+      "reason": "not found"
+    },
+    {
+      "playerID": "yonakri01",
+      "playerName": "Rich Yonakor",
+      "reason": "not found"
+    },
+    {
+      "playerID": "youngda01",
+      "playerName": "Danny Young",
+      "reason": "not found"
+    },
+    {
+      "playerID": "youngko01",
+      "playerName": "Korleone Young",
+      "reason": "not found"
+    },
+    {
+      "playerID": "youngmi01",
+      "playerName": "Michael Young",
+      "reason": "not found"
+    },
+    {
+      "playerID": "youngpe01",
+      "playerName": "Perry Young",
+      "reason": "not found"
+    },
+    {
+      "playerID": "youngti01",
+      "playerName": "Tim Young",
+      "reason": "not found"
+    },
+    {
+      "playerID": "yuesu01",
+      "playerName": "Sun Yue",
+      "reason": "not found"
+    },
+    {
+      "playerID": "zenoto01",
+      "playerName": "Tony Zeno",
+      "reason": "not found"
+    },
+    {
+      "playerID": "zevenph01",
+      "playerName": "Phil Zevenbergen",
+      "reason": "not found"
+    },
+    {
+      "playerID": "zhizhwa01",
+      "playerName": "Wang Zhizhi",
+      "reason": "not found"
+    },
+    {
+      "playerID": "zidekge01",
+      "playerName": "George Z\u00eddek",
+      "reason": "not found"
+    },
+    {
+      "playerID": "zimmede01",
+      "playerName": "Derrick Zimmerman",
+      "reason": "not found"
+    },
+    {
+      "playerID": "zoetji01",
+      "playerName": "Jim Zoet",
+      "reason": "not found"
+    }
+  ]
+}
