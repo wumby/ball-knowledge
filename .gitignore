@@ -1,0 +1,11 @@
+# Generated data and build output
+.cache/
+build/
+DerivedData/
+
+# Xcode user-specific files
+*.xcuserstate
+xcuserdata/
+
+# macOS metadata
+.DS_Store
