@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a complete NBA team-season roster bundle for NBA Auction Duel.
+"""Build a complete NBA team-season roster bundle for Ball Knowledge.
 
 The importer covers the 1979-80 season through a chosen completed season,
 discovers each league's team pages, caches every response, and can resume after
@@ -7,7 +7,7 @@ interruptions or rate limits. It emits TeamSeason JSON consumed by the iOS app.
 
 Example:
   python3 Tools/import_historical_rosters.py --start 1979 --end 2026 \
-    --output NBAAuctionDuel/Database/nba_historical_rosters.json
+    --output BallKnowledge/Database/nba_historical_rosters.json
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ import urllib.request
 from pathlib import Path
 
 BASE_URL = "https://www.basketball-reference.com"
-USER_AGENT = "NBAAuctionDuel historical roster importer (local development)"
+USER_AGENT = "BallKnowledge historical roster importer (local development)"
 
 
 def clean(value: str) -> str:
