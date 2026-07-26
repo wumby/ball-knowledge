@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct StatsView: View {
+    let resetID: UUID
+
     private enum TeamSeasonSource {
         case franchise(NBAFranchise)
         case season(String)
@@ -49,6 +51,9 @@ struct StatsView: View {
             try? await Task.sleep(for: .milliseconds(100))
             guard !Task.isCancelled else { return }
             debouncedQuery = query
+        }
+        .onChange(of: resetID) { _, _ in
+            resetToLanding()
         }
     }
 
@@ -251,6 +256,15 @@ struct StatsView: View {
 
     private func filterMenu(_ title: String, selection: Binding<String?>, options: [String]) -> some View {
         Menu { Button("All \(title)s") { selection.wrappedValue = nil }; ForEach(options, id: \.self) { value in Button(value) { selection.wrappedValue = value } } } label: { Text(selection.wrappedValue ?? title).font(.caption.weight(.black)).padding(.horizontal, 14).padding(.vertical, 9).background(selection.wrappedValue == nil ? .white.opacity(0.08) : Color.accent).foregroundStyle(selection.wrappedValue == nil ? .white : .black).clipShape(Capsule()) }
+    }
+
+    private func resetToLanding() {
+        selected = nil
+        query = ""
+        debouncedQuery = ""
+        clearFilters()
+        isPlayerSearchFocused = false
+        screen = .landing
     }
 
     private var playerSearch: some View {

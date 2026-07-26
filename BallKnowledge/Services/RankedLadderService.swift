@@ -108,6 +108,34 @@ struct RankedLeaderboardRow: Identifiable, Equatable {
     var tier: RankedTier { .forRating(mmr) }
 }
 
+/// Presentation data is deliberately separate from leaderboard loading so a
+/// match can begin even when Game Center has no current entry for a player.
+struct RankedMatchup: Equatable {
+    struct Participant: Equatable {
+        let displayName: String
+        let tier: RankedTier?
+        let mmr: Int?
+
+        var rankLabel: String { tier?.rawValue ?? "RANK UNAVAILABLE" }
+    }
+
+    let local: Participant
+    let opponent: Participant
+    let kind: RankedMatchKind
+
+    static func pvp(localName: String, localRating: Int, opponentName: String, opponentRow: RankedLeaderboardRow?) -> Self {
+        Self(local: .init(displayName: localName, tier: .forRating(localRating), mmr: localRating),
+             opponent: .init(displayName: opponentRow?.displayName ?? opponentName, tier: opponentRow?.tier, mmr: opponentRow?.mmr),
+             kind: .pvp)
+    }
+
+    static func aiFallback(localName: String, localRating: Int, profile: RankedAIProfile) -> Self {
+        Self(local: .init(displayName: localName, tier: .forRating(localRating), mmr: localRating),
+             opponent: .init(displayName: "RANKED AI", tier: profile.tier, mmr: nil),
+             kind: .aiFallback)
+    }
+}
+
 @MainActor final class RankedLeaderboardService: ObservableObject {
     enum State: Equatable { case idle, loading, loaded, emptyFriends, signInRequired, failed(String) }
     @Published private(set) var rows: [RankedLeaderboardRow] = []
@@ -135,6 +163,10 @@ struct RankedLeaderboardRow: Identifiable, Equatable {
 
     nonisolated static func row(placement: Int, playerID: String, displayName: String, mmr: Int, isLocalPlayer: Bool) -> RankedLeaderboardRow {
         RankedLeaderboardRow(placement: placement, playerID: playerID, displayName: displayName, mmr: mmr, isLocalPlayer: isLocalPlayer)
+    }
+
+    static func matchup(localName: String, localRating: Int, opponentName: String, opponentRow: RankedLeaderboardRow?) -> RankedMatchup {
+        .pvp(localName: localName, localRating: localRating, opponentName: opponentName, opponentRow: opponentRow)
     }
 
     private static func row(_ entry: GKLeaderboard.Entry) -> RankedLeaderboardRow {

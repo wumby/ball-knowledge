@@ -1,7 +1,7 @@
 import Foundation
 
 @MainActor final class GameViewModel: ObservableObject {
-    enum Phase: Equatable { case matching, revealing, auction, bidResult, selecting, draftReveal, reportLoading, results }
+    enum Phase: Equatable { case matching, matchup, revealing, auction, bidResult, selecting, draftReveal, reportLoading, results }
     @Published var phase: Phase = .matching
     @Published var engine: AuctionEngine?
     @Published var bid = 0
@@ -24,6 +24,7 @@ import Foundation
     private var timer: Task<Void, Never>?
     private var reportCalculation: Task<Void, Never>?
     private var reportCalculationID: UUID?
+    private var matchupTimer: Task<Void, Never>?
     private let transport: MatchTransport
     private let friendSession: FriendBattleSession?
     private var friendUpdates: Task<Void, Never>?
@@ -61,7 +62,13 @@ import Foundation
             loadError = error.localizedDescription
             return
         }
-        bid = 0; phase = .revealing
+        bid = 0
+        if matchMode == .ranked {
+            phase = .matchup
+            scheduleLocalRankedMatchupAdvance()
+        } else {
+            phase = .revealing
+        }
     }
     func adjustBid(by amount: Int) { guard let engine else { return }; bid = min(engine.playerBudget, max(0, bid + amount)) }
     func submitBid() {
@@ -92,6 +99,7 @@ import Foundation
     }
     func leaveMatch() {
         timer?.cancel()
+        matchupTimer?.cancel()
         reportCalculation?.cancel()
         if let friendSession { Task { await friendSession.forfeit() } }
         transport.disconnect()
@@ -99,6 +107,14 @@ import Foundation
     private func autoPickForOpponent() {
         guard var engine, let pick = engine.botPick(), let winner = pendingWinner, engine.select(pick, for: winner, bid: pendingBid) else { return }
         self.engine = engine; revealedPlayer = engine.opponentRoster.last; pendingWinner = nil; toast = "OPPONENT DRAFTED \(pick.playerName)"; phase = .draftReveal
+    }
+    private func scheduleLocalRankedMatchupAdvance() {
+        matchupTimer?.cancel()
+        matchupTimer = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(5))
+            guard let self, !Task.isCancelled, self.phase == .matchup else { return }
+            self.phase = .revealing
+        }
     }
     func finishDraftReveal() {
         if let friendSession { Task { try? await friendSession.advance() }; return }
@@ -187,6 +203,7 @@ import Foundation
         connectionMessage = session.connectionMessage
         switch snapshot.stage {
         case .lobby: phase = .matching
+        case .matchup: phase = .matchup
         case .revealing: phase = .revealing
         case .bidding: phase = .auction; seconds = max(0, Int((snapshot.deadline ?? Date()).timeIntervalSinceNow.rounded(.up)))
         case .bidResult: phase = .bidResult
@@ -199,5 +216,5 @@ import Foundation
             if let engine { prepareFinalReport(from: engine, didWinOverride: didWin) }
         }
     }
-    deinit { timer?.cancel(); reportCalculation?.cancel(); friendUpdates?.cancel() }
+    deinit { timer?.cancel(); matchupTimer?.cancel(); reportCalculation?.cancel(); friendUpdates?.cancel() }
 }

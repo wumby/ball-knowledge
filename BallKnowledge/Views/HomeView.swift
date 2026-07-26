@@ -22,12 +22,31 @@ struct HomeView: View {
                                 .accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 3) {
                                 Text("FIVE ALIVE").font(.title3.weight(.black))
+                                Text("BUILD THE BEST FIVE").font(.caption.weight(.black)).foregroundStyle(Color.accent)
                             }
                             Spacer()
                         }
                         Text("Bid on legendary team-years, draft the right player, and outbuild your rival.")
                             .font(.subheadline.weight(.medium)).foregroundStyle(.white.opacity(0.70))
                         Button { route = .gameSetup } label: { Label("PLAY FIVE ALIVE", systemImage: "banknote.fill").frame(maxWidth: .infinity) }.buttonStyle(PrimaryButtonStyle(compact: compact))
+                    }
+                    .padding(compact ? 15 : 18)
+                    .background(LinearGradient(colors: [Color.accent.opacity(0.15), .white.opacity(0.055)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .overlay(RoundedRectangle(cornerRadius: 22).stroke(Color.accent.opacity(0.32)))
+                    .clipShape(RoundedRectangle(cornerRadius: 22))
+
+                    VStack(alignment: .leading, spacing: 14) {
+                        HStack(alignment: .top) {
+                            Image("BoxWarsMark")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: compact ? 54 : 64, height: compact ? 54 : 64)
+                            VStack(alignment: .leading, spacing: 3) { Text("BOX WARS").font(.title3.weight(.black)); Text("90-SECOND NBA BOX FIGHT").font(.caption.weight(.black)).foregroundStyle(Color.accent) }
+                            Spacer()
+                        }
+                        Text("Fill a four-square grid with players who match both clues. Submit your best answers before the buzzer.")
+                            .font(.subheadline.weight(.medium)).foregroundStyle(.white.opacity(0.70))
+                        Button { route = .gridDuelSetup } label: { Label("PLAY BOX WARS", systemImage: "square.grid.2x2.fill").frame(maxWidth: .infinity) }.buttonStyle(PrimaryButtonStyle(compact: compact))
                     }
                     .padding(compact ? 15 : 18)
                     .background(LinearGradient(colors: [Color.accent.opacity(0.15), .white.opacity(0.055)], startPoint: .topLeading, endPoint: .bottomTrailing))
@@ -44,7 +63,7 @@ struct HomeView: View {
                         VStack(alignment: .leading, spacing: 3) {
                             Text("MORE GAMES").scoreLabel()
                             Text("COMING SOON").font(.headline.weight(.black)).foregroundStyle(.white.opacity(0.68))
-                            Text("More ways to test your basketball knowledge are in the works.")
+                            Text("Leave a comment with the game you want to see next.")
                                 .font(.caption.weight(.medium))
                                 .foregroundStyle(.white.opacity(0.42))
                                 .lineLimit(2)
@@ -77,6 +96,19 @@ struct GameSetupView: View {
     }
 }
 
+struct GridDuelSetupView: View {
+    @Binding var route: Route
+    @Binding var matchMode: OnlineMatchMode
+    var body: some View {
+        FiveAlivePage(route: $route, title: "BOX WARS", subtitle: "CHOOSE HOW YOU PLAY") {
+            PlayModeCard(title: "PRACTICE AI", subtitle: "Solve a fresh 2×2 NBA archive grid", icon: "cpu") { matchMode = .versusAI; route = .gridDuel }
+            PlayModeCard(title: "RANKED LADDER", subtitle: "Box Wars MMR is separate from Five Alive", icon: "trophy.fill") { matchMode = .ranked; route = .gridDuel }
+            PlayModeCard(title: "FRIEND MATCH", subtitle: "Local Box Wars practice while Game Center transport is configured", icon: "person.2.fill") { matchMode = .friend; route = .gridDuel }
+            Text("Each shared grid runs for 90 seconds. Rarity tiers and points reveal after the buzzer.").font(.caption).foregroundStyle(.white.opacity(0.6))
+        }
+    }
+}
+
 struct AISetupView: View {
     @Binding var route: Route; @Binding var difficulty: MatchDifficulty; @Binding var friendMatch: GKMatch?; @Binding var matchMode: OnlineMatchMode
     @State private var selectedDifficulty: MatchDifficulty = .easy
@@ -94,6 +126,7 @@ struct RankedHubView: View {
     @Binding var route: Route; @Binding var difficulty: MatchDifficulty; @Binding var friendMatch: GKMatch?; @Binding var matchMode: OnlineMatchMode
     @Binding var rankedMatchKind: RankedMatchKind
     @Binding var rankedAIProfile: RankedAIProfile?
+    @Binding var rankedMatchup: RankedMatchup?
     @ObservedObject var gameCenter: GameCenterCoordinator; @ObservedObject var rankedLadder: RankedLadderService
     var body: some View {
         FiveAlivePage(route: $route, back: .gameSetup, title: "RANKED", subtitle: "MONTHLY LADDER") {
@@ -103,24 +136,32 @@ struct RankedHubView: View {
             rankedAction
         }
         .onAppear { gameCenter.authenticate() }
-        .onChange(of: gameCenter.match) { _, match in if let match { friendMatch = match; difficulty = RankedMatchSetup.difficulty(afterSelecting: difficulty); matchMode = .ranked; rankedMatchKind = .pvp; rankedAIProfile = nil; route = .game } }
+        .onChange(of: gameCenter.match) { _, match in
+            guard let match else { return }
+            Task {
+                rankedMatchup = await gameCenter.rankedMatchup(for: match, localRating: rankedLadder.rating)
+                friendMatch = match; difficulty = RankedMatchSetup.difficulty(afterSelecting: difficulty); matchMode = .ranked; rankedMatchKind = .pvp; rankedAIProfile = nil; route = .game
+            }
+        }
         .onChange(of: gameCenter.rankedSearchState) { _, state in
             guard case let .startingAI(profile) = state else { return }
-            friendMatch = nil; difficulty = RankedMatchSetup.difficulty(afterSelecting: difficulty); matchMode = .ranked; rankedAIProfile = profile; route = .game
+            friendMatch = nil; difficulty = RankedMatchSetup.difficulty(afterSelecting: difficulty); matchMode = .ranked; rankedMatchKind = .aiFallback; rankedAIProfile = profile
+            rankedMatchup = .aiFallback(localName: GKLocalPlayer.local.displayName, localRating: rankedLadder.rating, profile: profile)
+            route = .game
         }
         .authenticationSheet(gameCenter)
     }
     @ViewBuilder private var rankedAction: some View {
         switch gameCenter.status {
         case .ready:
-            Text("We’ll search for a real opponent for up to 1 minute. If nobody is available, you’ll play a ranked match against AI instead.")
+            Text("We’ll search for a real opponent for up to 30 seconds. If nobody is available, you’ll play a ranked match against AI instead.")
                 .font(.subheadline.weight(.medium)).foregroundStyle(.white.opacity(0.72))
             switch gameCenter.rankedSearchState {
             case let .searching(stage, elapsed):
                 VStack(alignment: .leading, spacing: 8) {
                     ProgressView().tint(Color.accent)
                     Text(stage.playerMessage).font(.headline.weight(.black))
-                    Text("Your rating: \(rankedLadder.rating) MMR · searching ±\(stage.acceptedMMRRange) · \(max(0, 60 - elapsed)) seconds left")
+                    Text("Your rating: \(rankedLadder.rating) MMR · searching ±\(stage.acceptedMMRRange) · \(max(0, RankedSearchStage.duration - elapsed)) seconds left")
                         .font(.caption).foregroundStyle(.white.opacity(0.55)).monospacedDigit()
                     Button { gameCenter.cancelRankedMatch() } label: { Label("CANCEL SEARCH", systemImage: "xmark.circle.fill").frame(maxWidth: .infinity) }.buttonStyle(SecondaryButtonStyle())
                     Text("Cancelling does not affect your rank.").font(.caption).foregroundStyle(.white.opacity(0.58))

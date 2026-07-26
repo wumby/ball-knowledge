@@ -5,6 +5,9 @@ import SwiftUI
 enum RankedSearchStage: Int, CaseIterable, Equatable {
     case closeMatch, expanded, wide
 
+    static let duration: Int = 30
+    static let stageDuration: Int = 10
+
     var acceptedMMRRange: Int {
         switch self { case .closeMatch: 100; case .expanded: 250; case .wide: 500 }
     }
@@ -19,8 +22,8 @@ enum RankedSearchStage: Int, CaseIterable, Equatable {
 
     static func forElapsedSeconds(_ seconds: Int) -> RankedSearchStage {
         switch seconds {
-        case 0..<20: .closeMatch
-        case 20..<40: .expanded
+        case 0..<stageDuration: .closeMatch
+        case stageDuration..<(stageDuration * 2): .expanded
         default: .wide
         }
     }
@@ -93,10 +96,10 @@ enum RankedSearchState: Equatable {
     private func runRankedSearch(rating: Int, generation: UUID) async {
         for stage in RankedSearchStage.allCases {
             guard generation == rankedSearchGeneration, match == nil else { return }
-            let elapsed = stage.rawValue * 20
+            let elapsed = stage.rawValue * RankedSearchStage.stageDuration
             rankedSearchState = .searching(stage: stage, secondsElapsed: elapsed)
             beginRankedRequest(rating: rating, stage: stage, generation: generation)
-            try? await Task.sleep(for: .seconds(20))
+            try? await Task.sleep(for: .seconds(RankedSearchStage.stageDuration))
             guard generation == rankedSearchGeneration, match == nil else { return }
             if case .failed = rankedSearchState { return }
             GKMatchmaker.shared().cancel()
@@ -173,6 +176,29 @@ enum RankedSearchState: Equatable {
     }
 
     func cancelRankedMatch() { cancelRankedMatch(resetState: true) }
+
+    /// Leaderboard lookup is best-effort: Game Center may not have a submitted
+    /// score yet, and that must never hold the matched players at the gate.
+    func rankedMatchup(for match: GKMatch, localRating: Int) async -> RankedMatchup {
+        let localName = GKLocalPlayer.local.displayName
+        let opponent = match.players.first
+        let fallbackName = opponent?.displayName ?? "OPPONENT"
+        guard let opponent else {
+            return .pvp(localName: localName, localRating: localRating, opponentName: fallbackName, opponentRow: nil)
+        }
+        do {
+            let boards = try await GKLeaderboard.loadLeaderboards(IDs: [RankedLadder.leaderboardID])
+            guard let board = boards.first else {
+                return .pvp(localName: localName, localRating: localRating, opponentName: fallbackName, opponentRow: nil)
+            }
+            let (_, entries) = try await board.loadEntries(for: [opponent], timeScope: .allTime)
+            let entry = entries.first { $0.player.gamePlayerID == opponent.gamePlayerID }
+            let row = entry.map { RankedLeaderboardRow(placement: $0.rank, playerID: $0.player.gamePlayerID, displayName: $0.player.displayName, mmr: Int($0.score), isLocalPlayer: false) }
+            return .pvp(localName: localName, localRating: localRating, opponentName: fallbackName, opponentRow: row)
+        } catch {
+            return .pvp(localName: localName, localRating: localRating, opponentName: fallbackName, opponentRow: nil)
+        }
+    }
     private func cancelRankedMatch(resetState: Bool) {
         rankedSearchGeneration = UUID()
         rankedSearchTask?.cancel(); rankedSearchTask = nil; rankedRequestTask?.cancel(); rankedRequestTask = nil

@@ -5,26 +5,28 @@ struct GameView: View {
     @Binding var route: Route
     private let rankedMatchKind: RankedMatchKind
     private let rankedAIProfile: RankedAIProfile?
+    private let rankedMatchup: RankedMatchup?
     private let isRanked: Bool
     private let hasLiveOpponent: Bool
     @StateObject private var model: GameViewModel
     @State private var showingLeaveConfirmation = false
-    init(route: Binding<Route>, difficulty: MatchDifficulty, friendMatch: GKMatch? = nil, friendHostID: String? = nil, matchMode: OnlineMatchMode = .versusAI, rankedMatchKind: RankedMatchKind = .pvp, rankedLadder: RankedLadderService? = nil, rankedAIProfile: RankedAIProfile? = nil) {
+    init(route: Binding<Route>, difficulty: MatchDifficulty, friendMatch: GKMatch? = nil, friendHostID: String? = nil, matchMode: OnlineMatchMode = .versusAI, rankedMatchKind: RankedMatchKind = .pvp, rankedLadder: RankedLadderService? = nil, rankedAIProfile: RankedAIProfile? = nil, rankedMatchup: RankedMatchup? = nil) {
         _route = route
         self.rankedMatchKind = rankedMatchKind
         self.rankedAIProfile = rankedAIProfile
+        self.rankedMatchup = rankedMatchup
         self.isRanked = matchMode == .ranked
         self.hasLiveOpponent = friendMatch != nil
         if let friendMatch {
             let transport = GameKitMatchTransport(match: friendMatch)
-            _model = StateObject(wrappedValue: GameViewModel(difficulty: difficulty, transport: transport, friendSession: FriendBattleSession(transport: transport, hostID: friendHostID, difficulty: difficulty), matchMode: matchMode, rankedLadder: rankedLadder))
+            _model = StateObject(wrappedValue: GameViewModel(difficulty: difficulty, transport: transport, friendSession: FriendBattleSession(transport: transport, hostID: friendHostID, difficulty: difficulty, usesRankedMatchupIntro: matchMode == .ranked), matchMode: matchMode, rankedLadder: rankedLadder))
         } else {
             let botProfile = matchMode == .ranked && rankedMatchKind == .aiFallback ? rankedAIProfile : nil
             _model = StateObject(wrappedValue: GameViewModel(difficulty: difficulty, matchMode: matchMode, rankedLadder: rankedLadder, rankedAIProfile: botProfile))
         }
     }
     var body: some View {
-        Group { switch model.phase { case .matching: if let error = model.loadError { ContentUnavailableView("NBA ARCHIVE UNAVAILABLE", systemImage: "exclamationmark.triangle", description: Text(error)).foregroundStyle(.white) } else { VStack(spacing: 14) { ProgressView(hasLiveOpponent ? "WAITING FOR OPPONENT…" : "PREPARING MATCH…").tint(Color.accent); if let message = model.connectionMessage { Text(message).foregroundStyle(.white.opacity(0.7)).multilineTextAlignment(.center) } } }; case .revealing: TeamRouletteView(model: model); case .auction: AuctionView(model: model); case .bidResult: BidResultView(model: model); case .selecting: PlayerSelectionView(model: model); case .draftReveal: DraftRevealView(model: model); case .reportLoading: FinalReportLoadingView(); case .results: ResultsView(model: model, route: $route, rankedMatchKind: rankedMatchKind, rankedAIProfile: rankedAIProfile) } }
+        Group { switch model.phase { case .matching: if let error = model.loadError { ContentUnavailableView("NBA ARCHIVE UNAVAILABLE", systemImage: "exclamationmark.triangle", description: Text(error)).foregroundStyle(.white) } else { VStack(spacing: 14) { ProgressView(hasLiveOpponent ? "WAITING FOR OPPONENT…" : "PREPARING MATCH…").tint(Color.accent); if let message = model.connectionMessage { Text(message).foregroundStyle(.white.opacity(0.7)).multilineTextAlignment(.center) } } }; case .matchup: if let rankedMatchup { RankedMatchupView(matchup: rankedMatchup) } else { ProgressView("PREPARING RANKED MATCH…").tint(Color.accent) }; case .revealing: TeamRouletteView(model: model); case .auction: AuctionView(model: model); case .bidResult: BidResultView(model: model); case .selecting: PlayerSelectionView(model: model); case .draftReveal: DraftRevealView(model: model); case .reportLoading: FinalReportLoadingView(); case .results: ResultsView(model: model, route: $route, rankedMatchKind: rankedMatchKind, rankedAIProfile: rankedAIProfile) } }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .overlay(alignment: .top) {
                 HStack {
@@ -37,7 +39,6 @@ struct GameView: View {
                             .clipShape(Capsule())
                     }
                     Spacer()
-                    if isRanked { Text(rankedLabel).scoreLabel().foregroundStyle(Color.accent).padding(.horizontal, 10).padding(.vertical, 5).background(.black.opacity(0.45)).clipShape(Capsule()) }
                 }
                 .padding(.horizontal, 14)
                 .padding(.top, 8)
@@ -53,7 +54,38 @@ struct GameView: View {
             }
             .task { await model.start() }
     }
-    private var rankedLabel: String { rankedMatchKind == .aiFallback ? "\(rankedMatchKind.label) · \(rankedAIProfile?.tier.rawValue ?? "AI")" : rankedMatchKind.label }
+}
+
+struct RankedMatchupView: View {
+    let matchup: RankedMatchup
+    var body: some View {
+        VStack(spacing: 22) {
+            Spacer()
+            Text("MATCHUP").scoreLabel().foregroundStyle(Color.accent)
+            Text(matchup.kind == .pvp ? "RANKED MATCH" : "RANKED VS AI").font(.system(size: 30, weight: .black, design: .rounded)).multilineTextAlignment(.center)
+            HStack(alignment: .center, spacing: 10) {
+                participant(matchup.local, title: "YOU")
+                Text("VS").font(.title2.weight(.black)).foregroundStyle(Color.accent).frame(width: 34)
+                participant(matchup.opponent, title: "OPPONENT")
+            }
+            Text("TIP-OFF INCOMING").scoreLabel().foregroundStyle(.white.opacity(0.48))
+            Spacer()
+        }
+        .padding(20)
+    }
+    private func participant(_ participant: RankedMatchup.Participant, title: String) -> some View {
+        VStack(spacing: 10) {
+            Text(title).scoreLabel().foregroundStyle(.white.opacity(0.5))
+            if let tier = participant.tier { RankBadge(tier: tier, size: 70) }
+            else { Image(systemName: "questionmark.shield.fill").font(.system(size: 52)).foregroundStyle(.white.opacity(0.3)).frame(height: 70) }
+            Text(participant.displayName).font(.headline.weight(.black)).lineLimit(2).minimumScaleFactor(0.7).multilineTextAlignment(.center).frame(maxWidth: .infinity)
+            Text(participant.rankLabel).scoreLabel().foregroundStyle(participant.tier == nil ? .white.opacity(0.48) : Color.accent).multilineTextAlignment(.center).lineLimit(2).minimumScaleFactor(0.7)
+            if let mmr = participant.mmr { Text("\(mmr) MMR").font(.caption.weight(.black)).monospacedDigit().foregroundStyle(.white.opacity(0.72)) }
+            else { Text(" ").font(.caption) }
+        }
+        .padding(14).frame(maxWidth: .infinity)
+        .background(.white.opacity(0.07)).overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.accent.opacity(0.35))).clipShape(RoundedRectangle(cornerRadius: 20))
+    }
 }
 
 struct FinalReportLoadingView: View {
@@ -344,17 +376,22 @@ struct TeamRouletteView: View {
 struct MatchHeader: View {
     @ObservedObject var model: GameViewModel
     var body: some View {
-        ZStack(alignment: .trailing) {
-            HStack(spacing: 28) {
+        VStack(spacing: 7) {
+            HStack(alignment: .top, spacing: 12) {
                 score("YOUR CAP", "$\(model.engine?.playerBudget ?? 0)M", .leading)
+                Spacer(minLength: 8)
                 score("\(model.opponentDisplayName.uppercased()) CAP", "$\(model.engine?.opponentBudget ?? 0)M", .trailing)
             }
-            timer
+            HStack {
+                Spacer()
+                timer.padding(.horizontal, 10).padding(.vertical, 4).background(.white.opacity(0.07)).clipShape(Capsule())
+                Spacer()
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
     }
-    private func score(_ title: String, _ value: String, _ alignment: HorizontalAlignment) -> some View { VStack(alignment: alignment, spacing: 2) { Text(title).scoreLabel(); Text(value).font(.subheadline.weight(.black)).monospacedDigit() } }
+    private func score(_ title: String, _ value: String, _ alignment: HorizontalAlignment) -> some View { VStack(alignment: alignment, spacing: 2) { Text(title).scoreLabel().lineLimit(1).minimumScaleFactor(0.62); Text(value).font(.subheadline.weight(.black)).monospacedDigit() }.frame(maxWidth: .infinity, alignment: alignment == .leading ? .leading : .trailing).layoutPriority(1) }
     private var timer: some View {
         Text("0:\(String(format: "%02d", model.seconds))")
             .font(.headline.monospacedDigit().weight(.black))
@@ -547,17 +584,57 @@ struct BidActionBar: View {
     @ObservedObject var model: GameViewModel
     var body: some View {
         VStack(spacing: 10) {
-            HStack { VStack(alignment: .leading, spacing: 1) { Text("YOUR BID").scoreLabel(); Text("$\(model.bid)M").font(.title2.weight(.black)).monospacedDigit() }; Spacer(); VStack(alignment: .trailing, spacing: 1) { Text("BANKROLL $\(model.engine?.playerBudget ?? 0)M").scoreLabel(); Text("0:\(String(format: "%02d", model.seconds))").font(.headline.monospacedDigit().weight(.black)).foregroundStyle(model.seconds <= 5 ? .red : .white) } }
-            if let bankroll = model.engine?.playerBudget, bankroll > 0 {
-                Slider(value: Binding(get: { Double(model.bid) }, set: { model.bid = Int($0.rounded()) }), in: 0...Double(bankroll), step: 1).tint(Color.accent)
-            } else {
-                HStack(spacing: 8) { Image(systemName: "banknote").foregroundStyle(.white.opacity(0.45)); Text("NO BANKROLL REMAINING — BID $0M").font(.caption.weight(.black)).foregroundStyle(.white.opacity(0.55)); Spacer() }.frame(height: 30)
+            bidStatus
+            HStack(spacing: 8) {
+                bidButton("−10", -10)
+                bidButton("−1", -1)
+                bidButton("+1", 1)
+                bidButton("+10", 10)
+                Button("ALL IN") { model.bid = model.engine?.playerBudget ?? 0 }
+                    .accessibilityLabel("Bid all available bankroll")
+                    .buttonStyle(CompactBidStyle(accent: true))
             }
-            HStack(spacing: 8) { bidButton("−10", -10); bidButton("−1", -1); bidButton("+1", 1); bidButton("+10", 10); Button("ALL") { model.bid = model.engine?.playerBudget ?? 0 }.buttonStyle(CompactBidStyle(accent: true)) }
-            Button("LOCK BID") { model.submitBid() }.buttonStyle(PrimaryButtonStyle(compact: true))
+            Button("LOCK BID") { model.submitBid() }
+                .accessibilityLabel("Lock bid of $\(model.bid) million")
+                .buttonStyle(PrimaryButtonStyle(compact: true))
         }.padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 8).background(.ultraThinMaterial).overlay(alignment: .top) { Rectangle().fill(.white.opacity(0.1)).frame(height: 1) }
     }
-    private func bidButton(_ title: String, _ amount: Int) -> some View { Button(title) { model.adjustBid(by: amount) }.buttonStyle(CompactBidStyle()) }
+
+    private var bidStatus: some View {
+        HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text("YOUR BID").scoreLabel()
+                Text("$\(model.bid)M")
+                    .font(.system(size: 30, weight: .black, design: .rounded))
+                    .monospacedDigit()
+                    .minimumScaleFactor(0.75)
+                    .accessibilityLabel("Current bid: $\(model.bid) million")
+            }
+            Spacer(minLength: 12)
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(bankrollStatus)
+                    .scoreLabel()
+                    .foregroundStyle(hasBankroll ? .white.opacity(0.72) : .white.opacity(0.55))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                Text("0:\(String(format: "%02d", model.seconds))")
+                    .font(.headline.monospacedDigit().weight(.black))
+                    .foregroundStyle(model.seconds <= 5 ? .red : .white)
+                    .accessibilityLabel("\(model.seconds) seconds remaining")
+            }
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    private var bankroll: Int { model.engine?.playerBudget ?? 0 }
+    private var hasBankroll: Bool { bankroll > 0 }
+    private var bankrollStatus: String { hasBankroll ? "BANKROLL $\(bankroll)M" : "NO BANKROLL · BID $0M" }
+
+    private func bidButton(_ title: String, _ amount: Int) -> some View {
+        Button(title) { model.adjustBid(by: amount) }
+            .accessibilityLabel(amount > 0 ? "Increase bid by $\(amount) million" : "Decrease bid by $\(-amount) million")
+            .buttonStyle(CompactBidStyle())
+    }
 }
 
 struct CompactBidStyle: ButtonStyle { let accent: Bool; init(accent: Bool = false) { self.accent = accent }; func makeBody(configuration: Configuration) -> some View { configuration.label.font(.caption.weight(.black)).foregroundStyle(accent ? .black : .white).frame(maxWidth: .infinity, minHeight: 38).background(accent ? Color.accent : .white.opacity(configuration.isPressed ? 0.16 : 0.08)).clipShape(RoundedRectangle(cornerRadius: 10)) } }

@@ -108,7 +108,7 @@ enum MatchTransportError: LocalizedError {
 
 enum BotDifficulty: String, CaseIterable, Identifiable { case easy = "Easy", normal = "Normal", hard = "Hard"; var id: String { rawValue } }
 
-enum FriendBattleStage: String, Codable, Sendable { case lobby, revealing, bidding, bidResult, picking, draftReveal, paused, ended }
+enum FriendBattleStage: String, Codable, Sendable { case lobby, matchup, revealing, bidding, bidResult, picking, draftReveal, paused, ended }
 
 /// The host sends this complete, versioned state after every authoritative change.
 /// It makes reconnects and duplicate packets harmless: clients only render snapshots.
@@ -141,13 +141,18 @@ struct BattleSnapshot: Codable, Sendable {
     private var eventTask: Task<Void, Never>?
     private var pauseTask: Task<Void, Never>?
     private var deadlineTask: Task<Void, Never>?
+    private var matchupTask: Task<Void, Never>?
 
-    init(transport: MatchTransport, hostID: String? = nil, difficulty: MatchDifficulty = .easy) {
+    private let usesRankedMatchupIntro: Bool
+    init(transport: MatchTransport, hostID: String? = nil, difficulty: MatchDifficulty = .easy, usesRankedMatchupIntro: Bool = false) {
         self.transport = transport
         self.opponentName = transport.opponentName
         self.peerID = transport.opponentPlayerID
-        self.hostID = hostID
+        // Ranked quick matches have no inviter. Pick the same deterministic
+        // authority on both devices while preserving an inviter for friends.
+        self.hostID = hostID ?? [transport.localPlayerID, transport.opponentPlayerID].filter { !$0.isEmpty }.min()
         self.hostDifficulty = difficulty
+        self.usesRankedMatchupIntro = usesRankedMatchupIntro
     }
 
     /// The inviter supplies this before opening the matchmaker. Guests learn it
@@ -182,7 +187,7 @@ struct BattleSnapshot: Codable, Sendable {
     func advance() async throws {
         guard localIsHost, let snapshot else { return }
         switch snapshot.stage {
-        case .lobby, .revealing: try await beginBidding()
+        case .lobby, .matchup, .revealing: try await beginBidding()
         case .bidResult:
             let next = FriendBattleStage.picking
             let state = BattleSnapshot(hostID: snapshot.hostID, difficulty: snapshot.difficulty, seed: snapshot.seed, engine: snapshot.engine, stage: next, winner: snapshot.winner, winningBid: snapshot.winningBid, hostBid: snapshot.hostBid, guestBid: snapshot.guestBid, deadline: Date().addingTimeInterval(20), forfeitWinnerID: nil, sequence: nextSequence)
@@ -199,9 +204,11 @@ struct BattleSnapshot: Codable, Sendable {
         let seed = UInt64.random(in: 1...UInt64.max)
         let teams = try await BundledSeasonRepository.randomTeams(count: 10, seed: seed)
         guard let hostID else { return }
-        let state = BattleSnapshot(hostID: hostID, difficulty: hostDifficulty, seed: seed, engine: AuctionEngine(teams: teams, seed: seed), stage: .lobby, winner: nil, winningBid: 0, hostBid: nil, guestBid: nil, deadline: nil, forfeitWinnerID: nil, sequence: nextSequence)
+        let stage: FriendBattleStage = usesRankedMatchupIntro ? .matchup : .lobby
+        let state = BattleSnapshot(hostID: hostID, difficulty: hostDifficulty, seed: seed, engine: AuctionEngine(teams: teams, seed: seed), stage: stage, winner: nil, winningBid: 0, hostBid: nil, guestBid: nil, deadline: nil, forfeitWinnerID: nil, sequence: nextSequence)
         snapshot = state
         try await publish(state)
+        if usesRankedMatchupIntro { scheduleMatchupAdvance() }
     }
     private func receive(_ envelope: BattleEnvelope) async {
         guard envelope.version == BattleEnvelope.version else { connectionMessage = "Your friend is using an incompatible version."; return }
@@ -256,6 +263,16 @@ struct BattleSnapshot: Codable, Sendable {
             try? await self.acceptBid(self.bids[self.peerID] ?? 0, from: self.peerID)
         }
     }
+    private func scheduleMatchupAdvance() {
+        matchupTask?.cancel()
+        matchupTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(5))
+            guard let self, !Task.isCancelled, self.localIsHost, let snapshot = self.snapshot, snapshot.stage == .matchup else { return }
+            let state = BattleSnapshot(hostID: snapshot.hostID, difficulty: snapshot.difficulty, seed: snapshot.seed, engine: snapshot.engine, stage: .revealing, winner: nil, winningBid: 0, hostBid: nil, guestBid: nil, deadline: nil, forfeitWinnerID: nil, sequence: self.nextSequence)
+            self.snapshot = state
+            try? await self.publish(state)
+        }
+    }
     private func schedulePickTimeout(round: Int) {
         deadlineTask?.cancel(); deadlineTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(20)); guard let self, !Task.isCancelled, let snapshot = self.snapshot, self.localIsHost, snapshot.stage == .picking, snapshot.engine.index == round, let winner = snapshot.winner, let pick = snapshot.engine.current?.players.first(where: { !snapshot.engine.isPlayerSelected($0) }) else { return }
@@ -265,5 +282,5 @@ struct BattleSnapshot: Codable, Sendable {
     }
     private func send(_ event: BattleEvent) async throws { try await transport.send(BattleEnvelope(sequence: nextSequence, event: event)); nextSequence += 1 }
     private func publish(_ snapshot: BattleSnapshot) async throws { try await send(.snapshot(snapshot)); nextSequence += 1 }
-    deinit { eventTask?.cancel(); pauseTask?.cancel(); deadlineTask?.cancel() }
+    deinit { eventTask?.cancel(); pauseTask?.cancel(); deadlineTask?.cancel(); matchupTask?.cancel() }
 }

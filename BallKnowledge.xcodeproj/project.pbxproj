@@ -24,6 +24,10 @@
 		A10000000000000000000016 /* OfflineVisuals.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000016 /* OfflineVisuals.swift */; };
 		A10000000000000000000017 /* OfflineVisualManifest.json in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000017 /* OfflineVisualManifest.json */; };
 		A10000000000000000000018 /* RankedLadderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000019 /* RankedLadderService.swift */; };
+		A10000000000000000000019 /* GridDuelEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000020 /* GridDuelEngine.swift */; };
+		A10000000000000000000020 /* GridDuelViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000021 /* GridDuelViewModel.swift */; };
+		A10000000000000000000021 /* GridDuelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000022 /* GridDuelView.swift */; };
+		A10000000000000000000022 /* GridDuelLadderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000023 /* GridDuelLadderService.swift */; };
 		A20000000000000000000001 /* BallKnowledgeTests/AuctionEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000001 /* BallKnowledgeTests/AuctionEngineTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -56,6 +60,10 @@
 		B10000000000000000000017 /* OfflineVisualManifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = OfflineVisualManifest.json; sourceTree = "<group>"; };
 		B10000000000000000000018 /* BallKnowledge.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BallKnowledge.entitlements; sourceTree = "<group>"; };
 		B10000000000000000000019 /* RankedLadderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RankedLadderService.swift; sourceTree = "<group>"; };
+		B10000000000000000000020 /* GridDuelEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridDuelEngine.swift; sourceTree = "<group>"; };
+		B10000000000000000000021 /* GridDuelViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridDuelViewModel.swift; sourceTree = "<group>"; };
+		B10000000000000000000022 /* GridDuelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridDuelView.swift; sourceTree = "<group>"; };
+		B10000000000000000000023 /* GridDuelLadderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridDuelLadderService.swift; sourceTree = "<group>"; };
 		C10000000000000000000001 /* BallKnowledgeTests/AuctionEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BallKnowledgeTests/AuctionEngineTests.swift; sourceTree = "<group>"; };
 		D10000000000000000000001 /* Hoops IQ.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = "Hoops IQ.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D10000000000000000000002 /* BallKnowledgeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = BallKnowledgeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -130,6 +138,7 @@
 			children = (
 				B10000000000000000000004 /* MatchmakingService.swift */,
 				B10000000000000000000019 /* RankedLadderService.swift */,
+				B10000000000000000000023 /* GridDuelLadderService.swift */,
 			);
 			name = Services;
 			path = BallKnowledge/Services;
@@ -139,6 +148,7 @@
 			isa = PBXGroup;
 			children = (
 				B10000000000000000000005 /* AuctionEngine.swift */,
+				B10000000000000000000020 /* GridDuelEngine.swift */,
 			);
 			name = Simulation;
 			path = BallKnowledge/Simulation;
@@ -157,6 +167,7 @@
 			isa = PBXGroup;
 			children = (
 				B10000000000000000000007 /* GameViewModel.swift */,
+				B10000000000000000000021 /* GridDuelViewModel.swift */,
 			);
 			name = ViewModels;
 			path = BallKnowledge/ViewModels;
@@ -171,6 +182,7 @@
 				B10000000000000000000010 /* GameView.swift */,
 				B10000000000000000000011 /* DebugMenu.swift */,
 				B10000000000000000000016 /* OfflineVisuals.swift */,
+				B10000000000000000000022 /* GridDuelView.swift */,
 			);
 			name = Views;
 			path = BallKnowledge/Views;
@@ -281,6 +293,10 @@
 				A10000000000000000000003 /* SeasonRepository.swift in Sources */,
 				A10000000000000000000004 /* MatchmakingService.swift in Sources */,
 				A10000000000000000000018 /* RankedLadderService.swift in Sources */,
+				A10000000000000000000019 /* GridDuelEngine.swift in Sources */,
+				A10000000000000000000020 /* GridDuelViewModel.swift in Sources */,
+				A10000000000000000000021 /* GridDuelView.swift in Sources */,
+				A10000000000000000000022 /* GridDuelLadderService.swift in Sources */,
 				A10000000000000000000005 /* AuctionEngine.swift in Sources */,
 				A10000000000000000000006 /* MatchTransport.swift in Sources */,
 				A10000000000000000000007 /* GameViewModel.swift in Sources */,
