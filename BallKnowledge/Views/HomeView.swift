@@ -1,4 +1,6 @@
 import SwiftUI
+import GameKit
+import UIKit
 
 struct HomeView: View {
     @Binding var route: Route
@@ -13,12 +15,15 @@ struct HomeView: View {
                     Text("GAMES").scoreLabel()
                     VStack(alignment: .leading, spacing: 14) {
                         HStack(alignment: .top) {
-                            TeamBadge(team: "NBA", size: compact ? 54 : 64)
+                            Image("FiveAliveMark")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: compact ? 54 : 64, height: compact ? 54 : 64)
+                                .accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 3) {
                                 Text("FIVE ALIVE").font(.title3.weight(.black))
                             }
                             Spacer()
-                            Image(systemName: "chevron.right").foregroundStyle(.white.opacity(0.45))
                         }
                         Text("Bid on legendary team-years, draft the right player, and outbuild your rival.")
                             .font(.subheadline.weight(.medium)).foregroundStyle(.white.opacity(0.70))
@@ -62,93 +67,151 @@ struct HomeView: View {
 
 struct GameSetupView: View {
     @Binding var route: Route
-    @Binding var difficulty: MatchDifficulty
-
-    @State private var selectedMode: PlayMode?
-    @State private var selectedDifficulty: MatchDifficulty?
-
+    @Binding var matchMode: OnlineMatchMode
     var body: some View {
-        GeometryReader { proxy in
-            let compact = proxy.size.height < 700
-            ScrollView {
-                VStack(alignment: .leading, spacing: compact ? 14 : 20) {
-                    HStack { Button { route = .home } label: { Image(systemName: "chevron.left").font(.headline.bold()).frame(width: 42, height: 42).background(.white.opacity(0.08)).clipShape(Circle()) }; Spacer() }
-                    BrandHeader(compact: compact, title: "FIVE ALIVE", tagline: "BUILD THE BEST FIVE")
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("PLAY MODE").scoreLabel()
-                        PlayModeCard(title: "VERSUS AI", subtitle: "Draft against a computer rival", icon: "cpu", available: true, isSelected: selectedMode == .versusAI) {
-                            selectedMode = .versusAI
-                        }
-                        PlayModeCard(title: "RANKED LADDER", subtitle: "Face random players and climb", icon: "trophy.fill", available: false)
-                        PlayModeCard(title: "FRIEND MATCH", subtitle: "Send a private challenge", icon: "person.2.fill", available: false)
-                    }
-                    if selectedMode == .versusAI {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("SCOUTING LEVEL").scoreLabel()
-                            ForEach(MatchDifficulty.allCases) { difficultyCard($0, compact: compact) }
-                        }
-                    }
-                    if let selectedDifficulty {
-                        Button {
-                            difficulty = selectedDifficulty
-                            route = .game
-                        } label: {
-                            Label("START VS AI", systemImage: "banknote.fill").frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(PrimaryButtonStyle(compact: compact))
-                    }
-                }.padding(.horizontal, 20).padding(.vertical, compact ? 14 : 22)
-            }.scrollIndicators(.hidden).frame(width: proxy.size.width, height: proxy.size.height)
+        FiveAlivePage(route: $route, title: "FIVE ALIVE", subtitle: "CHOOSE HOW YOU PLAY") {
+            PlayModeCard(title: "PRACTICE", subtitle: "Draft against a computer rival", icon: "cpu") { matchMode = .versusAI; route = .aiSetup }
+            PlayModeCard(title: "RANKED LADDER", subtitle: "Face random players and climb to GOAT", icon: "trophy.fill") { matchMode = .ranked; route = .rankedHub }
+            PlayModeCard(title: "FRIEND MATCH", subtitle: "Send a private Game Center challenge", icon: "person.2.fill") { matchMode = .friend; route = .friendSetup }
         }
     }
-    private func difficultyCard(_ level: MatchDifficulty, compact: Bool) -> some View {
-        Button { selectedDifficulty = level } label: {
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(level.rawValue).font(compact ? .subheadline.weight(.black) : .headline.weight(.black))
-                    Text(level.subtitle).font(.caption).foregroundStyle(.white.opacity(0.6))
+}
+
+struct AISetupView: View {
+    @Binding var route: Route; @Binding var difficulty: MatchDifficulty; @Binding var friendMatch: GKMatch?; @Binding var matchMode: OnlineMatchMode
+    @State private var selectedDifficulty: MatchDifficulty = .easy
+    var body: some View {
+        FiveAlivePage(route: $route, back: .gameSetup, title: "PRACTICE", subtitle: "PICK A SCOUTING LEVEL") {
+            ForEach(MatchDifficulty.allCases) { level in
+                Button { selectedDifficulty = level } label: { HStack { VStack(alignment: .leading) { Text(level.rawValue).font(.headline.weight(.black)); Text(level.subtitle).font(.caption).foregroundStyle(.white.opacity(0.6)) }; Spacer(); Image(systemName: selectedDifficulty == level ? "checkmark.circle.fill" : "circle").foregroundStyle(selectedDifficulty == level ? Color.accent : .white.opacity(0.3)) }.padding(14).modeCard(selectedDifficulty == level) }.buttonStyle(.plain)
+            }
+            Button { difficulty = selectedDifficulty; friendMatch = nil; matchMode = .versusAI; route = .game } label: { Label("START PRACTICE", systemImage: "banknote.fill").frame(maxWidth: .infinity) }.buttonStyle(PrimaryButtonStyle())
+        }
+    }
+}
+
+struct RankedHubView: View {
+    @Binding var route: Route; @Binding var difficulty: MatchDifficulty; @Binding var friendMatch: GKMatch?; @Binding var matchMode: OnlineMatchMode
+    @Binding var rankedMatchKind: RankedMatchKind
+    @Binding var rankedAIProfile: RankedAIProfile?
+    @ObservedObject var gameCenter: GameCenterCoordinator; @ObservedObject var rankedLadder: RankedLadderService
+    var body: some View {
+        FiveAlivePage(route: $route, back: .gameSetup, title: "RANKED", subtitle: "MONTHLY LADDER") {
+            HStack { VStack(alignment: .leading) { Text("CURRENT RANK").scoreLabel(); Text("\(rankedLadder.rating) MMR").font(.title.weight(.black)).foregroundStyle(Color.accent); Text(rankedLadder.tier.rawValue).font(.headline.weight(.black)) }; Spacer(); RankBadge(tier: rankedLadder.tier, size: 58) }.padding(18).modeCard(true)
+            Button { route = .leaderboard } label: { Label("LEADERBOARD", systemImage: "list.number").frame(maxWidth: .infinity) }.buttonStyle(SecondaryButtonStyle())
+            Button { route = .rankDetails } label: { Label("RANKS & MMR", systemImage: "chart.bar.fill").frame(maxWidth: .infinity) }.buttonStyle(SecondaryButtonStyle())
+            rankedAction
+        }
+        .onAppear { gameCenter.authenticate() }
+        .onChange(of: gameCenter.match) { _, match in if let match { friendMatch = match; difficulty = RankedMatchSetup.difficulty(afterSelecting: difficulty); matchMode = .ranked; rankedMatchKind = .pvp; rankedAIProfile = nil; route = .game } }
+        .onChange(of: gameCenter.rankedSearchState) { _, state in
+            guard case let .startingAI(profile) = state else { return }
+            friendMatch = nil; difficulty = RankedMatchSetup.difficulty(afterSelecting: difficulty); matchMode = .ranked; rankedAIProfile = profile; route = .game
+        }
+        .authenticationSheet(gameCenter)
+    }
+    @ViewBuilder private var rankedAction: some View {
+        switch gameCenter.status {
+        case .ready:
+            Text("We’ll search for a real opponent for up to 1 minute. If nobody is available, you’ll play a ranked match against AI instead.")
+                .font(.subheadline.weight(.medium)).foregroundStyle(.white.opacity(0.72))
+            switch gameCenter.rankedSearchState {
+            case let .searching(stage, elapsed):
+                VStack(alignment: .leading, spacing: 8) {
+                    ProgressView().tint(Color.accent)
+                    Text(stage.playerMessage).font(.headline.weight(.black))
+                    Text("Your rating: \(rankedLadder.rating) MMR · searching ±\(stage.acceptedMMRRange) · \(max(0, 60 - elapsed)) seconds left")
+                        .font(.caption).foregroundStyle(.white.opacity(0.55)).monospacedDigit()
+                    Button { gameCenter.cancelRankedMatch() } label: { Label("CANCEL SEARCH", systemImage: "xmark.circle.fill").frame(maxWidth: .infinity) }.buttonStyle(SecondaryButtonStyle())
+                    Text("Cancelling does not affect your rank.").font(.caption).foregroundStyle(.white.opacity(0.58))
+                }.padding(14).modeCard(true)
+            case .startingAI:
+                ProgressView("No player found — starting a Ranked AI match.").tint(Color.accent)
+            case let .failed(message):
+                VStack(alignment: .leading, spacing: 8) { Text("Couldn’t connect to Game Center.").font(.headline.weight(.black)); Text(message).font(.caption).foregroundStyle(.white.opacity(0.65)); Button("TRY AGAIN") { gameCenter.startRankedSearch(rating: rankedLadder.rating) }.buttonStyle(SecondaryButtonStyle()) }.padding(14).modeCard()
+            case .idle:
+                Button { Task { await rankedLadder.refreshFromGameCenter(); gameCenter.startRankedSearch(rating: rankedLadder.rating) } } label: { Label("FIND A FAIR MATCH", systemImage: "trophy.fill").frame(maxWidth: .infinity) }.buttonStyle(PrimaryButtonStyle())
+            }
+        case .authenticating: ProgressView("SIGNING IN TO GAME CENTER…").frame(maxWidth: .infinity).padding()
+        case let .unavailable(message): Text(message).foregroundStyle(.red)
+        case .idle: EmptyView()
+        }
+        if let error = gameCenter.inviteError { Text(error).font(.caption).foregroundStyle(.white.opacity(0.65)) }
+    }
+}
+
+struct RankDetailsView: View {
+    @Binding var route: Route; @ObservedObject var rankedLadder: RankedLadderService
+    var body: some View { FiveAlivePage(route: $route, back: .rankedHub, title: "RANKS & MMR", subtitle: "MONTHLY REQUIREMENTS") { ForEach(RankedTier.allCases, id: \.self) { tier in HStack(spacing: 12) { RankBadge(tier: tier, size: 44); Text(tier.rawValue).font(.headline.weight(.black)).foregroundStyle(tier == rankedLadder.tier ? Color.accent : .white); Spacer(); Text(tier.requiredMMR).font(.subheadline.weight(.bold)).monospacedDigit().foregroundStyle(.white.opacity(0.68)) }.padding(14).modeCard(tier == rankedLadder.tier) }; Text("Wins and losses update your MMR after every ranked match.").font(.caption).foregroundStyle(.white.opacity(0.6)) } }
+}
+
+struct FriendSetupView: View {
+    @Binding var route: Route; @Binding var difficulty: MatchDifficulty; @Binding var friendMatch: GKMatch?; @Binding var friendHostID: String?; @Binding var matchMode: OnlineMatchMode
+    @ObservedObject var gameCenter: GameCenterCoordinator; @State private var showingMatchmaker = false; @State private var selectedDifficulty: MatchDifficulty = .easy
+    var body: some View {
+        FiveAlivePage(route: $route, back: .gameSetup, title: "FRIEND MATCH", subtitle: "PRIVATE GAME CENTER CHALLENGE") {
+            Text("Invite one friend through Game Center to start a private Five Alive match.").font(.subheadline).foregroundStyle(.white.opacity(0.7))
+            VStack(alignment: .leading, spacing: 8) {
+                Text("SCOUTING LEVEL").scoreLabel()
+                ForEach(MatchDifficulty.allCases) { level in
+                    Button { selectedDifficulty = level } label: {
+                        HStack { VStack(alignment: .leading, spacing: 2) { Text(level.rawValue).font(.headline.weight(.black)); Text(level.subtitle).font(.caption).foregroundStyle(.white.opacity(0.62)) }; Spacer(); if selectedDifficulty == level { Image(systemName: "checkmark.circle.fill").foregroundStyle(Color.accent) } }
+                            .padding(13).modeCard(selectedDifficulty == level)
+                    }.buttonStyle(.plain)
                 }
-                Spacer()
-                Image(systemName: selectedDifficulty == level ? "checkmark.circle.fill" : "circle")
-                    .font(.title3).foregroundStyle(selectedDifficulty == level ? Color.accent : .white.opacity(0.3))
             }
-            .padding(.horizontal, 14).padding(.vertical, compact ? 10 : 13)
-            .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
-            .background(selectedDifficulty == level ? Color.accent.opacity(0.14) : .white.opacity(0.055))
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(selectedDifficulty == level ? Color.accent.opacity(0.8) : .white.opacity(0.08)))
-            .clipShape(RoundedRectangle(cornerRadius: 14))
+            friendAction
         }
+        .onAppear { gameCenter.authenticate() }
+        .sheet(isPresented: $showingMatchmaker) { FriendMatchmakerView(coordinator: gameCenter) }
+        .onChange(of: gameCenter.match) { _, match in if let match { difficulty = selectedDifficulty; friendHostID = GKLocalPlayer.local.gamePlayerID; friendMatch = match; matchMode = .friend; route = .game } }
+        .authenticationSheet(gameCenter)
     }
+    @ViewBuilder private var friendAction: some View { switch gameCenter.status { case .ready: Button { showingMatchmaker = true } label: { Label("INVITE FRIEND", systemImage: "person.crop.circle.badge.plus").frame(maxWidth: .infinity) }.buttonStyle(PrimaryButtonStyle()); case .authenticating: ProgressView("SIGNING IN TO GAME CENTER…").frame(maxWidth: .infinity).padding(); case let .unavailable(message): Text(message).foregroundStyle(.red); case .idle: EmptyView() }; if let error = gameCenter.inviteError { Text(error).font(.caption).foregroundStyle(.white.opacity(0.65)) } }
 }
 
-private enum PlayMode {
-    case versusAI
-}
+private struct AuthenticationSheet: Identifiable { let controller: UIViewController; var id: ObjectIdentifier { ObjectIdentifier(controller) } }
+private extension View { func authenticationSheet(_ coordinator: GameCenterCoordinator) -> some View { sheet(item: Binding(get: { coordinator.authenticationController.map(AuthenticationSheet.init) }, set: { _ in coordinator.authenticationController = nil }), onDismiss: { coordinator.refreshAuthenticationStatus() }) { GameCenterAuthenticationView(controller: $0.controller) } }; func modeCard(_ selected: Bool = false) -> some View { background(selected ? Color.accent.opacity(0.14) : .white.opacity(0.055)).overlay(RoundedRectangle(cornerRadius: 14).stroke(selected ? Color.accent.opacity(0.75) : .white.opacity(0.12))).clipShape(RoundedRectangle(cornerRadius: 14)) } }
+private struct FiveAlivePage<Content: View>: View { @Binding var route: Route; var back: Route = .home; let title: String; let subtitle: String; @ViewBuilder let content: Content; init(route: Binding<Route>, back: Route = .home, title: String, subtitle: String, @ViewBuilder content: () -> Content) { _route = route; self.back = back; self.title = title; self.subtitle = subtitle; self.content = content() }; var body: some View { ScrollView { VStack(alignment: .leading, spacing: 14) { Button { route = back } label: { Image(systemName: "chevron.left").font(.headline.bold()).frame(width: 42, height: 42).background(.white.opacity(0.08)).clipShape(Circle()) }; BrandHeader(compact: false, title: title, tagline: subtitle, markAsset: "FiveAliveMark"); content }.padding(20) }.scrollIndicators(.hidden) } }
+private struct PlayModeCard: View { let title: String; let subtitle: String; let icon: String; let action: () -> Void; var body: some View { Button(action: action) { HStack(spacing: 12) { Image(systemName: icon).font(.title3.weight(.black)).foregroundStyle(Color.accent).frame(width: 28); VStack(alignment: .leading, spacing: 2) { Text(title).font(.subheadline.weight(.black)); Text(subtitle).font(.caption).foregroundStyle(.white.opacity(0.58)) }; Spacer(); Image(systemName: "chevron.right").foregroundStyle(.white.opacity(0.45)) }.padding(14).modeCard() }.buttonStyle(.plain) } }
 
-private struct PlayModeCard: View {
-    let title: String; let subtitle: String; let icon: String; let available: Bool
-    var isSelected = false
-    var action: (() -> Void)?
+struct RankedLeaderboardView: View {
+    @Binding var route: Route
+    @ObservedObject var gameCenter: GameCenterCoordinator
+    @ObservedObject var leaderboard: RankedLeaderboardService
+    @State private var filter: RankedLeaderboardFilter = .global
 
     var body: some View {
-        Group {
-            if let action {
-                Button(action: action) { card }
-                    .buttonStyle(.plain)
-            } else {
-                card
-            }
+        FiveAlivePage(route: $route, back: .rankedHub, title: "LEADERBOARD", subtitle: "CURRENT MONTH") {
+            Picker("Leaderboard filter", selection: $filter) { ForEach(RankedLeaderboardFilter.allCases) { Text($0.rawValue).tag($0) } }
+                .pickerStyle(.segmented)
+            content
         }
-        .accessibilityAddTraits(action == nil ? .isStaticText : [])
+        .task { await leaderboard.load(filter: filter) }
+        .onChange(of: filter) { _, newFilter in Task { await leaderboard.load(filter: newFilter) } }
+        .onChange(of: gameCenter.status) { _, status in if status == .ready { Task { await leaderboard.load(filter: filter) } } }
+        .onAppear { if gameCenter.status == .idle { gameCenter.authenticate() } }
+        .authenticationSheet(gameCenter)
     }
 
-    private var card: some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon).font(.title3.weight(.black)).foregroundStyle(isSelected ? Color.accent : .white.opacity(available ? 0.62 : 0.3)).frame(width: 28)
-            VStack(alignment: .leading, spacing: 2) { Text(title).font(.subheadline.weight(.black)); Text(subtitle).font(.caption).foregroundStyle(.white.opacity(0.58)) }
-            Spacer()
-            Text(available ? (isSelected ? "SELECTED" : "SELECT") : "SOON").scoreLabel().foregroundStyle(isSelected ? Color.accent : .white.opacity(available ? 0.52 : 0.34))
-        }.padding(13).background(isSelected ? Color.accent.opacity(0.16) : .white.opacity(available ? 0.055 : 0.045)).overlay(RoundedRectangle(cornerRadius: 14).stroke(isSelected ? Color.accent.opacity(0.8) : .white.opacity(available ? 0.14 : 0.08))).clipShape(RoundedRectangle(cornerRadius: 14))
+    @ViewBuilder private var content: some View {
+        switch leaderboard.state {
+        case .idle, .loading:
+            ProgressView("LOADING LEADERBOARD…").frame(maxWidth: .infinity).padding(30)
+        case .signInRequired:
+            VStack(spacing: 10) { Image(systemName: "person.crop.circle.badge.exclamationmark").font(.largeTitle).foregroundStyle(Color.accent); Text("SIGN IN TO GAME CENTER").font(.headline.weight(.black)); Text("Connect Game Center to view the monthly ranked leaderboard.").font(.caption).foregroundStyle(.white.opacity(0.65)).multilineTextAlignment(.center); Button("SIGN IN") { gameCenter.authenticate() }.buttonStyle(SecondaryButtonStyle()) }.frame(maxWidth: .infinity).padding(20).modeCard()
+        case .emptyFriends:
+            ContentUnavailableView("NO FRIENDS RANKED YET", systemImage: "person.2.slash", description: Text("Play ranked with Game Center friends to see them here.")).foregroundStyle(.white)
+        case let .failed(message):
+            VStack(spacing: 10) { ContentUnavailableView("LEADERBOARD UNAVAILABLE", systemImage: "exclamationmark.triangle", description: Text(message)); Button("TRY AGAIN") { Task { await leaderboard.load(filter: filter) } }.buttonStyle(SecondaryButtonStyle()) }.foregroundStyle(.white)
+        case .loaded:
+            if let pinned = leaderboard.pinnedLocalPlayer { leaderboardRow(pinned, pinned: true); Text("YOUR POSITION").scoreLabel().foregroundStyle(.white.opacity(0.55)) }
+            ForEach(leaderboard.rows) { leaderboardRow($0, pinned: false) }
+        }
+    }
+
+    private func leaderboardRow(_ row: RankedLeaderboardRow, pinned: Bool) -> some View {
+        HStack(spacing: 10) { Text("#\(row.placement)").font(.subheadline.weight(.black)).monospacedDigit().foregroundStyle(row.isLocalPlayer ? Color.accent : .white.opacity(0.7)).frame(width: 36, alignment: .leading); RankBadge(tier: row.tier, size: 38); VStack(alignment: .leading, spacing: 2) { Text(row.displayName).font(.subheadline.weight(.black)).lineLimit(1); Text(row.tier.rawValue).scoreLabel().foregroundStyle(row.isLocalPlayer ? Color.accent : .white.opacity(0.48)) }; Spacer(minLength: 2); VStack(alignment: .trailing, spacing: 1) { Text("\(row.mmr)").font(.headline.weight(.black)).monospacedDigit(); Text("MMR").scoreLabel().foregroundStyle(.white.opacity(0.45)) } }.padding(12).background(row.isLocalPlayer || pinned ? Color.accent.opacity(0.14) : .white.opacity(0.045)).overlay(RoundedRectangle(cornerRadius: 12).stroke(row.isLocalPlayer || pinned ? Color.accent.opacity(0.65) : .white.opacity(0.08))).clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 
@@ -168,12 +231,13 @@ struct RulesView: View {
 
 struct BrandHeader: View {
     let compact: Bool
-    var title: String = "BALL KNOWLEDGE"
+    var title: String = "HOOPS IQ"
     var tagline: String?
+    var markAsset: String = "BrandMark"
 
     var body: some View {
         HStack(spacing: compact ? 10 : 12) {
-            Image("BrandMark")
+            Image(markAsset)
                 .resizable()
                 .scaledToFit()
                 .frame(width: compact ? 52 : 62, height: compact ? 52 : 62)
@@ -192,6 +256,19 @@ struct BrandHeader: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title)
+    }
+}
+
+struct RankBadge: View {
+    let tier: RankedTier
+    let size: CGFloat
+
+    var body: some View {
+        Image(tier.badgeAssetName)
+            .resizable()
+            .scaledToFit()
+            .frame(width: size, height: size)
+            .accessibilityLabel(tier.rawValue + " rank badge")
     }
 }
 

@@ -1,13 +1,59 @@
 import SwiftUI
+import GameKit
 
 struct GameView: View {
     @Binding var route: Route
+    private let rankedMatchKind: RankedMatchKind
+    private let rankedAIProfile: RankedAIProfile?
+    private let isRanked: Bool
+    private let hasLiveOpponent: Bool
     @StateObject private var model: GameViewModel
-    init(route: Binding<Route>, difficulty: MatchDifficulty) { _route = route; _model = StateObject(wrappedValue: GameViewModel(difficulty: difficulty)) }
+    @State private var showingLeaveConfirmation = false
+    init(route: Binding<Route>, difficulty: MatchDifficulty, friendMatch: GKMatch? = nil, friendHostID: String? = nil, matchMode: OnlineMatchMode = .versusAI, rankedMatchKind: RankedMatchKind = .pvp, rankedLadder: RankedLadderService? = nil, rankedAIProfile: RankedAIProfile? = nil) {
+        _route = route
+        self.rankedMatchKind = rankedMatchKind
+        self.rankedAIProfile = rankedAIProfile
+        self.isRanked = matchMode == .ranked
+        self.hasLiveOpponent = friendMatch != nil
+        if let friendMatch {
+            let transport = GameKitMatchTransport(match: friendMatch)
+            _model = StateObject(wrappedValue: GameViewModel(difficulty: difficulty, transport: transport, friendSession: FriendBattleSession(transport: transport, hostID: friendHostID, difficulty: difficulty), matchMode: matchMode, rankedLadder: rankedLadder))
+        } else {
+            let botProfile = matchMode == .ranked && rankedMatchKind == .aiFallback ? rankedAIProfile : nil
+            _model = StateObject(wrappedValue: GameViewModel(difficulty: difficulty, matchMode: matchMode, rankedLadder: rankedLadder, rankedAIProfile: botProfile))
+        }
+    }
     var body: some View {
-        Group { switch model.phase { case .matching: if let error = model.loadError { ContentUnavailableView("NBA ARCHIVE UNAVAILABLE", systemImage: "exclamationmark.triangle", description: Text(error)).foregroundStyle(.white) } else { ProgressView("SETTING THE ARENA…").tint(Color.accent) }; case .revealing: TeamRouletteView(model: model); case .auction: AuctionView(model: model); case .bidResult: BidResultView(model: model); case .selecting: PlayerSelectionView(model: model); case .draftReveal: DraftRevealView(model: model); case .reportLoading: FinalReportLoadingView(); case .results: ResultsView(model: model, route: $route) } }
+        Group { switch model.phase { case .matching: if let error = model.loadError { ContentUnavailableView("NBA ARCHIVE UNAVAILABLE", systemImage: "exclamationmark.triangle", description: Text(error)).foregroundStyle(.white) } else { VStack(spacing: 14) { ProgressView(hasLiveOpponent ? "WAITING FOR OPPONENT…" : "PREPARING MATCH…").tint(Color.accent); if let message = model.connectionMessage { Text(message).foregroundStyle(.white.opacity(0.7)).multilineTextAlignment(.center) } } }; case .revealing: TeamRouletteView(model: model); case .auction: AuctionView(model: model); case .bidResult: BidResultView(model: model); case .selecting: PlayerSelectionView(model: model); case .draftReveal: DraftRevealView(model: model); case .reportLoading: FinalReportLoadingView(); case .results: ResultsView(model: model, route: $route, rankedMatchKind: rankedMatchKind, rankedAIProfile: rankedAIProfile) } }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .overlay(alignment: .top) {
+                HStack {
+                    Button { showingLeaveConfirmation = true } label: {
+                        Label("FORFEIT", systemImage: "flag.fill")
+                            .scoreLabel()
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 7)
+                            .background(.black.opacity(0.45))
+                            .clipShape(Capsule())
+                    }
+                    Spacer()
+                    if isRanked { Text(rankedLabel).scoreLabel().foregroundStyle(Color.accent).padding(.horizontal, 10).padding(.vertical, 5).background(.black.opacity(0.45)).clipShape(Capsule()) }
+                }
+                .padding(.horizontal, 14)
+                .padding(.top, 8)
+            }
+            .alert("Forfeit this match?", isPresented: $showingLeaveConfirmation) {
+                Button("Cancel", role: .cancel) {}
+                Button("Forfeit Match", role: .destructive) {
+                    model.leaveMatch()
+                    route = .home
+                }
+            } message: {
+                Text("Your current match progress will be lost.")
+            }
             .task { await model.start() }
     }
+    private var rankedLabel: String { rankedMatchKind == .aiFallback ? "\(rankedMatchKind.label) · \(rankedAIProfile?.tier.rawValue ?? "AI")" : rankedMatchKind.label }
 }
 
 struct FinalReportLoadingView: View {
@@ -33,7 +79,7 @@ struct BidResultView: View {
             Text(model.isForcedAward ? "ROSTER FULL" : (playerWon ? "AUCTION WON" : "AUCTION LOST")).scoreLabel().foregroundStyle(playerWon ? Color.accent : .white.opacity(0.55))
             Image(systemName: model.isForcedAward ? "forward.fill" : (playerWon ? "trophy.fill" : "gavel.fill")).font(.system(size: 54)).foregroundStyle(playerWon ? Color.accent : .white.opacity(0.55))
             Text(model.isForcedAward ? (playerWon ? "TEAM AWARDED TO YOU" : "TEAM AWARDED TO OPPONENT") : (playerWon ? "YOU WON THE BID" : "OPPONENT WON THE BID")).font(.system(size: 32, weight: .black, design: .rounded)).multilineTextAlignment(.center)
-            if let team = model.engine?.current { VStack(spacing: 12) { TeamLogo(team: team.team, season: team.season, size: 58); Text(team.team).font(.title.weight(.black)); Text(team.season).font(.headline).foregroundStyle(.white.opacity(0.6)); if model.isForcedAward { Text("BIDDING VOID · ROSTER FULL").scoreLabel().padding(.top, 4) } else { HStack(spacing: 12) { bidScore("YOU", bid: model.playerBid, won: playerWon); Text("VS").font(.caption.weight(.black)).foregroundStyle(.white.opacity(0.45)); bidScore("OPPONENT", bid: model.opponentBid, won: !playerWon) } } }.padding(22).frame(maxWidth: .infinity).background(.white.opacity(0.07)).clipShape(RoundedRectangle(cornerRadius: 22)) }
+            if let team = model.engine?.current { VStack(spacing: 12) { TeamLogo(team: team.team, season: team.season, size: 58); Text(team.team).font(.title.weight(.black)); Text(team.season).font(.headline).foregroundStyle(.white.opacity(0.6)); if model.isForcedAward { Text("BIDDING VOID · ROSTER FULL").scoreLabel().padding(.top, 4) } else { HStack(spacing: 12) { bidScore("YOU", bid: model.playerBid, won: playerWon); Text("VS").font(.caption.weight(.black)).foregroundStyle(.white.opacity(0.45)); bidScore(model.opponentDisplayName.uppercased(), bid: model.opponentBid, won: !playerWon) } } }.padding(22).frame(maxWidth: .infinity).background(.white.opacity(0.07)).clipShape(RoundedRectangle(cornerRadius: 22)) }
             Text(playerWon ? "Your player selection is coming up." : "Opponent pick incoming.").font(.subheadline.weight(.medium)).foregroundStyle(.white.opacity(0.62)).multilineTextAlignment(.center)
             Spacer()
         }.padding(24).task { try? await Task.sleep(for: .milliseconds(2600)); model.continueAfterBid() }
@@ -63,7 +109,7 @@ struct DraftRevealView: View {
                     }
                 }.padding(28).frame(maxWidth: .infinity).background(.white.opacity(0.08)).overlay(RoundedRectangle(cornerRadius: 28).stroke(playerWon ? Color.accent.opacity(0.55) : .white.opacity(0.16), lineWidth: 2)).clipShape(RoundedRectangle(cornerRadius: 28))
             }
-            DraftMatchupBoard(playerRoster: model.engine?.playerRoster ?? [], opponentRoster: model.engine?.opponentRoster ?? [], opponentName: model.engine?.opponentName ?? "OPPONENT")
+            DraftMatchupBoard(playerRoster: model.engine?.playerRoster ?? [], opponentRoster: model.engine?.opponentRoster ?? [], opponentName: model.opponentDisplayName)
             Spacer()
         }.padding(20).task { try? await Task.sleep(for: .milliseconds(4200)); model.finishDraftReveal() }
     }
@@ -96,93 +142,197 @@ struct DraftMatchupBoard: View {
 
 struct TeamRouletteView: View {
     @ObservedObject var model: GameViewModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var displayedTeam: TeamSeason?
     @State private var offerRevealed = false
-    @State private var packPulse = false
+    @State private var scanLineAtBottom = false
+    @State private var scanTarget = 0
+
     var body: some View {
-        VStack(spacing: 16) {
-            Spacer(minLength: 18)
-            Text("AUCTION PACK").scoreLabel().foregroundStyle(Color.accent)
-            Text(offerRevealed ? "PACK OPENED" : "OPENING TEAM-YEAR PACK")
-                .font(.system(size: 31, weight: .black, design: .rounded))
-                .multilineTextAlignment(.center)
-            Text(offerRevealed ? "This team-year is now up for auction." : "A new five-player roster is inside.")
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(.white.opacity(0.58))
-                .multilineTextAlignment(.center)
-            Spacer(minLength: 10)
-            if offerRevealed, let team = displayedTeam {
-                offerCard(for: team)
-            } else {
-                sealedPack
+        GeometryReader { proxy in
+            let compact = proxy.size.height < 700
+            VStack(spacing: compact ? 14 : 18) {
+                Spacer(minLength: compact ? 10 : 22)
+                Text(offerRevealed ? "ASSET IDENTIFIED" : "TEAM SELECTION")
+                    .font(.system(size: compact ? 28 : 32, weight: .black, design: .rounded))
+                    .multilineTextAlignment(.center)
+                Text(offerRevealed ? "Cleared for auction review." : "Running archive and roster intake scan.")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.white.opacity(0.58))
+                    .multilineTextAlignment(.center)
+
+                dossierCard(compact: compact)
+                    .frame(maxHeight: compact ? 390 : 460)
+
+                Text(offerRevealed ? "ROSTER INTAKE COMPLETE" : "SCANNING ARCHIVE")
+                    .scoreLabel()
+                    .foregroundStyle(offerRevealed ? Color.accent : .white.opacity(0.48))
+                Spacer(minLength: compact ? 8 : 20)
             }
-            Text(offerRevealed ? "TEAM-YEAR ADDED TO THE BOARD" : "REVEALING THE NEXT OFFER")
-                .scoreLabel()
-                .foregroundStyle(offerRevealed ? Color.accent : .white.opacity(0.48))
-                .padding(.top, 8)
-            Spacer(minLength: 18)
+            .padding(.horizontal, 24)
+            .frame(width: proxy.size.width, height: proxy.size.height)
         }
-        .padding(.horizontal, 24)
         .task { await spin() }
     }
-    private var sealedPack: some View {
-        VStack(spacing: 16) {
-            HStack {
-                Text("FIVE ALIVE").scoreLabel().foregroundStyle(.black.opacity(0.7))
-                Spacer()
-                Text("SERIES 01").font(.caption2.weight(.black)).foregroundStyle(.black.opacity(0.55))
+
+    private func dossierCard(compact: Bool) -> some View {
+        ZStack {
+            dossierGrid
+            if offerRevealed, let team = displayedTeam {
+                revealedDossier(for: team, compact: compact)
+                    .transition(reduceMotion ? .opacity : .scale(scale: 0.9).combined(with: .opacity))
+            } else {
+                scanningDossier
             }
-            .padding(.horizontal, 18)
-            Image(systemName: "basketball.fill")
-                .font(.system(size: 82, weight: .black))
-                .foregroundStyle(.black.opacity(0.78))
-                .padding(.vertical, 18)
-                .overlay(Circle().stroke(.black.opacity(0.2), lineWidth: 2).frame(width: 142, height: 142))
-            Text("TEAM-YEAR").font(.system(size: 28, weight: .black, design: .rounded)).foregroundStyle(.black)
-            Text("AUCTION PACK").font(.caption.weight(.black)).tracking(3).foregroundStyle(.black.opacity(0.65))
-            Rectangle().fill(.black.opacity(0.28)).frame(height: 1).padding(.horizontal, 18)
-            Text("5 PLAYERS INSIDE").font(.caption2.weight(.black)).foregroundStyle(.black.opacity(0.58))
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 28)
-        .background(LinearGradient(colors: [Color.accent, Color.accent.opacity(0.78), Color.white.opacity(0.72)], startPoint: .topLeading, endPoint: .bottomTrailing))
-        .overlay(RoundedRectangle(cornerRadius: 30).stroke(.white.opacity(0.9), lineWidth: 2))
-        .clipShape(RoundedRectangle(cornerRadius: 30))
-        .scaleEffect(packPulse ? 1.025 : 0.975)
-        .rotationEffect(.degrees(packPulse ? 1.2 : -1.2))
-        .shadow(color: Color.accent.opacity(0.55), radius: packPulse ? 22 : 8)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black.opacity(0.36))
+        .overlay(RoundedRectangle(cornerRadius: 28).stroke(offerRevealed ? Color.accent.opacity(0.78) : .white.opacity(0.18), lineWidth: offerRevealed ? 2 : 1))
+        .clipShape(RoundedRectangle(cornerRadius: 28))
+        .shadow(color: Color.accent.opacity(offerRevealed ? 0.36 : 0.12), radius: offerRevealed ? 20 : 8)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(offerRevealed && displayedTeam != nil ? "War Room dossier. \(TeamBrand.name(for: displayedTeam!.team)), \(displayedTeam!.season). Roster intake, 5 players." : "War Room dossier scanning incoming asset.")
     }
-    private func offerCard(for team: TeamSeason) -> some View {
-        VStack(spacing: 14) {
-            Text(offerRevealed ? "UP FOR AUCTION" : "SCANNING")
-                .scoreLabel()
-                .foregroundStyle(Color.accent)
-            TeamLogo(team: team.team, season: team.season, size: 112)
-                .shadow(color: Color.accent.opacity(offerRevealed ? 0.5 : 0.18), radius: offerRevealed ? 22 : 8)
+
+    /// The actual offer is deliberately first, so the reticle can visibly lock
+    /// onto it after cycling through decoy archive records. The scan reveals
+    /// only the team-year metadata; roster and player details remain hidden.
+    private var scoutingTeams: [TeamSeason] {
+        guard let engine = model.engine, let current = engine.current else { return [] }
+        let decoys = engine.teams.filter { $0.id != current.id }.prefix(4)
+        return [current] + decoys
+    }
+
+    private var dossierGrid: some View {
+        GeometryReader { proxy in
+            let spacing: CGFloat = 24
+            Path { path in
+                stride(from: CGFloat(0), through: proxy.size.width, by: spacing).forEach { x in
+                    path.move(to: CGPoint(x: x, y: 0)); path.addLine(to: CGPoint(x: x, y: proxy.size.height))
+                }
+                stride(from: CGFloat(0), through: proxy.size.height, by: spacing).forEach { y in
+                    path.move(to: CGPoint(x: 0, y: y)); path.addLine(to: CGPoint(x: proxy.size.width, y: y))
+                }
+            }
+            .stroke(Color.accent.opacity(0.11), lineWidth: 0.6)
+        }
+        .allowsHitTesting(false)
+    }
+
+    private var scanningDossier: some View {
+        GeometryReader { proxy in
+            VStack(spacing: 12) {
+                Text("SCANNING FIVE ARCHIVE SIGNALS")
+                    .scoreLabel()
+                    .foregroundStyle(.white.opacity(0.58))
+                VStack(spacing: 14) {
+                    HStack(spacing: 26) {
+                        scoutTarget(at: 0, size: proxy.size.width < 340 ? 40 : 48)
+                        scoutTarget(at: 1, size: proxy.size.width < 340 ? 40 : 48)
+                    }
+                    scoutTarget(at: 2, size: proxy.size.width < 340 ? 46 : 56)
+                    HStack(spacing: 26) {
+                        scoutTarget(at: 3, size: proxy.size.width < 340 ? 40 : 48)
+                        scoutTarget(at: 4, size: proxy.size.width < 340 ? 40 : 48)
+                    }
+                }
+                Rectangle()
+                    .fill(LinearGradient(colors: [.clear, Color.accent.opacity(0.85), .clear], startPoint: .leading, endPoint: .trailing))
+                    .frame(height: 2)
+                    .shadow(color: Color.accent, radius: 8)
+                    .offset(y: scanLineAtBottom ? proxy.size.height * 0.34 : -proxy.size.height * 0.34)
+                Text(scanTarget == 0 ? "TARGET ACQUISITION…" : "CROSS-REFERENCING ARCHIVE…")
+                    .scoreLabel()
+                    .foregroundStyle(Color.accent.opacity(0.84))
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    @ViewBuilder private func scoutTarget(at index: Int, size: CGFloat) -> some View {
+        if scoutingTeams.indices.contains(index) {
+            let team = scoutingTeams[index]
+            VStack(spacing: 4) {
+                ZStack {
+                    TeamLogo(team: team.team, season: team.season, size: size)
+                    if scanTarget == index {
+                        Image(systemName: "scope")
+                            .font(.system(size: size + 16, weight: .light))
+                            .foregroundStyle(Color.accent)
+                            .shadow(color: Color.accent, radius: 9)
+                            .transition(.opacity)
+                    }
+                }
+                .frame(width: size + 54, height: size + 20)
+
+                VStack(spacing: 1) {
+                    Text(TeamBrand.name(for: team.team))
+                        .font(.system(size: 11, weight: .black, design: .rounded))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.72)
+                        .multilineTextAlignment(.center)
+                        .frame(height: 26, alignment: .top)
+                    Text(team.season)
+                        .font(.system(size: 12, weight: .black, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(Color.accent)
+                        .lineLimit(1)
+                }
+                .frame(width: size + 54)
+            }
+            .opacity(scanTarget == index ? 1 : 0.42)
+            .scaleEffect(scanTarget == index ? 1.05 : 0.92)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(TeamBrand.name(for: team.team)), \(team.season)\(scanTarget == index ? ", current scan target" : "")")
+            .animation(reduceMotion ? nil : .spring(response: 0.24, dampingFraction: 0.72), value: scanTarget)
+        } else {
+            Color.clear.frame(width: size + 54, height: size + 78)
+        }
+    }
+
+    private func revealedDossier(for team: TeamSeason, compact: Bool) -> some View {
+        VStack(spacing: compact ? 10 : 14) {
+            HStack {
+                Text("ASSET CLEARED").scoreLabel().foregroundStyle(Color.accent)
+                Spacer()
+                Text("INTAKE // 05").scoreLabel().foregroundStyle(.white.opacity(0.48))
+            }
+            TeamLogo(team: team.team, season: team.season, size: compact ? 94 : 112)
+                .shadow(color: Color.accent.opacity(0.52), radius: 20)
             Text(TeamBrand.name(for: team.team))
-                .font(.system(size: 31, weight: .black, design: .rounded))
+                .font(.system(size: compact ? 29 : 33, weight: .black, design: .rounded))
                 .lineLimit(2)
-                .minimumScaleFactor(0.7)
+                .minimumScaleFactor(0.66)
                 .multilineTextAlignment(.center)
             Text(team.season)
-                .font(.system(size: 44, weight: .black, design: .rounded))
+                .font(.system(size: compact ? 38 : 46, weight: .black, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(Color.accent)
+            Divider().overlay(.white.opacity(0.16))
+            Text("ROSTER INTAKE · 5 PLAYERS")
+                .scoreLabel()
+                .foregroundStyle(.white.opacity(0.65))
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 30)
-        .padding(.horizontal, 20)
-        .background(.white.opacity(0.075))
-        .overlay(RoundedRectangle(cornerRadius: 30).stroke(offerRevealed ? Color.accent.opacity(0.7) : .white.opacity(0.14), lineWidth: offerRevealed ? 2 : 1))
-        .clipShape(RoundedRectangle(cornerRadius: 30))
-        .scaleEffect(offerRevealed ? 1 : 0.94)
-        .animation(.spring(response: 0.42, dampingFraction: 0.72), value: offerRevealed)
+        .padding(compact ? 22 : 28)
     }
+
     private func spin() async {
         guard let current = model.engine?.current else { return }
-        withAnimation(.easeInOut(duration: 0.32).repeatForever(autoreverses: true)) { packPulse = true }
-        try? await Task.sleep(for: .milliseconds(1250))
-        withAnimation(.spring(response: 0.42, dampingFraction: 0.72)) {
+        if !reduceMotion {
+            withAnimation(.linear(duration: 0.72).repeatForever(autoreverses: true)) { scanLineAtBottom = true }
+        }
+        // Two passes across five targets create a deliberate War Room search,
+        // then the reticle makes a final lock on the incoming team-year.
+        for step in 0..<10 {
+            guard !Task.isCancelled else { return }
+            withAnimation(reduceMotion ? nil : .spring(response: 0.24, dampingFraction: 0.72)) {
+                scanTarget = step % max(scoutingTeams.count, 1)
+            }
+            try? await Task.sleep(for: .milliseconds(330))
+        }
+        withAnimation(reduceMotion ? nil : .spring(response: 0.28, dampingFraction: 0.7)) { scanTarget = 0 }
+        try? await Task.sleep(for: .milliseconds(450))
+        withAnimation(reduceMotion ? .easeOut(duration: 0.18) : .spring(response: 0.42, dampingFraction: 0.72)) {
             displayedTeam = current
             offerRevealed = true
         }
@@ -194,15 +344,22 @@ struct TeamRouletteView: View {
 struct MatchHeader: View {
     @ObservedObject var model: GameViewModel
     var body: some View {
-        HStack(spacing: 8) {
-            score("YOUR CAP", "$\(model.engine?.playerBudget ?? 0)M", .leading)
-            Spacer(minLength: 4)
-            VStack(spacing: 2) { Text("TEAM-YEAR \(min((model.engine?.index ?? 0) + 1, 10)) / 10").scoreLabel(); Text("\(model.engine?.playerRoster.count ?? 0) / 5").font(.caption.weight(.black)).foregroundStyle(Color.accent) }.layoutPriority(1)
-            Spacer(minLength: 4)
-            score("\(model.engine?.opponentName.uppercased() ?? "OPPONENT") CAP", "$\(model.engine?.opponentBudget ?? 0)M", .trailing)
-        }.padding(.vertical, 8)
+        ZStack(alignment: .trailing) {
+            HStack(spacing: 28) {
+                score("YOUR CAP", "$\(model.engine?.playerBudget ?? 0)M", .leading)
+                score("\(model.opponentDisplayName.uppercased()) CAP", "$\(model.engine?.opponentBudget ?? 0)M", .trailing)
+            }
+            timer
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
     }
     private func score(_ title: String, _ value: String, _ alignment: HorizontalAlignment) -> some View { VStack(alignment: alignment, spacing: 2) { Text(title).scoreLabel(); Text(value).font(.subheadline.weight(.black)).monospacedDigit() } }
+    private var timer: some View {
+        Text("0:\(String(format: "%02d", model.seconds))")
+            .font(.headline.monospacedDigit().weight(.black))
+            .foregroundStyle(model.seconds <= 5 ? .red : Color.accent)
+    }
 }
 
 struct AuctionView: View {
@@ -345,9 +502,9 @@ struct ScoutingPlayerCard: View {
     var body: some View {
         Group {
             if showStats {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 7) {
                     HStack(spacing: 10) {
-                        PlayerPortrait(player: player, size: 36, context: .draftSelection)
+                        PlayerPortrait(player: player, size: 34, context: .draftSelection)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(player.playerName).font(.headline.weight(.black)).lineLimit(1).minimumScaleFactor(0.78).layoutPriority(1)
                             Text(player.position).font(.caption2.weight(.black)).foregroundStyle(Color.accent)
@@ -363,7 +520,7 @@ struct ScoutingPlayerCard: View {
                 }
             } else {
                 HStack(spacing: 10) {
-                    PlayerPortrait(player: player, size: 36, context: .draftSelection)
+                    PlayerPortrait(player: player, size: 34, context: .draftSelection)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(player.playerName).font(.headline.weight(.black)).lineLimit(1).minimumScaleFactor(0.78).layoutPriority(1)
                         Text(player.position).font(.caption2.weight(.black)).foregroundStyle(Color.accent)
@@ -372,7 +529,7 @@ struct ScoutingPlayerCard: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, minHeight: showStats ? 92 : nil)
+        .frame(maxWidth: .infinity, minHeight: showStats ? 92 : 64, alignment: .topLeading)
         .padding(.horizontal, 12).padding(.vertical, 8)
         .background(.white.opacity(0.09))
         .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.10)))
@@ -465,11 +622,11 @@ struct PlayerPickRow: View {
     let player: SeasonRecord; let difficulty: MatchDifficulty; let action: () -> Void
     var body: some View {
         Button(action: action) {
-            Group {
+            VStack(alignment: .leading, spacing: 8) {
                 if difficulty == .easy {
-                    VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 7) {
                         HStack(spacing: 10) {
-                            PlayerPortrait(player: player, size: 36, context: .draftSelection)
+                            PlayerPortrait(player: player, size: 34, context: .draftSelection)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(player.playerName).font(.headline.weight(.black)).lineLimit(1).minimumScaleFactor(0.78).layoutPriority(1)
                                 Text(player.position).font(.caption2.weight(.black)).foregroundStyle(Color.accent)
@@ -486,7 +643,7 @@ struct PlayerPickRow: View {
                     }
                 } else {
                     HStack(spacing: 10) {
-                        PlayerPortrait(player: player, size: 36, context: .draftSelection)
+                        PlayerPortrait(player: player, size: 34, context: .draftSelection)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(player.playerName).font(.headline.weight(.black)).lineLimit(1).minimumScaleFactor(0.78).layoutPriority(1)
                             Text(player.position).font(.caption2.weight(.black)).foregroundStyle(Color.accent)
@@ -496,7 +653,7 @@ struct PlayerPickRow: View {
                     }
                 }
             }
-            .frame(maxWidth: .infinity, minHeight: difficulty == .easy ? 92 : 64)
+            .frame(maxWidth: .infinity, minHeight: difficulty == .easy ? 92 : 64, alignment: .topLeading)
             .padding(.horizontal, 12).padding(.vertical, 8)
             .background(.white.opacity(0.09))
             .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.10)))
@@ -630,6 +787,8 @@ struct ExpandableCurrentTeamPanel: View {
 
 struct ResultsView: View {
     @ObservedObject var model: GameViewModel; @Binding var route: Route
+    var rankedMatchKind: RankedMatchKind = .pvp
+    var rankedAIProfile: RankedAIProfile?
     var body: some View {
         GeometryReader { proxy in
             let compact = proxy.size.height < 700
@@ -638,8 +797,9 @@ struct ResultsView: View {
                     VStack(spacing: compact ? 14 : 18) {
                         Text("FINAL MATCHUP").scoreLabel().foregroundStyle(Color.accent).padding(.top, compact ? 10 : 18)
                         Text(model.result).font(.system(size: compact ? 34 : 42, weight: .black, design: .rounded)).minimumScaleFactor(0.7).multilineTextAlignment(.center)
+                        if let ranked = model.rankedMatchResult { rankedResultCard(ranked) }
                         finalRatingScoreboard(model: model)
-                        FinalMatchupBoard(player: model.engine?.playerRoster ?? [], opponent: model.engine?.opponentRoster ?? [], opponentName: model.engine?.opponentName ?? "OPPONENT", playerAssignments: model.playerRatingBreakdown.assignments, opponentAssignments: model.opponentRatingBreakdown.assignments)
+                        FinalMatchupBoard(player: model.engine?.playerRoster ?? [], opponent: model.engine?.opponentRoster ?? [], opponentName: model.opponentDisplayName, playerAssignments: model.playerRatingBreakdown.assignments, opponentAssignments: model.opponentRatingBreakdown.assignments)
                         lineupScoreboard(model: model)
                         VStack(spacing: 6) {
                             Text("STAT BATTLE").scoreLabel().frame(maxWidth: .infinity, alignment: .leading)
@@ -653,7 +813,7 @@ struct ResultsView: View {
                         .background(.white.opacity(0.065))
                         .overlay(RoundedRectangle(cornerRadius: 18).stroke(.white.opacity(0.10)))
                         .clipShape(RoundedRectangle(cornerRadius: 18))
-                        BestPossibleTeamCard(player: model.bestPossibleTeam, opponent: model.bestPossibleOpponentTeam, opponentName: model.engine?.opponentName ?? "OPPONENT")
+                        BestPossibleTeamCard(player: model.bestPossibleTeam, opponent: model.bestPossibleOpponentTeam, opponentName: model.opponentDisplayName)
                     }.padding(.horizontal, 20).padding(.bottom, 16)
                 }
                 .scrollIndicators(.hidden)
@@ -662,13 +822,33 @@ struct ResultsView: View {
             }.frame(width: proxy.size.width, height: proxy.size.height)
         }
     }
+    private func rankedResultCard(_ result: RankedMatchResult) -> some View {
+        HStack(spacing: 12) {
+            RankBadge(tier: result.tier, size: 50)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(result.tier.rawValue).scoreLabel().foregroundStyle(Color.accent)
+                Text("\(result.ratingBefore) → \(result.ratingAfter) MMR")
+                    .font(.headline.weight(.black))
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 3) {
+                Text(result.delta >= 0 ? "+\(result.delta) MMR" : "\(result.delta) MMR")
+                    .font(.headline.weight(.black)).monospacedDigit().foregroundStyle(result.delta >= 0 ? Color.accent : .red)
+                Text("\(rankedResultLabel) · \(result.didWin ? "WIN" : "LOSS")").scoreLabel().foregroundStyle(.white.opacity(0.56))
+            }
+        }
+        .padding(14).background(Color.accent.opacity(0.12))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.accent.opacity(0.5)))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+    private var rankedResultLabel: String { rankedMatchKind == .aiFallback ? "\(rankedMatchKind.label) · \(rankedAIProfile?.tier.rawValue ?? "AI")" : rankedMatchKind.label }
     private func finalRatingScoreboard(model: GameViewModel) -> some View {
         let playerWon = model.playerRatingBreakdown.finalRating > model.opponentRatingBreakdown.finalRating
         let opponentWon = model.opponentRatingBreakdown.finalRating > model.playerRatingBreakdown.finalRating
         return HStack(spacing: 12) {
             finalRatingCard("YOUR TEAM", rating: model.playerRatingBreakdown.finalRating, highlighted: playerWon)
             Text("VS").font(.caption.weight(.black)).foregroundStyle(.white.opacity(0.45))
-            finalRatingCard(model.engine?.opponentName.uppercased() ?? "OPPONENT", rating: model.opponentRatingBreakdown.finalRating, highlighted: opponentWon)
+            finalRatingCard(model.opponentDisplayName.uppercased(), rating: model.opponentRatingBreakdown.finalRating, highlighted: opponentWon)
         }
         .padding(12)
         .background(.white.opacity(0.07))
@@ -685,7 +865,7 @@ struct ResultsView: View {
         }
         .frame(maxWidth: .infinity)
     }
-    private func lineupScoreboard(model: GameViewModel) -> some View { HStack(spacing: 10) { lineupCard("YOUR TEAM", rating: model.playerRatingBreakdown, accent: model.playerRatingBreakdown.finalRating > model.opponentRatingBreakdown.finalRating); Text("VS").font(.caption.weight(.black)).foregroundStyle(.white.opacity(0.45)); lineupCard(model.engine?.opponentName.uppercased() ?? "OPPONENT", rating: model.opponentRatingBreakdown, accent: model.opponentRatingBreakdown.finalRating > model.playerRatingBreakdown.finalRating) }.padding(12).background(.white.opacity(0.07)).clipShape(RoundedRectangle(cornerRadius: 16)) }
+    private func lineupScoreboard(model: GameViewModel) -> some View { HStack(spacing: 10) { lineupCard("YOUR TEAM", rating: model.playerRatingBreakdown, accent: model.playerRatingBreakdown.finalRating > model.opponentRatingBreakdown.finalRating); Text("VS").font(.caption.weight(.black)).foregroundStyle(.white.opacity(0.45)); lineupCard(model.opponentDisplayName.uppercased(), rating: model.opponentRatingBreakdown, accent: model.opponentRatingBreakdown.finalRating > model.playerRatingBreakdown.finalRating) }.padding(12).background(.white.opacity(0.07)).clipShape(RoundedRectangle(cornerRadius: 16)) }
     private func lineupCard(_ title: String, rating: LineupRatingBreakdown, accent: Bool) -> some View { VStack(spacing: 7) { Text(title).scoreLabel().foregroundStyle(accent ? Color.accent : .white.opacity(0.55)); ratingMath("PLAYER TOTAL", String(format: "%.1f", rating.playerTotal), color: .white); ratingMath("POSITION FIT", "\(rating.positionPenalty)", color: rating.positionPenalty < 0 ? .orange : Color.accent, detail: rating.missingPositions.isEmpty ? "All five positions covered" : "Missing \(rating.missingPositions.joined(separator: ", "))"); Divider().overlay(.white.opacity(0.14)); Text(rating.finalRating, format: .number.precision(.fractionLength(1))).font(.title.weight(.black)).monospacedDigit().foregroundStyle(accent ? Color.accent : .white); Text("FINAL TEAM RATING").scoreLabel() }.frame(maxWidth: .infinity) }
     private func ratingMath(_ label: String, _ value: String, color: Color, detail: String? = nil) -> some View { VStack(alignment: .leading, spacing: 3) { HStack { Text(label).font(.system(size: 9, weight: .black)).foregroundStyle(.white.opacity(0.58)); Spacer(); Text(value).font(.caption.weight(.black)).monospacedDigit().foregroundStyle(color) }; if let detail { Text(detail).font(.system(size: 9, weight: .bold)).foregroundStyle(.white.opacity(0.64)).lineLimit(2).fixedSize(horizontal: false, vertical: true) } } }
     private func netScoreboard(player: TeamNetRating, opponent: TeamNetRating) -> some View { HStack(spacing: 12) { netCard("YOU", player); Text("VS").font(.caption.weight(.black)).foregroundStyle(.white.opacity(0.45)); netCard("OPP", opponent) }.padding(12).background(.white.opacity(0.07)).clipShape(RoundedRectangle(cornerRadius: 16)) }

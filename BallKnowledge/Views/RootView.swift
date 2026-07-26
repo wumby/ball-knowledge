@@ -1,8 +1,17 @@
 import SwiftUI
+import GameKit
 
 struct RootView: View {
     @State private var route: Route = .home
     @State private var difficulty: MatchDifficulty = .easy
+    @State private var friendMatch: GKMatch?
+    @State private var friendHostID: String?
+    @State private var matchMode: OnlineMatchMode = .versusAI
+    @State private var rankedMatchKind: RankedMatchKind = .pvp
+    @State private var rankedAIProfile: RankedAIProfile?
+    @StateObject private var gameCenter = GameCenterCoordinator()
+    @StateObject private var rankedLadder = RankedLadderService()
+    @StateObject private var leaderboard = RankedLeaderboardService()
     var body: some View {
         ZStack {
             ArenaBackground()
@@ -11,9 +20,19 @@ struct RootView: View {
                 case .home:
                     HomeHub(route: $route, difficulty: $difficulty)
                 case .gameSetup:
-                    GameSetupView(route: $route, difficulty: $difficulty)
+                    GameSetupView(route: $route, matchMode: $matchMode)
+                case .aiSetup:
+                    AISetupView(route: $route, difficulty: $difficulty, friendMatch: $friendMatch, matchMode: $matchMode)
+                case .rankedHub:
+                    RankedHubView(route: $route, difficulty: $difficulty, friendMatch: $friendMatch, matchMode: $matchMode, rankedMatchKind: $rankedMatchKind, rankedAIProfile: $rankedAIProfile, gameCenter: gameCenter, rankedLadder: rankedLadder)
+                case .leaderboard:
+                    RankedLeaderboardView(route: $route, gameCenter: gameCenter, leaderboard: leaderboard)
+                case .rankDetails:
+                    RankDetailsView(route: $route, rankedLadder: rankedLadder)
+                case .friendSetup:
+                    FriendSetupView(route: $route, difficulty: $difficulty, friendMatch: $friendMatch, friendHostID: $friendHostID, matchMode: $matchMode, gameCenter: gameCenter)
                 case .game:
-                    GameView(route: $route, difficulty: difficulty)
+                    GameView(route: $route, difficulty: difficulty, friendMatch: friendMatch, friendHostID: friendHostID, matchMode: matchMode, rankedMatchKind: rankedMatchKind, rankedLadder: rankedLadder, rankedAIProfile: rankedAIProfile)
                 }
             }
         }
@@ -24,7 +43,11 @@ struct RootView: View {
         .preferredColorScheme(.dark)
     }
 }
-enum Route { case home, gameSetup, game }
+enum Route { case home, gameSetup, aiSetup, rankedHub, leaderboard, rankDetails, friendSetup, game }
+enum OnlineMatchMode: Equatable { case versusAI, friend, ranked }
+enum RankedMatchKind: Equatable { case pvp, aiFallback
+    var label: String { self == .pvp ? "RANKED PVP" : "RANKED VS AI" }
+}
 
 private enum HomeTab: String, CaseIterable { case games = "Games", stats = "Stats" }
 

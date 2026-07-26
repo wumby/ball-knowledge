@@ -73,3 +73,9 @@ enum MatchDifficulty: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
     var subtitle: String { switch self { case .easy: "Players + stats"; case .medium: "Players, no stats"; case .ballKnowledge: "Team-year only" } }
 }
+
+/// Ranked rules deliberately ignore a player's most recently selected practice
+/// or Friend Match scouting level.
+enum RankedMatchSetup {
+    static func difficulty(afterSelecting _: MatchDifficulty) -> MatchDifficulty { .ballKnowledge }
+}

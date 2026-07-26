@@ -2,7 +2,7 @@ import Foundation
 
 struct DraftedPlayer: Identifiable, Codable, Hashable, Sendable { let id: UUID; let season: SeasonRecord; let bid: Int; init(season: SeasonRecord, bid: Int) { id = UUID(); self.season = season; self.bid = bid } }
 
-enum AuctionWinner { case player, opponent }
+enum AuctionWinner: Codable, Equatable { case player, opponent }
 
 enum BotPersonality: CaseIterable, Equatable {
     case starChaser
@@ -25,12 +25,15 @@ enum BotPersonality: CaseIterable, Equatable {
     }
 }
 
-struct AuctionEngine {
+struct AuctionEngine: Codable {
     private static let botNames = ["Avery", "Blake", "Casey", "Drew", "Jordan", "Morgan", "Parker", "Quinn", "Reese"]
     private static let requiredPositions = ["PG", "SG", "SF", "PF", "C"]
 
     let teams: [TeamSeason]
     let seed: UInt64
+    /// Nil keeps the established Practice bot behavior. Ranked AI persists a
+    /// concrete profile for the lifetime of the match.
+    let rankedAIProfile: RankedAIProfile?
     var index = 0
     var playerRoster: [DraftedPlayer] = []
     var opponentRoster: [DraftedPlayer] = []
@@ -41,7 +44,9 @@ struct AuctionEngine {
     var lastWinner: AuctionWinner?
     private var submittedRounds: Set<Int> = []
 
-    init(teams: [TeamSeason], seed: UInt64 = 1) { self.teams = teams; self.seed = seed }
+    init(teams: [TeamSeason], seed: UInt64 = 1, rankedAIProfile: RankedAIProfile? = nil) {
+        self.teams = teams; self.seed = seed; self.rankedAIProfile = rankedAIProfile
+    }
     var botPersonality: BotPersonality { BotPersonality.forSeed(seed) }
     var opponentName: String { Self.botNames[Int((seed / 3) % UInt64(Self.botNames.count))] }
     var current: TeamSeason? { index < teams.count ? teams[index] : nil }
@@ -85,6 +90,9 @@ struct AuctionEngine {
         let offeredPlayers = current.players.filter { !isPlayerSelected($0) }
         guard !offeredPlayers.isEmpty else { return 0 }
         let preferredPlayer = botPreferredPick(from: offeredPlayers) ?? offeredPlayers[0]
+        if let rankedAIProfile {
+            return rankedBid(for: preferredPlayer, profile: rankedAIProfile)
+        }
         let valueBid = 8 + max(0, preferredPlayer.overallRating - 75) / 2
             + personalityBidAdjustment(for: preferredPlayer)
             + bidVolatility()
@@ -109,7 +117,20 @@ struct AuctionEngine {
     }
     func isPlayerSelected(_ player: SeasonRecord) -> Bool { (playerRoster + opponentRoster).contains { $0.season.id == player.id } }
 
+    /// Friend battles store the host in `player` fields. Guests render a swapped,
+    /// local perspective while preserving the identical authoritative auction state.
+    func withSidesSwapped() -> AuctionEngine {
+        var copy = self
+        swap(&copy.playerRoster, &copy.opponentRoster)
+        swap(&copy.playerWonTeams, &copy.opponentWonTeams)
+        swap(&copy.playerBudget, &copy.opponentBudget)
+        if copy.lastWinner == .player { copy.lastWinner = .opponent }
+        else if copy.lastWinner == .opponent { copy.lastWinner = .player }
+        return copy
+    }
+
     private func botPreferredPick(from players: [SeasonRecord]) -> SeasonRecord? {
+        if let rankedAIProfile { return rankedPreferredPick(from: players, profile: rankedAIProfile) }
         guard let bestOverall = players.map(\.overallRating).max() else { return nil }
         let viablePlayers = players.filter { bestOverall - $0.overallRating <= 10 }
         let openPositions = missingPositions(in: opponentRoster)
@@ -129,6 +150,56 @@ struct AuctionEngine {
 
     private func candidateValue(_ player: SeasonRecord, fillsNeed: Bool) -> Double {
         botPersonality.value(of: player) + (fillsNeed ? 1 : 0)
+    }
+
+    private func rankedPreferredPick(from players: [SeasonRecord], profile: RankedAIProfile) -> SeasonRecord? {
+        guard let optimal = rankedOptimalPick(from: players) else { return nil }
+        guard profile != .platinum, profile != .goat, rankedMistakeRoll() < mistakeChance(for: profile) else { return optimal }
+        // A deterministic weak pick can either sacrifice roster fit or player
+        // value; Platinum and GOAT never enter this branch.
+        return players.filter { $0.id != optimal.id }.min { rankedPickValue($0) < rankedPickValue($1) } ?? optimal
+    }
+
+    private func rankedOptimalPick(from players: [SeasonRecord]) -> SeasonRecord? {
+        players.max { rankedPickValue($0) < rankedPickValue($1) }
+    }
+
+    private func rankedPickValue(_ player: SeasonRecord) -> Double {
+        let fitsNeed = fillsAnOpenPosition(player, openPositions: missingPositions(in: opponentRoster))
+        // Position fit matters, but an exceptional player can still be worth a
+        // duplicate position. This is the shared optimal path for Platinum/GOAT.
+        return Double(player.overallRating) * 10 + (fitsNeed ? 35 : 0) + botPersonality.value(of: player) * 0.1
+    }
+
+    private func rankedBid(for player: SeasonRecord, profile: RankedAIProfile) -> Int {
+        let fitBonus = fillsAnOpenPosition(player, openPositions: missingPositions(in: opponentRoster)) ? 2 : 0
+        let rosterPressure = opponentRoster.count >= 3 ? 2 : 0
+        let base = 8 + max(0, player.overallRating - 74) / 2 + fitBonus + rosterPressure
+        let roll = rankedMistakeRoll()
+        let adjustment: Int
+        let ceiling: Int
+        switch profile {
+        case .bronze: adjustment = roll < 55 ? -6 : (roll < 82 ? -2 : 1); ceiling = 18
+        case .silver: adjustment = roll < 28 ? -4 : (roll < 72 ? 0 : 2); ceiling = 22
+        case .gold: adjustment = roll < 8 ? -3 : (roll < 65 ? 2 : 4); ceiling = 26
+        case .platinum: adjustment = roll < 65 ? 4 : 6; ceiling = 30
+        case .goat: adjustment = roll < 55 ? 7 : 10; ceiling = 36
+        }
+        return min(opponentBudget, max(3, min(ceiling, base + adjustment)))
+    }
+
+    private func mistakeChance(for profile: RankedAIProfile) -> Int {
+        switch profile {
+        case .bronze: 55
+        case .silver: 28
+        case .gold: 8
+        case .platinum, .goat: 0
+        }
+    }
+
+    private func rankedMistakeRoll() -> Int {
+        var generator = SeededGenerator(seed: seed &+ UInt64(index) &* 0xA24BAED4963EE407)
+        return Int(generator.next() % 100)
     }
 
     private func personalityBidAdjustment(for player: SeasonRecord) -> Int {

@@ -1,7 +1,89 @@
 import XCTest
+import GameKit
 @testable import BallKnowledge
 
 final class AuctionEngineTests: XCTestCase {
+    func testRankedDifficultyCannotInheritPracticeOrFriendScoutingLevel() {
+        XCTAssertEqual(RankedMatchSetup.difficulty(afterSelecting: .easy), .ballKnowledge)
+        XCTAssertEqual(RankedMatchSetup.difficulty(afterSelecting: .medium), .ballKnowledge)
+    }
+
+    func testRankedSearchStagesExpandAtTwentySecondBoundaries() {
+        XCTAssertEqual(RankedSearchStage.forElapsedSeconds(0), .closeMatch)
+        XCTAssertEqual(RankedSearchStage.forElapsedSeconds(19), .closeMatch)
+        XCTAssertEqual(RankedSearchStage.forElapsedSeconds(20), .expanded)
+        XCTAssertEqual(RankedSearchStage.forElapsedSeconds(39), .expanded)
+        XCTAssertEqual(RankedSearchStage.forElapsedSeconds(40), .wide)
+        XCTAssertEqual(RankedSearchStage.forElapsedSeconds(59), .wide)
+    }
+
+    func testRankedSearchStagesUseSpecifiedFairMatchRanges() {
+        XCTAssertEqual(RankedSearchStage.closeMatch.acceptedMMRRange, 100)
+        XCTAssertEqual(RankedSearchStage.expanded.acceptedMMRRange, 250)
+        XCTAssertEqual(RankedSearchStage.wide.acceptedMMRRange, 500)
+    }
+
+    func testRankedSearchCopyUsesPlainLanguage() {
+        XCTAssertEqual(RankedSearchStage.closeMatch.playerMessage, "Looking for a player close to your skill level…")
+        XCTAssertTrue(RankedSearchStage.expanded.playerMessage.contains("fair match"))
+        XCTAssertTrue(RankedSearchStage.wide.playerMessage.contains("wider range"))
+    }
+
+    func testRankedEloStartsAtOneThousandAndAwardsTwentyFourForAnEvenWin() {
+        XCTAssertEqual(RankedLadder.rating(afterWin: true, rating: RankedLadder.initialRating), 1_012)
+        XCTAssertEqual(RankedLadder.rating(afterWin: false, rating: RankedLadder.initialRating), 988)
+    }
+
+    func testRankedTiersIncludeGOATAsTheUniqueHighestRank() {
+        XCTAssertEqual(RankedTier.forRating(799), .bronze)
+        XCTAssertEqual(RankedTier.forRating(800), .silver)
+        XCTAssertEqual(RankedTier.forRating(950), .gold)
+        XCTAssertEqual(RankedTier.forRating(1_100), .platinum)
+        XCTAssertEqual(RankedTier.forRating(1_250), .goat)
+    }
+
+    func testEveryRankedTierMapsToItsMatchingAIProfile() {
+        XCTAssertEqual(RankedAIProfile(tier: .bronze), .bronze)
+        XCTAssertEqual(RankedAIProfile(tier: .silver), .silver)
+        XCTAssertEqual(RankedAIProfile(tier: .gold), .gold)
+        XCTAssertEqual(RankedAIProfile(tier: .platinum), .platinum)
+        XCTAssertEqual(RankedAIProfile(tier: .goat), .goat)
+        XCTAssertEqual(RankedAIProfile.goat.tier, .goat)
+    }
+
+    func testRankedFallbackCapturesProfileFromRatingAtFallbackBoundary() {
+        XCTAssertEqual(GameCenterCoordinator.fallbackProfile(forRating: 799), .bronze)
+        XCTAssertEqual(GameCenterCoordinator.fallbackProfile(forRating: 800), .silver)
+        XCTAssertEqual(GameCenterCoordinator.fallbackProfile(forRating: 950), .gold)
+        XCTAssertEqual(GameCenterCoordinator.fallbackProfile(forRating: 1_100), .platinum)
+        XCTAssertEqual(GameCenterCoordinator.fallbackProfile(forRating: 1_250), .goat)
+    }
+
+    func testRankedSearchRecognizesAnUnconfiguredGameCenterQueue() {
+        let error = NSError(domain: GKErrorDomain, code: 5003)
+        XCTAssertTrue(GameCenterCoordinator.isMissingQueueError(error))
+        XCTAssertFalse(GameCenterCoordinator.isMissingQueueError(NSError(domain: GKErrorDomain, code: 1)))
+    }
+
+    func testRankedRatingClampsToConfiguredBounds() {
+        XCTAssertEqual(RankedLadder.rating(afterWin: false, rating: 0, opponentRating: 3_000), 0)
+        XCTAssertEqual(RankedLadder.rating(afterWin: true, rating: 3_000, opponentRating: 0), 3_000)
+    }
+
+    func testLeaderboardRowsDeriveTierAndKeepDisplaySafeValues() {
+        let row = RankedLeaderboardService.row(placement: 17, playerID: "player-17", displayName: "Sky Hook", mmr: 1_250, isLocalPlayer: false)
+        XCTAssertEqual(row.placement, 17)
+        XCTAssertEqual(row.displayName, "Sky Hook")
+        XCTAssertEqual(row.mmr, 1_250)
+        XCTAssertEqual(row.tier, .goat)
+    }
+
+    func testLeaderboardLocalPlayerRowCanBeIdentifiedForPinning() {
+        let row = RankedLeaderboardService.row(placement: 126, playerID: "me", displayName: "My Name", mmr: 800, isLocalPlayer: true)
+        XCTAssertTrue(row.isLocalPlayer)
+        XCTAssertEqual(row.tier, .silver)
+    }
+
     private let team = TeamSeason(id: "test", team: "TST", season: "2024–25", players: [
         SeasonRecord(id: "p1", playerName: "Point", season: "2024–25", team: "TST", position: "PG", overallRating: 90),
         SeasonRecord(id: "p2", playerName: "Wing", season: "2024–25", team: "TST", position: "SF", overallRating: 85),
@@ -9,6 +91,16 @@ final class AuctionEngineTests: XCTestCase {
     ])
     func testHigherBidWinsAndSalaryChanges() { var engine = AuctionEngine(teams: [team]); let result = engine.resolve(playerBid: 31, opponentBid: 12); XCTAssertEqual(result?.winner, .player); XCTAssertEqual(engine.playerBudget, 69) }
     func testTieIsDeterministic() { var a = AuctionEngine(teams: [team], seed: 99); var b = AuctionEngine(teams: [team], seed: 99); XCTAssertEqual(a.resolve(playerBid: 20, opponentBid: 20)?.winner, b.resolve(playerBid: 20, opponentBid: 20)?.winner) }
+    func testFriendPerspectiveSwapsHostAndGuestState() {
+        var engine = AuctionEngine(teams: [team])
+        let outcome = engine.resolve(playerBid: 20, opponentBid: 2)!
+        XCTAssertTrue(engine.select(team.players[0], for: outcome.winner, bid: outcome.bid))
+        let guestView = engine.withSidesSwapped()
+        XCTAssertEqual(guestView.playerRoster, engine.opponentRoster)
+        XCTAssertEqual(guestView.opponentRoster, engine.playerRoster)
+        XCTAssertEqual(guestView.playerBudget, engine.opponentBudget)
+        XCTAssertEqual(guestView.opponentBudget, engine.playerBudget)
+    }
     func testPickCompletesAuction() { var engine = AuctionEngine(teams: [team]); let outcome = engine.resolve(playerBid: 10, opponentBid: 1)!; XCTAssertTrue(engine.select(team.players[0], for: outcome.winner, bid: outcome.bid)); XCTAssertEqual(engine.index, 1); XCTAssertEqual(engine.playerRoster.count, 1); XCTAssertEqual(engine.playerWonTeams, [team]) }
     func testBotFillsAnOpenPositionWhenRatingGapIsTenOrLess() {
         let offer = TeamSeason(id: "fit", team: "FIT", season: "S", players: [
@@ -58,6 +150,33 @@ final class AuctionEngineTests: XCTestCase {
         let b = AuctionEngine(teams: [team], seed: 123)
         XCTAssertEqual(a.opponentName, b.opponentName)
         XCTAssertEqual(a.botPersonality, b.botPersonality)
+    }
+    func testRankedBotDecisionsAreDeterministicForSeedAndProfile() {
+        let a = AuctionEngine(teams: [team], seed: 456, rankedAIProfile: .gold)
+        let b = AuctionEngine(teams: [team], seed: 456, rankedAIProfile: .gold)
+        XCTAssertEqual(a.botBid(), b.botBid())
+        XCTAssertEqual(a.botPick(), b.botPick())
+    }
+    func testPlatinumAndGOATAlwaysUseOptimalSelectionPath() {
+        let offer = TeamSeason(id: "ranked-fit", team: "FIT", season: "S", players: [
+            SeasonRecord(id: "best", playerName: "Best Fit", season: "S", team: "FIT", position: "SG", overallRating: 90),
+            SeasonRecord(id: "weak", playerName: "Weak", season: "S", team: "FIT", position: "PG", overallRating: 76)
+        ])
+        for seed in UInt64(0)..<100 {
+            XCTAssertEqual(AuctionEngine(teams: [offer], seed: seed, rankedAIProfile: .platinum).botPick()?.id, "best")
+            XCTAssertEqual(AuctionEngine(teams: [offer], seed: seed, rankedAIProfile: .goat).botPick()?.id, "best")
+        }
+    }
+    func testLowerRankedProfilesCanMakeDeterministicWeakSelections() {
+        let offer = TeamSeason(id: "ranked-weak", team: "WEK", season: "S", players: [
+            SeasonRecord(id: "best", playerName: "Best", season: "S", team: "WEK", position: "SG", overallRating: 95),
+            SeasonRecord(id: "weak", playerName: "Weak", season: "S", team: "WEK", position: "PG", overallRating: 70)
+        ])
+        for profile in [RankedAIProfile.bronze, .silver, .gold] {
+            XCTAssertTrue((UInt64(0)..<2_000).contains { seed in
+                AuctionEngine(teams: [offer], seed: seed, rankedAIProfile: profile).botPick()?.id == "weak"
+            }, "\(profile) should have a permitted weak-selection roll")
+        }
     }
     func testPlayerDisplayOrderIsDeterministicForMatchSeed() {
         let a = AuctionEngine(teams: [team], seed: 123)
