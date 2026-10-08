@@ -30,7 +30,32 @@ enum RankedSearchStage: Int, CaseIterable, Equatable {
 }
 
 enum RankedSearchState: Equatable {
-    case idle, searching(stage: RankedSearchStage, secondsElapsed: Int), startingAI(profile: RankedAIProfile), failed(String)
+    case idle, searching(stage: RankedSearchStage, secondsElapsed: Int), matched, startingAI(profile: RankedAIProfile), failed(String)
+}
+
+/// A small seam around GameKit keeps the ranked session lifecycle testable
+/// without requiring a live Game Center queue.
+@MainActor protocol RankedMatchmaking: AnyObject {
+    func findMatch(for request: GKMatchRequest) async throws -> GKMatch
+    func cancel()
+}
+
+@MainActor final class GameKitRankedMatchmaking: RankedMatchmaking {
+    func findMatch(for request: GKMatchRequest) async throws -> GKMatch {
+        try await GKMatchmaker.shared().findMatch(for: request)
+    }
+
+    func cancel() { GKMatchmaker.shared().cancel() }
+}
+
+struct RankedMatchTicket {
+    let id: UUID
+    let match: GKMatch
+}
+
+struct RankedAIFallbackTicket {
+    let id: UUID
+    let profile: RankedAIProfile
 }
 
 @MainActor final class GameCenterCoordinator: NSObject, ObservableObject {
@@ -44,9 +69,23 @@ enum RankedSearchState: Equatable {
     private var rankedSearchTask: Task<Void, Never>?
     private var rankedRequestTask: Task<Void, Never>?
     private var rankedSearchGeneration = UUID()
+    private var rankedReadyMatch: GKMatch?
+    private var rankedReadyAIProfile: RankedAIProfile?
+    private var consumedRankedSessionID: UUID?
+    private let rankedMatcher: RankedMatchmaking
+    /// A coordinator has one game identity for its lifetime. Root owns one for
+    /// Five Alive and one for Box Wars, so a ticket can never be consumed by
+    /// the other game's hub.
+    private let competitiveGame: CompetitiveGame
     /// Turn this on only after the matching queue has been created and released
     /// in App Store Connect under this exact identifier.
     private static let usesConfiguredRankedQueue = false
+
+    init(rankedMatcher: RankedMatchmaking = GameKitRankedMatchmaking(), competitiveGame: CompetitiveGame = .fiveAlive) {
+        self.rankedMatcher = rankedMatcher
+        self.competitiveGame = competitiveGame
+        super.init()
+    }
 
     nonisolated static func fallbackProfile(forRating rating: Int) -> RankedAIProfile {
         RankedAIProfile(tier: .forRating(rating))
@@ -80,8 +119,8 @@ enum RankedSearchState: Equatable {
     func receive(match: GKMatch) { self.match = match }
 
     func startRankedSearch(rating: Int) {
-        guard status == .ready else { return }
-        cancelRankedMatch(resetState: false)
+        guard status == .ready, !hasActiveRankedSearch else { return }
+        resetRankedSession()
         inviteError = nil
         isFindingRankedMatch = true
         let generation = UUID()
@@ -95,20 +134,22 @@ enum RankedSearchState: Equatable {
 
     private func runRankedSearch(rating: Int, generation: UUID) async {
         for stage in RankedSearchStage.allCases {
-            guard generation == rankedSearchGeneration, match == nil else { return }
+            guard isCurrentRankedSession(generation) else { return }
             let elapsed = stage.rawValue * RankedSearchStage.stageDuration
             rankedSearchState = .searching(stage: stage, secondsElapsed: elapsed)
             beginRankedRequest(rating: rating, stage: stage, generation: generation)
             try? await Task.sleep(for: .seconds(RankedSearchStage.stageDuration))
-            guard generation == rankedSearchGeneration, match == nil else { return }
+            guard isCurrentRankedSession(generation) else { return }
             if case .failed = rankedSearchState { return }
-            GKMatchmaker.shared().cancel()
+            rankedMatcher.cancel()
             rankedRequestTask?.cancel()
             if stage == .wide {
                 isFindingRankedMatch = false
                 // The profile is captured at the fallback boundary, before the
                 // ranked game can update the player's rating.
-                rankedSearchState = .startingAI(profile: Self.fallbackProfile(forRating: rating))
+                let profile = Self.fallbackProfile(forRating: rating)
+                rankedReadyAIProfile = profile
+                rankedSearchState = .startingAI(profile: profile)
             }
         }
     }
@@ -116,9 +157,10 @@ enum RankedSearchState: Equatable {
     private func beginRankedRequest(rating: Int, stage: RankedSearchStage, generation: UUID) {
         let request = rankedRequest(rating: rating, stage: stage, usesConfiguredQueue: Self.usesConfiguredRankedQueue)
         rankedRequestTask = Task { [weak self] in
+            guard let self else { return }
             do {
-                let found = try await GKMatchmaker.shared().findMatch(for: request)
-                self?.handleRankedMatchResult(.success(found), generation: generation)
+                let found = try await self.rankedMatcher.findMatch(for: request)
+                self.handleRankedMatchResult(.success(found), generation: generation)
             } catch {
                 guard !Task.isCancelled else { return }
                 // Local development and App Store Connect configurations without
@@ -127,15 +169,15 @@ enum RankedSearchState: Equatable {
                 // an error or preventing the timed AI fallback.
                 if Self.isMissingQueueError(error) {
                     do {
-                        let fallbackRequest = self?.rankedRequest(rating: rating, stage: stage, usesConfiguredQueue: false) ?? request
-                        let found = try await GKMatchmaker.shared().findMatch(for: fallbackRequest)
-                        self?.handleRankedMatchResult(.success(found), generation: generation)
+                        let fallbackRequest = self.rankedRequest(rating: rating, stage: stage, usesConfiguredQueue: false)
+                        let found = try await self.rankedMatcher.findMatch(for: fallbackRequest)
+                        self.handleRankedMatchResult(.success(found), generation: generation)
                     } catch {
                         guard !Task.isCancelled else { return }
-                        self?.handleRankedMatchResult(.failure(error), generation: generation)
+                        self.handleRankedMatchResult(.failure(error), generation: generation)
                     }
                 } else {
-                    self?.handleRankedMatchResult(.failure(error), generation: generation)
+                    self.handleRankedMatchResult(.failure(error), generation: generation)
                 }
             }
         }
@@ -149,12 +191,13 @@ enum RankedSearchState: Equatable {
         let lowerBucket = max(0, (rating - stage.acceptedMMRRange) / 100)
         let upperBucket = (rating + stage.acceptedMMRRange) / 100
         if #available(iOS 17.2, *), usesConfiguredQueue {
-            request.queueName = "com.jackziegler.hoopsiq.ranked"
+            request.queueName = competitiveGame == .boxWars ? "com.jackziegler.hoopsiq.gridduel.ranked" : "com.jackziegler.hoopsiq.ranked"
             // Matchmaking rules in App Store Connect consume these values. The
             // current bucket is retained for queue diagnostics and analytics.
             request.properties = ["ratingBucket": rating / 100, "minimumRatingBucket": lowerBucket, "maximumRatingBucket": upperBucket]
         } else {
-            request.playerGroup = rating / 100
+            // Keep GameKit's fallback bucket game-specific as well.
+            request.playerGroup = rating / 100 + (competitiveGame == .boxWars ? 10_000 : 0)
         }
         return request
     }
@@ -165,17 +208,61 @@ enum RankedSearchState: Equatable {
     }
 
     private func handleRankedMatchResult(_ result: Result<GKMatch, Error>, generation: UUID) {
-        guard generation == rankedSearchGeneration else { return }
+        guard isCurrentRankedSession(generation) else { return }
         switch result {
         case let .success(found):
-            match = found; isFindingRankedMatch = false; rankedSearchState = .idle
+            rankedReadyMatch = found
+            isFindingRankedMatch = false
+            rankedSearchTask?.cancel(); rankedSearchTask = nil
+            rankedRequestTask = nil
+            rankedSearchState = .matched
         case let .failure(error):
             guard !Task.isCancelled else { return }
             isFindingRankedMatch = false; rankedSearchState = .failed(error.localizedDescription); rankedSearchGeneration = UUID()
         }
     }
 
-    func cancelRankedMatch() { cancelRankedMatch(resetState: true) }
+    /// Atomically transfers a found match to gameplay. A ticket can be used
+    /// once only; returning to the hub can never reuse its match.
+    func consumeRankedMatch() -> RankedMatchTicket? {
+        guard let found = rankedReadyMatch else { return nil }
+        let ticket = RankedMatchTicket(id: rankedSearchGeneration, match: found)
+        resetRankedSession(keepingConsumedSessionID: ticket.id)
+        return ticket
+    }
+
+    /// Atomically transfers the captured fallback profile to gameplay.
+    func consumeRankedAIFallback() -> RankedAIFallbackTicket? {
+        guard let profile = rankedReadyAIProfile else { return nil }
+        let ticket = RankedAIFallbackTicket(id: rankedSearchGeneration, profile: profile)
+        resetRankedSession(keepingConsumedSessionID: ticket.id)
+        return ticket
+    }
+
+    /// A consumed ticket remains valid only while the hub is transitioning to
+    /// gameplay. Any cancel, navigation away, or background event revokes it.
+    func isConsumedRankedSessionCurrent(_ id: UUID) -> Bool {
+        consumedRankedSessionID == id
+    }
+
+    func cancelRankedMatch() { resetRankedSession() }
+
+    /// Invalidates all pre-game ranked work. This deliberately does not touch
+    /// a match already handed to `GameView` through a consume ticket.
+    func resetRankedSession() { resetRankedSession(keepingConsumedSessionID: nil) }
+
+    private func resetRankedSession(keepingConsumedSessionID: UUID?) {
+        rankedSearchGeneration = UUID()
+        rankedSearchTask?.cancel(); rankedSearchTask = nil
+        rankedRequestTask?.cancel(); rankedRequestTask = nil
+        rankedMatcher.cancel()
+        rankedReadyMatch = nil
+        rankedReadyAIProfile = nil
+        consumedRankedSessionID = keepingConsumedSessionID
+        match = nil
+        isFindingRankedMatch = false
+        rankedSearchState = .idle
+    }
 
     /// Leaderboard lookup is best-effort: Game Center may not have a submitted
     /// score yet, and that must never hold the matched players at the gate.
@@ -187,7 +274,10 @@ enum RankedSearchState: Equatable {
             return .pvp(localName: localName, localRating: localRating, opponentName: fallbackName, opponentRow: nil)
         }
         do {
-            let boards = try await GKLeaderboard.loadLeaderboards(IDs: [RankedLadder.leaderboardID])
+            let leaderboardID = competitiveGame == .boxWars
+                ? GridDuelLadder.leaderboardID
+                : RankedLadder.leaderboardID
+            let boards = try await GKLeaderboard.loadLeaderboards(IDs: [leaderboardID])
             guard let board = boards.first else {
                 return .pvp(localName: localName, localRating: localRating, opponentName: fallbackName, opponentRow: nil)
             }
@@ -199,12 +289,13 @@ enum RankedSearchState: Equatable {
             return .pvp(localName: localName, localRating: localRating, opponentName: fallbackName, opponentRow: nil)
         }
     }
-    private func cancelRankedMatch(resetState: Bool) {
-        rankedSearchGeneration = UUID()
-        rankedSearchTask?.cancel(); rankedSearchTask = nil; rankedRequestTask?.cancel(); rankedRequestTask = nil
-        GKMatchmaker.shared().cancel()
-        isFindingRankedMatch = false
-        if resetState { rankedSearchState = .idle }
+    private var hasActiveRankedSearch: Bool {
+        if case .searching = rankedSearchState { return true }
+        return false
+    }
+
+    private func isCurrentRankedSession(_ generation: UUID) -> Bool {
+        generation == rankedSearchGeneration && rankedReadyMatch == nil && rankedReadyAIProfile == nil
     }
 }
 

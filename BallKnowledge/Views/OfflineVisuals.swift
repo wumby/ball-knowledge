@@ -46,7 +46,7 @@ enum OfflineVisualCatalog {
             return nil
         }
         let name = portraitAssetName(for: playerID)
-        return hasImage(named: name) ? name : nil
+        return portraitAssetNames.contains(name) ? name : nil
     }
 
     static func isDraftPortraitSuppressed(team: String, season: String) -> Bool {
@@ -71,7 +71,7 @@ enum OfflineVisualCatalog {
     }
 
     static func teamLogoName(team: String, season: String) -> String? {
-        if let year = Int(season.prefix(4)), let era = teamLogoEras.first(where: { $0.team == team && $0.contains(year) }), hasImage(named: era.assetName) {
+        if let year = Int(season.prefix(4)), let era = teamLogoEras.first(where: { $0.team == logoTeamCode(for: team, year: year) && $0.contains(year) }), teamLogoAssetNames.contains(era.assetName) {
             return era.assetName
         }
         return nil
@@ -81,28 +81,39 @@ enum OfflineVisualCatalog {
     /// even before that approved image has been added to the asset catalog.
     static func expectedTeamLogoName(team: String, season: String) -> String? {
         guard let year = Int(season.prefix(4)) else { return nil }
-        return teamLogoEras.first { $0.team == team && $0.contains(year) }?.assetName
+        return teamLogoEras.first { $0.team == logoTeamCode(for: team, year: year) && $0.contains(year) }?.assetName
     }
 
-    private static func hasImage(named name: String) -> Bool {
-        #if canImport(UIKit)
-        return UIImage(named: name) != nil
-        #else
-        return false
-        #endif
+    /// The roster archive uses NBA's modern abbreviations, while the approved
+    /// historical-logo registry retains Basketball Reference's BRK and PHO keys.
+    private static func logoTeamCode(for team: String, year: Int) -> String {
+        switch team {
+        case "BKN": "BRK"
+        case "PHX": "PHO"
+        case "CHA" where year >= 2014: "CHO"
+        default: team
+        }
     }
 
     private struct VisualManifest: Decodable {
+        struct Portrait: Decodable {
+            let assetName: String
+        }
+
         let teamLogos: [TeamLogoEra]
+        let portraits: [Portrait]
         let portraitMode: String?
         let teamSeasonPortraitCoverage: [TeamSeasonPortraitCoverage]?
     }
 
-    private static let portraitMode = loadManifest()?.portraitMode ?? "generatedAvatars"
-    static let teamSeasonPortraitCoverage = loadManifest()?.teamSeasonPortraitCoverage ?? []
+    private static let manifest = loadManifest()
+    private static let portraitMode = manifest?.portraitMode ?? "generatedAvatars"
+    private static let portraitAssetNames = Set(manifest?.portraits.map(\.assetName) ?? [])
+    private static let teamLogoAssetNames = Set(manifest?.teamLogos.map(\.assetName) ?? [])
+    static let teamSeasonPortraitCoverage = manifest?.teamSeasonPortraitCoverage ?? []
 
     private static func loadTeamLogoEras() -> [TeamLogoEra] {
-        loadManifest()?.teamLogos ?? []
+        manifest?.teamLogos ?? []
     }
 
     private static func loadManifest() -> VisualManifest? {

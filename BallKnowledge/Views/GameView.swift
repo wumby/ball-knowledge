@@ -3,19 +3,23 @@ import GameKit
 
 struct GameView: View {
     @Binding var route: Route
+    @Environment(\.scenePhase) private var scenePhase
     private let rankedMatchKind: RankedMatchKind
     private let rankedAIProfile: RankedAIProfile?
     private let rankedMatchup: RankedMatchup?
-    private let isRanked: Bool
+    private let matchMode: OnlineMatchMode
+    private let onExit: (RankedMatchResult?) -> Void
     private let hasLiveOpponent: Bool
     @StateObject private var model: GameViewModel
     @State private var showingLeaveConfirmation = false
-    init(route: Binding<Route>, difficulty: MatchDifficulty, friendMatch: GKMatch? = nil, friendHostID: String? = nil, matchMode: OnlineMatchMode = .versusAI, rankedMatchKind: RankedMatchKind = .pvp, rankedLadder: RankedLadderService? = nil, rankedAIProfile: RankedAIProfile? = nil, rankedMatchup: RankedMatchup? = nil) {
+    @State private var hasExited = false
+    init(route: Binding<Route>, difficulty: MatchDifficulty, friendMatch: GKMatch? = nil, friendHostID: String? = nil, matchMode: OnlineMatchMode = .versusAI, rankedMatchKind: RankedMatchKind = .pvp, rankedLadder: RankedLadderService? = nil, rankedAIProfile: RankedAIProfile? = nil, rankedMatchup: RankedMatchup? = nil, onExit: @escaping (RankedMatchResult?) -> Void = { _ in }) {
         _route = route
         self.rankedMatchKind = rankedMatchKind
         self.rankedAIProfile = rankedAIProfile
         self.rankedMatchup = rankedMatchup
-        self.isRanked = matchMode == .ranked
+        self.matchMode = matchMode
+        self.onExit = onExit
         self.hasLiveOpponent = friendMatch != nil
         if let friendMatch {
             let transport = GameKitMatchTransport(match: friendMatch)
@@ -26,33 +30,59 @@ struct GameView: View {
         }
     }
     var body: some View {
-        Group { switch model.phase { case .matching: if let error = model.loadError { ContentUnavailableView("NBA ARCHIVE UNAVAILABLE", systemImage: "exclamationmark.triangle", description: Text(error)).foregroundStyle(.white) } else { VStack(spacing: 14) { ProgressView(hasLiveOpponent ? "WAITING FOR OPPONENT…" : "PREPARING MATCH…").tint(Color.accent); if let message = model.connectionMessage { Text(message).foregroundStyle(.white.opacity(0.7)).multilineTextAlignment(.center) } } }; case .matchup: if let rankedMatchup { RankedMatchupView(matchup: rankedMatchup) } else { ProgressView("PREPARING RANKED MATCH…").tint(Color.accent) }; case .revealing: TeamRouletteView(model: model); case .auction: AuctionView(model: model); case .bidResult: BidResultView(model: model); case .selecting: PlayerSelectionView(model: model); case .draftReveal: DraftRevealView(model: model); case .reportLoading: FinalReportLoadingView(); case .results: ResultsView(model: model, route: $route, rankedMatchKind: rankedMatchKind, rankedAIProfile: rankedAIProfile) } }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .overlay(alignment: .top) {
-                HStack {
-                    Button { showingLeaveConfirmation = true } label: {
-                        Label("FORFEIT", systemImage: "flag.fill")
-                            .scoreLabel()
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 7)
-                            .background(.black.opacity(0.45))
-                            .clipShape(Capsule())
-                    }
-                    Spacer()
+            ZStack(alignment: .top) {
+                Group { switch model.phase { case .matching: if let error = model.loadError { ContentUnavailableView("NBA ARCHIVE UNAVAILABLE", systemImage: "exclamationmark.triangle", description: Text(error)).foregroundStyle(.white) } else { VStack(spacing: 14) { ProgressView(hasLiveOpponent ? "WAITING FOR OPPONENT…" : "PREPARING MATCH…").tint(Color.accent); if let message = model.connectionMessage { Text(message).foregroundStyle(.white.opacity(0.7)).multilineTextAlignment(.center) } } }; case .matchup: if let rankedMatchup { RankedMatchupView(matchup: rankedMatchup) } else { ProgressView("PREPARING RANKED MATCH…").tint(Color.accent) }; case .revealing: TeamRouletteView(model: model); case .auction: AuctionView(model: model, opponentTier: matchMode == .ranked ? rankedMatchup?.opponent.tier : nil, canQuickChat: model.canQuickChat, sendQuickChat: model.sendQuickChat, onForfeit: { showingLeaveConfirmation = true }); case .bidResult: BidResultView(model: model); case .selecting: PlayerSelectionView(model: model, opponentTier: matchMode == .ranked ? rankedMatchup?.opponent.tier : nil, canQuickChat: model.canQuickChat, sendQuickChat: model.sendQuickChat, onForfeit: { showingLeaveConfirmation = true }); case .draftReveal: DraftRevealView(model: model); case .reportLoading: FinalReportLoadingView(); case .results: ResultsView(model: model, route: $route, onExit: { exitGame(carrying: model.rankedMatchResult) }) } }
+
+                if let chat = model.quickChatToast {
+                    QuickChatToast(chat: chat)
+                        .padding(.top, 12)
+                        .padding(.horizontal, 56)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(2)
                 }
-                .padding(.horizontal, 14)
-                .padding(.top, 8)
+
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .alert("Forfeit this match?", isPresented: $showingLeaveConfirmation) {
                 Button("Cancel", role: .cancel) {}
                 Button("Forfeit Match", role: .destructive) {
-                    model.leaveMatch()
-                    route = .home
+                    exitGame()
                 }
             } message: {
                 Text("Your current match progress will be lost.")
             }
             .task { await model.start() }
+            // Scene interruptions are not forfeits. The session retains its
+            // snapshot and GameKit applies reconnect grace if the peer drops.
+    }
+
+    private func exitGame(carrying result: RankedMatchResult? = nil) {
+        guard !hasExited else { return }
+        hasExited = true
+        model.leaveMatch()
+        onExit(result)
+        route = matchMode == .ranked ? .rankedHub : .home
+    }
+}
+
+struct QuickChatToast: View {
+    let chat: GameQuickChatToast
+
+    var body: some View {
+        HStack(spacing: 9) {
+            Image(systemName: "message.fill").foregroundStyle(Color.accent)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(chat.sender.uppercased()).font(.caption2.weight(.black)).foregroundStyle(.white.opacity(0.55))
+                Text(chat.text).font(.subheadline.weight(.bold)).foregroundStyle(.white)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 13).padding(.vertical, 10)
+        .background(.black.opacity(0.84), in: Capsule())
+        .overlay(Capsule().stroke(Color.accent.opacity(0.45)))
+        .shadow(color: .black.opacity(0.35), radius: 12, y: 5)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(chat.sender): \(chat.text)")
     }
 }
 
@@ -375,39 +405,114 @@ struct TeamRouletteView: View {
 
 struct MatchHeader: View {
     @ObservedObject var model: GameViewModel
+    let opponentTier: RankedTier?
+    let canQuickChat: Bool
+    let sendQuickChat: (FiveAliveQuickChat) -> Void
+    let forfeit: () -> Void
     var body: some View {
-        VStack(spacing: 7) {
-            HStack(alignment: .top, spacing: 12) {
-                score("YOUR CAP", "$\(model.engine?.playerBudget ?? 0)M", .leading)
-                Spacer(minLength: 8)
-                score("\(model.opponentDisplayName.uppercased()) CAP", "$\(model.engine?.opponentBudget ?? 0)M", .trailing)
+        HStack(spacing: 10) {
+            ForfeitButton(action: forfeit)
+            HStack(spacing: 8) {
+                score(model.opponentDisplayName.uppercased(), "$\(model.engine?.opponentBudget ?? 0)M", .center)
             }
-            HStack {
-                Spacer()
-                timer.padding(.horizontal, 10).padding(.vertical, 4).background(.white.opacity(0.07)).clipShape(Capsule())
-                Spacer()
+            .padding(.horizontal, 10).padding(.vertical, 6)
+            .background(.white.opacity(0.07)).clipShape(Capsule())
+            if let opponentTier {
+                RankBadge(tier: opponentTier, game: .fiveAlive, size: 28)
             }
+            Spacer(minLength: 4)
+            if canQuickChat {
+                QuickChatTrigger(messages: FiveAliveQuickChat.allCases, send: sendQuickChat)
+            }
+            timer.padding(.horizontal, 9).padding(.vertical, 7).background(.white.opacity(0.07)).clipShape(Capsule())
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
     }
-    private func score(_ title: String, _ value: String, _ alignment: HorizontalAlignment) -> some View { VStack(alignment: alignment, spacing: 2) { Text(title).scoreLabel().lineLimit(1).minimumScaleFactor(0.62); Text(value).font(.subheadline.weight(.black)).monospacedDigit() }.frame(maxWidth: .infinity, alignment: alignment == .leading ? .leading : .trailing).layoutPriority(1) }
+    private func score(_ title: String, _ value: String, _ alignment: HorizontalAlignment) -> some View { VStack(alignment: alignment, spacing: 1) { Text(title).font(.system(size: 12, weight: .black)).lineLimit(1).minimumScaleFactor(0.62); Text(value).font(.caption.weight(.black)).monospacedDigit() }.layoutPriority(1) }
     private var timer: some View {
         Text("0:\(String(format: "%02d", model.seconds))")
             .font(.headline.monospacedDigit().weight(.black))
             .foregroundStyle(model.seconds <= 5 ? .red : Color.accent)
     }
+
+}
+
+protocol QuickChatMessage: CaseIterable, Hashable {
+    var text: String { get }
+}
+
+extension FiveAliveQuickChat: QuickChatMessage {}
+extension BoxWarsQuickChat: QuickChatMessage {}
+
+struct QuickChatTrigger<Message: QuickChatMessage>: View {
+    let messages: Message.AllCases
+    let send: (Message) -> Void
+    @State private var showingQuickChat = false
+
+    var body: some View {
+        Button { showingQuickChat = true } label: {
+            Image(systemName: "message.fill")
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(.white)
+                .frame(width: 34, height: 34)
+                .background(.white.opacity(0.07), in: Circle())
+        }
+        .accessibilityLabel("Quick chat")
+        .accessibilityHint("Choose a message to send to your opponent.")
+        .popover(isPresented: $showingQuickChat, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
+            QuickChatBubble(messages: messages) { message in
+                send(message)
+                showingQuickChat = false
+            }
+            .presentationCompactAdaptation(.popover)
+        }
+    }
+}
+
+struct QuickChatBubble<Message: QuickChatMessage>: View {
+    let messages: Message.AllCases
+    let send: (Message) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("QUICK CHAT")
+                .font(.caption2.weight(.black))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.bottom, 2)
+            ForEach(Array(messages), id: \.self) { message in
+                Button { send(message) } label: {
+                    Text(message.text)
+                        .font(.subheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 9)
+                        .background(.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 9))
+                        .contentShape(Rectangle())
+                }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Send quick chat: \(message.text)")
+                    .accessibilityHint("Sends this message to your opponent.")
+            }
+        }
+        .padding(16)
+        .frame(width: 190)
+    }
 }
 
 struct AuctionView: View {
     @ObservedObject var model: GameViewModel
+    let opponentTier: RankedTier?
+    let canQuickChat: Bool
+    let sendQuickChat: (FiveAliveQuickChat) -> Void
+    let onForfeit: () -> Void
     @State private var selectedPosition: String?
     @State private var isCurrentTeamExpanded = false
     var body: some View {
         GeometryReader { proxy in
             let compact = proxy.size.height < 700
             VStack(spacing: compact ? 12 : 18) {
-                MatchHeader(model: model)
+                MatchHeader(model: model, opponentTier: opponentTier, canQuickChat: canQuickChat, sendQuickChat: sendQuickChat, forfeit: onForfeit)
                 if let team = model.engine?.current {
                     AuctionOfferCard(team: team, difficulty: model.difficulty, compact: compact)
                     if model.difficulty == .ballKnowledge {
@@ -421,7 +526,6 @@ struct AuctionView: View {
                     }
                 }
                 Spacer(minLength: 0)
-                if !model.toast.isEmpty { Text(model.toast).font(.caption.weight(.black)).foregroundStyle(Color.accent).lineLimit(1) }
             }
             .padding(.horizontal, 20).padding(.top, compact ? 8 : 14)
             .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
@@ -614,13 +718,9 @@ struct BidActionBar: View {
             VStack(alignment: .trailing, spacing: 2) {
                 Text(bankrollStatus)
                     .scoreLabel()
-                    .foregroundStyle(hasBankroll ? .white.opacity(0.72) : .white.opacity(0.55))
+                    .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
-                Text("0:\(String(format: "%02d", model.seconds))")
-                    .font(.headline.monospacedDigit().weight(.black))
-                    .foregroundStyle(model.seconds <= 5 ? .red : .white)
-                    .accessibilityLabel("\(model.seconds) seconds remaining")
             }
         }
         .accessibilityElement(children: .contain)
@@ -641,21 +741,19 @@ struct CompactBidStyle: ButtonStyle { let accent: Bool; init(accent: Bool = fals
 
 struct PlayerSelectionView: View {
     @ObservedObject var model: GameViewModel
+    let opponentTier: RankedTier?
+    let canQuickChat: Bool
+    let sendQuickChat: (FiveAliveQuickChat) -> Void
+    let onForfeit: () -> Void
     @State private var selectedPosition: String?
     var body: some View {
         GeometryReader { proxy in
             let compact = proxy.size.height < 700
             VStack(spacing: compact ? 8 : 12) {
-                MatchHeader(model: model)
+                MatchHeader(model: model, opponentTier: opponentTier, canQuickChat: canQuickChat, sendQuickChat: sendQuickChat, forfeit: onForfeit)
                 if let team = model.engine?.current {
                     HStack { TeamLogo(team: team.team, season: team.season, size: 42); VStack(alignment: .leading, spacing: 2) { Text("YOU WON THE AUCTION").scoreLabel().foregroundStyle(Color.accent); Text("\(team.team) · \(team.season)").font(compact ? .title3.weight(.black) : .title2.weight(.black)) }; Spacer() }.padding(.vertical, 6)
-                    HStack {
-                        Text("SELECT A PLAYER").scoreLabel()
-                        Spacer()
-                        Text("0:\(String(format: "%02d", model.seconds))")
-                            .font(.headline.monospacedDigit().weight(.black))
-                            .foregroundStyle(model.seconds <= 5 ? .red : Color.accent)
-                    }
+                    Text("SELECT A PLAYER").scoreLabel().frame(maxWidth: .infinity, alignment: .leading)
                     RosterNeedsStrip(roster: model.engine?.playerRoster ?? [])
                     PositionFilterBar(positions: team.players.map(\.position), selection: $selectedPosition)
                     ScrollView(.vertical, showsIndicators: true) {
@@ -864,8 +962,7 @@ struct ExpandableCurrentTeamPanel: View {
 
 struct ResultsView: View {
     @ObservedObject var model: GameViewModel; @Binding var route: Route
-    var rankedMatchKind: RankedMatchKind = .pvp
-    var rankedAIProfile: RankedAIProfile?
+    var onExit: () -> Void = {}
     var body: some View {
         GeometryReader { proxy in
             let compact = proxy.size.height < 700
@@ -874,7 +971,7 @@ struct ResultsView: View {
                     VStack(spacing: compact ? 14 : 18) {
                         Text("FINAL MATCHUP").scoreLabel().foregroundStyle(Color.accent).padding(.top, compact ? 10 : 18)
                         Text(model.result).font(.system(size: compact ? 34 : 42, weight: .black, design: .rounded)).minimumScaleFactor(0.7).multilineTextAlignment(.center)
-                        if let ranked = model.rankedMatchResult { rankedResultCard(ranked) }
+                        reportActions(compact: compact)
                         finalRatingScoreboard(model: model)
                         FinalMatchupBoard(player: model.engine?.playerRoster ?? [], opponent: model.engine?.opponentRoster ?? [], opponentName: model.opponentDisplayName, playerAssignments: model.playerRatingBreakdown.assignments, opponentAssignments: model.opponentRatingBreakdown.assignments)
                         lineupScoreboard(model: model)
@@ -894,31 +991,19 @@ struct ResultsView: View {
                     }.padding(.horizontal, 20).padding(.bottom, 16)
                 }
                 .scrollIndicators(.hidden)
-                VStack(spacing: 8) { Button("PLAY AGAIN") { Task { await model.start() } }.buttonStyle(PrimaryButtonStyle(compact: true)); Button("HOME") { route = .home }.buttonStyle(SecondaryButtonStyle(compact: true)) }
-                    .padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 8).background(.ultraThinMaterial)
             }.frame(width: proxy.size.width, height: proxy.size.height)
         }
     }
-    private func rankedResultCard(_ result: RankedMatchResult) -> some View {
-        HStack(spacing: 12) {
-            RankBadge(tier: result.tier, size: 50)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(result.tier.rawValue).scoreLabel().foregroundStyle(Color.accent)
-                Text("\(result.ratingBefore) → \(result.ratingAfter) MMR")
-                    .font(.headline.weight(.black))
-            }
-            Spacer()
-            VStack(alignment: .trailing, spacing: 3) {
-                Text(result.delta >= 0 ? "+\(result.delta) MMR" : "\(result.delta) MMR")
-                    .font(.headline.weight(.black)).monospacedDigit().foregroundStyle(result.delta >= 0 ? Color.accent : .red)
-                Text("\(rankedResultLabel) · \(result.didWin ? "WIN" : "LOSS")").scoreLabel().foregroundStyle(.white.opacity(0.56))
-            }
+    private func reportActions(compact: Bool) -> some View {
+        HStack(spacing: compact ? 8 : 12) {
+            Button("PLAY AGAIN") { Task { await model.start() } }
+                .buttonStyle(PrimaryButtonStyle(compact: true))
+            Button("EXIT") { onExit() }
+                .buttonStyle(SecondaryButtonStyle(compact: true))
         }
-        .padding(14).background(Color.accent.opacity(0.12))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.accent.opacity(0.5)))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityElement(children: .contain)
     }
-    private var rankedResultLabel: String { rankedMatchKind == .aiFallback ? "\(rankedMatchKind.label) · \(rankedAIProfile?.tier.rawValue ?? "AI")" : rankedMatchKind.label }
     private func finalRatingScoreboard(model: GameViewModel) -> some View {
         let playerWon = model.playerRatingBreakdown.finalRating > model.opponentRatingBreakdown.finalRating
         let opponentWon = model.opponentRatingBreakdown.finalRating > model.playerRatingBreakdown.finalRating

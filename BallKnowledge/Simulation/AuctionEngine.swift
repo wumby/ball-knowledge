@@ -266,6 +266,22 @@ struct CurrentTeamSlot: Identifiable, Equatable {
     var id: String { position }
 }
 
+enum FiveAliveMatchOutcome: Equatable {
+    case localWin
+    case opponentWin
+    case draw
+
+    var displayLabel: String {
+        switch self {
+        case .localWin: "YOU WIN"
+        case .opponentWin: "OPPONENT WINS"
+        case .draw: "TIE GAME"
+        }
+    }
+
+    var didLocalPlayerWin: Bool { self == .localWin }
+}
+
 enum TeamSimulator {
     /// Builds a five-player report lineup by taking one player from every won team-year.
     /// TeamSeason IDs (rather than franchise IDs) are deliberately used so separate
@@ -426,9 +442,13 @@ enum TeamSimulator {
         } / Double(players.count)
         return TeamNetRating(offense: Int((102 + offensiveImpact).rounded()), defense: Int((114 - defensiveImpact).rounded()))
     }
-    static func winner(player: [DraftedPlayer], opponent: [DraftedPlayer]) -> String {
+    static func matchOutcome(player: [DraftedPlayer], opponent: [DraftedPlayer]) -> FiveAliveMatchOutcome {
         let p = ratingBreakdown(for: player).finalRating
         let o = ratingBreakdown(for: opponent).finalRating
-        return p == o ? "TIE GAME" : p > o ? "YOU WIN" : "OPPONENT WINS"
+        return p == o ? .draw : p > o ? .localWin : .opponentWin
+    }
+
+    static func winner(player: [DraftedPlayer], opponent: [DraftedPlayer]) -> String {
+        matchOutcome(player: player, opponent: opponent).displayLabel
     }
 }

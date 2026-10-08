@@ -31,6 +31,10 @@ def sha256(path):
     return digest.hexdigest()
 
 def main():
+    release_mode = "--release" in sys.argv[1:]
+    unknown_arguments = set(sys.argv[1:]) - {"--release"}
+    if unknown_arguments:
+        return fail(f"unknown arguments: {', '.join(sorted(unknown_arguments))}")
     manifest = json.loads(MANIFEST.read_text())
     if manifest.get("schemaVersion", 0) < 4:
         return fail("visual manifest schemaVersion must be at least 4")
@@ -41,6 +45,8 @@ def main():
         for player in team_season["players"]
     }
     portrait_mode = manifest.get("portraitMode", "licensedPhotos")
+    if release_mode and portrait_mode != "licensedPhotos":
+        return fail("release validation requires portraitMode to be licensedPhotos")
     asset_names = set()
     portrait_ids = set()
     for section in ("portraits", "teamLogos"):
@@ -181,6 +187,13 @@ def main():
         for previous, current in zip(eras, eras[1:]):
             if current["firstSeason"] <= previous["lastSeason"]:
                 return fail(f"overlapping logo eras for {team}: {previous['assetName']} and {current['assetName']}")
+    if release_mode:
+        for era in manifest.get("teamLogos", []):
+            if era.get("rights") != "Approved commercial license":
+                return fail(f"release team logo {era['assetName']} does not have approved commercial rights")
+            required = ("licenseID", "licenseVersion", "sourceSHA256")
+            if any(not era.get(key) for key in required):
+                return fail(f"release team logo {era['assetName']} has incomplete license metadata")
 
     if not TEAM_LOGO_AUDIT.exists():
         return fail("team-logo season audit is missing")
@@ -208,7 +221,8 @@ def main():
         right = expected_by_team_season[(team, after)]["assetName"]
         if left == right:
             return fail(f"regression boundary missing for {team} {before}/{after}")
-    print(f"Offline visual manifest valid ({len(asset_names)} assets; {len(team_seasons)} exact team-seasons audited).")
+    validation_type = "release" if release_mode else "development"
+    print(f"Offline visual manifest valid for {validation_type} ({len(asset_names)} assets; {len(team_seasons)} exact team-seasons audited).")
     return 0
 
 if __name__ == "__main__":

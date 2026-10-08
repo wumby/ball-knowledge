@@ -8,10 +8,49 @@ enum BattleEvent: Codable, Sendable {
     case snapshot(BattleSnapshot)
     case bid(round: Int, amount: Int)
     case pick(round: Int, playerID: String)
-    case pause
+    case temporaryDisconnect
     case reconnect
     case forfeit
     case ended(winnerID: String)
+    case finalOutcome(winnerID: String, matchID: String)
+    case quickChat(game: CompetitiveGame, id: String)
+    case boxWarsSnapshot(BoxWarsSnapshot)
+    case boxWarsAnswer(cellID: String, recordID: String)
+}
+
+enum CompetitiveGame: String, Codable, Sendable, Equatable { case fiveAlive, boxWars }
+
+enum FiveAliveQuickChat: String, CaseIterable, Codable, Sendable {
+    case goodLuck = "good_luck"
+    case niceBid = "nice_bid"
+    case yourTurn = "your_turn"
+    case thinking = "thinking"
+    case gg = "gg"
+
+    var text: String {
+        switch self {
+        case .goodLuck: "Good luck!"
+        case .niceBid: "Nice bid."
+        case .yourTurn: "Your turn!"
+        case .thinking: "Thinking…"
+        case .gg: "Good game!"
+        }
+    }
+}
+
+struct ReceivedFiveAliveQuickChat: Identifiable, Equatable {
+    let id = UUID()
+    let message: FiveAliveQuickChat
+}
+
+enum BoxWarsQuickChat: String, CaseIterable, Codable, Sendable {
+    case goodLuck = "good_luck", niceFind = "nice_find", gg = "gg"
+    var text: String { switch self { case .goodLuck: "Good luck!"; case .niceFind: "Nice find!"; case .gg: "Good game!" } }
+}
+
+struct ReceivedBoxWarsQuickChat: Identifiable, Equatable {
+    let id = UUID()
+    let message: BoxWarsQuickChat
 }
 
 struct BattleEnvelope: Codable, Sendable {
@@ -98,7 +137,9 @@ enum MatchTransportError: LocalizedError {
     nonisolated func match(_ match: GKMatch, player: GKPlayer, didChange state: GKPlayerConnectionState) {
         // A peer that closes the game becomes disconnected. Treat that as a
         // forfeit rather than leaving the remaining player stuck in a pause.
-        let event: BattleEvent = state == .connected ? .reconnect : .forfeit
+        // Unexpected loss gets a reconnect grace period. A local navigation
+        // path sends `.forfeit` explicitly before disconnecting.
+        let event: BattleEvent = state == .connected ? .reconnect : .temporaryDisconnect
         Task { @MainActor [weak self] in self?.continuation?.yield(BattleEnvelope(sequence: 0, event: event)) }
     }
     nonisolated func match(_ match: GKMatch, didFailWithError error: Error?) {
@@ -110,11 +151,169 @@ enum BotDifficulty: String, CaseIterable, Identifiable { case easy = "Easy", nor
 
 enum FriendBattleStage: String, Codable, Sendable { case lobby, matchup, revealing, bidding, bidResult, picking, draftReveal, paused, ended }
 
+/// Complete host-authoritative Box Wars state.  Both players race on the same
+/// grid, but each owns an independent answer column in `engine`.
+struct BoxWarsSnapshot: Codable, Sendable {
+    let hostID: String
+    let matchID: String
+    let engine: GridDuelEngine
+    let deadline: Date
+    let winner: GridDuelWinner?
+    let forfeitWinnerID: String?
+    let sequence: Int
+}
+
+/// The inviter (or deterministic lower player ID for ranked queue matches)
+/// owns the board and validates every answer. Snapshots are sufficient to
+/// reconnect and make replayed/out-of-order packets harmless.
+@MainActor final class BoxWarsBattleSession: ObservableObject {
+    @Published private(set) var snapshot: BoxWarsSnapshot?
+    @Published private(set) var connectionMessage: String?
+    @Published private(set) var latestQuickChat: ReceivedBoxWarsQuickChat?
+
+    let transport: MatchTransport
+    let opponentName: String
+    private var nextSequence = 1
+    private var receivedSequences: Set<Int> = []
+    private var eventTask: Task<Void, Never>?
+    private var disconnectTask: Task<Void, Never>?
+    private var isStopped = false
+    private var peerID: String
+    private var hostID: String?
+    private var lastSnapshotSequence = 0
+    private var rows: [SeasonRecord] = []
+
+    init(transport: MatchTransport, hostID: String? = nil) {
+        self.transport = transport
+        self.opponentName = transport.opponentName
+        self.peerID = transport.opponentPlayerID
+        self.hostID = hostID ?? [transport.localPlayerID, transport.opponentPlayerID].filter { !$0.isEmpty }.min()
+    }
+    var localIsHost: Bool { transport.localPlayerID == hostID }
+    var matchID: String? { snapshot?.matchID }
+
+    func start(rows: [SeasonRecord]) async throws {
+        guard !isStopped else { throw MatchTransportError.disconnected }
+        self.rows = rows
+        guard eventTask == nil else { return }
+        // Materialize the stream before connecting. A peer may send as soon as
+        // GameKit reports the connection, so the stream must already buffer.
+        let events = transport.events
+        eventTask = Task { [weak self] in
+            guard let self else { return }
+            for await envelope in events { await self.receive(envelope) }
+        }
+        do {
+            try await transport.connect()
+        } catch {
+            eventTask?.cancel()
+            eventTask = nil
+            throw error
+        }
+        if localIsHost { try await beginHostedMatch() }
+    }
+
+    /// Compatibility entry point for chat-only callers. Production Box Wars
+    /// always supplies the archive before starting the authoritative match.
+    func start() async throws { try await start(rows: []) }
+
+    func submit(_ record: SeasonRecord, to cellID: String) async -> Bool {
+        guard let snapshot, snapshot.winner == nil, Date() < snapshot.deadline else { return false }
+        if localIsHost { return await accept(recordID: record.id, cellID: cellID, from: transport.localPlayerID) }
+        do { try await send(.boxWarsAnswer(cellID: cellID, recordID: record.id)); return true } catch { return false }
+    }
+
+    func sendQuickChat(_ message: BoxWarsQuickChat) async throws {
+        let envelope = BattleEnvelope(sequence: nextSequence, event: .quickChat(game: .boxWars, id: message.rawValue))
+        nextSequence += 1
+        try await transport.send(envelope)
+    }
+
+    func stop(disconnect: Bool = true) {
+        guard !isStopped else { return }
+        isStopped = true
+        eventTask?.cancel()
+        eventTask = nil
+        latestQuickChat = nil
+        receivedSequences.removeAll(keepingCapacity: false)
+        disconnectTask?.cancel()
+        if disconnect { transport.disconnect() }
+    }
+
+    private func receive(_ envelope: BattleEnvelope) async {
+        guard envelope.version == BattleEnvelope.version else { return }
+        switch envelope.event {
+        case let .boxWarsSnapshot(state):
+            guard !localIsHost, state.hostID == peerID, state.sequence > lastSnapshotSequence else { return }
+            hostID = state.hostID; lastSnapshotSequence = state.sequence; snapshot = state; connectionMessage = nil
+        case let .boxWarsAnswer(cellID, recordID):
+            guard localIsHost else { return }
+            _ = await accept(recordID: recordID, cellID: cellID, from: peerID)
+        case let .quickChat(game, id):
+            guard game == .boxWars, let message = BoxWarsQuickChat(rawValue: id), receivedSequences.insert(envelope.sequence).inserted else { return }
+            latestQuickChat = ReceivedBoxWarsQuickChat(message: message)
+        case .temporaryDisconnect:
+            connectionMessage = "Connection lost — waiting up to 60 seconds."
+            disconnectTask?.cancel()
+            disconnectTask = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(60))
+                guard let self, !Task.isCancelled, self.snapshot?.winner == nil else { return }
+                if self.localIsHost { await self.finish(forfeitWinnerID: self.transport.localPlayerID) }
+                else { self.finishLocally(forfeitWinnerID: self.transport.localPlayerID) }
+            }
+        case .reconnect:
+            connectionMessage = nil; disconnectTask?.cancel()
+            if localIsHost, let snapshot { try? await publish(snapshot) }
+        case .forfeit:
+            if localIsHost { await finish(forfeitWinnerID: transport.localPlayerID) }
+            else { finishLocally(forfeitWinnerID: transport.localPlayerID) }
+        default: break
+        }
+    }
+
+    private func beginHostedMatch() async throws {
+        guard let hostID, let grid = GridDuelEngine.generate(from: rows, seed: UInt64.random(in: 1...UInt64.max)) else { throw ArchiveLoadError.invalidArchive }
+        let state = BoxWarsSnapshot(hostID: hostID, matchID: UUID().uuidString, engine: GridDuelEngine(grid: grid, archiveRows: rows), deadline: Date().addingTimeInterval(GridDuelEngine.duration), winner: nil, forfeitWinnerID: nil, sequence: nextSequence)
+        snapshot = state; try await publish(state)
+    }
+    private func accept(recordID: String, cellID: String, from playerID: String) async -> Bool {
+        guard var state = snapshot, state.winner == nil, Date() < state.deadline, let record = rows.first(where: { $0.id == recordID }) else { return false }
+        var engine = state.engine
+        guard engine.submit(record, to: cellID, forLocalPlayer: playerID == state.hostID, deadline: state.deadline) else { return false }
+        state = BoxWarsSnapshot(hostID: state.hostID, matchID: state.matchID, engine: engine, deadline: state.deadline, winner: nil, forfeitWinnerID: nil, sequence: nextSequence)
+        snapshot = state; try? await publish(state); return true
+    }
+    func finishIfExpired() async {
+        guard let state = snapshot, state.winner == nil, Date() >= state.deadline else { return }
+        if localIsHost { await finish() }
+    }
+    private func finish(forfeitWinnerID: String? = nil) async {
+        guard let state = snapshot, state.winner == nil else { return }
+        let winner = forfeitWinnerID == nil ? state.engine.resolve().winner : (forfeitWinnerID == state.hostID ? .local : .opponent)
+        let final = BoxWarsSnapshot(hostID: state.hostID, matchID: state.matchID, engine: state.engine, deadline: state.deadline, winner: winner, forfeitWinnerID: forfeitWinnerID, sequence: nextSequence)
+        snapshot = final; try? await publish(final)
+    }
+    private func finishLocally(forfeitWinnerID: String) {
+        guard let state = snapshot else { return }
+        snapshot = BoxWarsSnapshot(hostID: state.hostID, matchID: state.matchID, engine: state.engine, deadline: state.deadline, winner: forfeitWinnerID == state.hostID ? .local : .opponent, forfeitWinnerID: forfeitWinnerID, sequence: state.sequence + 1)
+    }
+    private func send(_ event: BattleEvent) async throws { try await transport.send(BattleEnvelope(sequence: nextSequence, event: event)); nextSequence += 1 }
+    private func publish(_ state: BoxWarsSnapshot) async throws { try await send(.boxWarsSnapshot(state)) }
+
+    deinit { eventTask?.cancel(); disconnectTask?.cancel() }
+}
+
+@available(*, deprecated, renamed: "BoxWarsBattleSession")
+typealias BoxWarsFriendChatSession = BoxWarsBattleSession
+
 /// The host sends this complete, versioned state after every authoritative change.
 /// It makes reconnects and duplicate packets harmless: clients only render snapshots.
 struct BattleSnapshot: Codable, Sendable {
     /// The inviter is authoritative for the entire private match.
     let hostID: String
+    /// Generated by the host once per session; never derive ranked identity
+    /// from a reusable pair of player IDs.
+    let matchID: String? = nil
     let difficulty: MatchDifficulty
     let seed: UInt64
     let engine: AuctionEngine
@@ -132,16 +331,21 @@ struct BattleSnapshot: Codable, Sendable {
 @MainActor final class FriendBattleSession: ObservableObject {
     @Published private(set) var snapshot: BattleSnapshot?
     @Published private(set) var connectionMessage: String?
+    /// Kept separate from authoritative snapshots so chat can arrive on any
+    /// gameplay screen without changing the battle state.
+    @Published private(set) var latestQuickChat: ReceivedFiveAliveQuickChat?
     let transport: MatchTransport
     let opponentName: String
     var localPlayerID: String { transport.localPlayerID }
     private var nextSequence = 1
     private var lastSequence = 0
+    private var receivedQuickChatSequences: Set<Int> = []
     private var bids: [String: Int] = [:]
     private var eventTask: Task<Void, Never>?
     private var pauseTask: Task<Void, Never>?
     private var deadlineTask: Task<Void, Never>?
     private var matchupTask: Task<Void, Never>?
+    private var isStopped = false
 
     private let usesRankedMatchupIntro: Bool
     init(transport: MatchTransport, hostID: String? = nil, difficulty: MatchDifficulty = .easy, usesRankedMatchupIntro: Bool = false) {
@@ -163,10 +367,21 @@ struct BattleSnapshot: Codable, Sendable {
     var localIsHost: Bool { transport.localPlayerID == hostID }
 
     func start() async throws {
-        try await transport.connect()
+        guard !isStopped else { throw MatchTransportError.disconnected }
+        guard eventTask == nil else { return }
+        // Establish the stream synchronously before the peer can send. Its
+        // buffer makes inbound delivery safe even before this task is scheduled.
+        let events = transport.events
         eventTask = Task { [weak self] in
             guard let self else { return }
-            for await envelope in self.transport.events { await self.receive(envelope) }
+            for await envelope in events { await self.receive(envelope) }
+        }
+        do {
+            try await transport.connect()
+        } catch {
+            eventTask?.cancel()
+            eventTask = nil
+            throw error
         }
         try await send(.hello(version: BattleEnvelope.version, playerID: transport.localPlayerID, displayName: GKLocalPlayer.local.displayName))
         // Only the inviter creates state. Guests wait for its complete snapshot.
@@ -184,6 +399,9 @@ struct BattleSnapshot: Codable, Sendable {
         if localIsHost { try await acceptPick(playerID, from: transport.localPlayerID) }
         else { try await send(.pick(round: snapshot.engine.index, playerID: playerID)) }
     }
+    func sendQuickChat(_ message: FiveAliveQuickChat) async throws {
+        try await send(.quickChat(game: .fiveAlive, id: message.rawValue))
+    }
     func advance() async throws {
         guard localIsHost, let snapshot else { return }
         switch snapshot.stage {
@@ -198,7 +416,28 @@ struct BattleSnapshot: Codable, Sendable {
         default: break
         }
     }
-    func forfeit() async { try? await send(.forfeit); transport.disconnect() }
+    func forfeit() async {
+        guard !isStopped else { return }
+        try? await send(.forfeit)
+        stop()
+    }
+
+    /// Cancels all session work and releases the match state. Safe to call from
+    /// every navigation path, including deinitialization.
+    func stop(disconnect: Bool = true) {
+        guard !isStopped else { return }
+        isStopped = true
+        eventTask?.cancel(); eventTask = nil
+        pauseTask?.cancel(); pauseTask = nil
+        deadlineTask?.cancel(); deadlineTask = nil
+        matchupTask?.cancel(); matchupTask = nil
+        bids.removeAll(keepingCapacity: false)
+        snapshot = nil
+        connectionMessage = nil
+        latestQuickChat = nil
+        receivedQuickChatSequences.removeAll(keepingCapacity: false)
+        if disconnect { transport.disconnect() }
+    }
 
     private func beginHostedBattle() async throws {
         let seed = UInt64.random(in: 1...UInt64.max)
@@ -219,7 +458,7 @@ struct BattleSnapshot: Codable, Sendable {
             hostID = state.hostID; lastSequence = state.sequence; snapshot = state; connectionMessage = nil
         case let .bid(round, amount): if localIsHost, snapshot?.engine.index == round { try? await acceptBid(amount, from: peerID) }
         case let .pick(round, playerID): if localIsHost, snapshot?.engine.index == round { try? await acceptPick(playerID, from: peerID) }
-        case .pause: pause()
+        case .temporaryDisconnect: pause()
         case .reconnect: connectionMessage = nil; pauseTask?.cancel(); if localIsHost, let snapshot { try? await publish(snapshot) }
         case .forfeit:
             connectionMessage = "Friend left the match. You win by forfeit."
@@ -227,6 +466,17 @@ struct BattleSnapshot: Codable, Sendable {
             else { endLocallyForForfeit(winnerID: transport.localPlayerID) }
         case let .ended(winnerID):
             connectionMessage = winnerID == transport.localPlayerID ? "You win." : "Friend wins."
+        case let .quickChat(game, id):
+            guard game == .fiveAlive,
+                  let message = FiveAliveQuickChat(rawValue: id),
+                  receivedQuickChatSequences.insert(envelope.sequence).inserted else { return }
+            latestQuickChat = ReceivedFiveAliveQuickChat(message: message)
+        case .finalOutcome:
+            // These are consumed by the competitive game layer. Friend Battle
+            // intentionally has no ranked-result side effects.
+            break
+        case .boxWarsSnapshot, .boxWarsAnswer:
+            break
         }
     }
     private func acceptBid(_ amount: Int, from playerID: String) async throws {
@@ -251,7 +501,19 @@ struct BattleSnapshot: Codable, Sendable {
         connectionMessage = "Connection lost — waiting up to 60 seconds."
         pauseTask?.cancel(); pauseTask = Task { [weak self] in try? await Task.sleep(for: .seconds(60)); guard !Task.isCancelled, let self else { return }; self.connectionMessage = "Friend did not return. You win by forfeit."; if self.localIsHost { try? await self.end(winnerID: self.transport.localPlayerID) } else { self.endLocallyForForfeit(winnerID: self.transport.localPlayerID) } }
     }
-    private func end() async throws { guard let snapshot, let hostID else { return }; let winner = TeamSimulator.winner(player: snapshot.engine.playerRoster, opponent: snapshot.engine.opponentRoster) == "PLAYER WINS" ? hostID : peerID; try await end(winnerID: winner, isForfeit: false) }
+    static func winnerID(for outcome: FiveAliveMatchOutcome, hostID: String, peerID: String) -> String {
+        switch outcome {
+        case .localWin: hostID
+        case .opponentWin, .draw: peerID
+        }
+    }
+
+    private func end() async throws {
+        guard let snapshot, let hostID else { return }
+        let outcome = TeamSimulator.matchOutcome(player: snapshot.engine.playerRoster, opponent: snapshot.engine.opponentRoster)
+        let winner = Self.winnerID(for: outcome, hostID: hostID, peerID: peerID)
+        try await end(winnerID: winner, isForfeit: false)
+    }
     private func end(winnerID: String) async throws { try await end(winnerID: winnerID, isForfeit: true) }
     private func end(winnerID: String, isForfeit: Bool) async throws { guard let snapshot else { return }; let state = BattleSnapshot(hostID: snapshot.hostID, difficulty: snapshot.difficulty, seed: snapshot.seed, engine: snapshot.engine, stage: .ended, winner: snapshot.winner, winningBid: snapshot.winningBid, hostBid: snapshot.hostBid, guestBid: snapshot.guestBid, deadline: nil, forfeitWinnerID: isForfeit ? winnerID : nil, sequence: nextSequence); self.snapshot = state; try await publish(state); try await send(.ended(winnerID: winnerID)) }
     private func endLocallyForForfeit(winnerID: String) { guard let snapshot else { return }; self.snapshot = BattleSnapshot(hostID: snapshot.hostID, difficulty: snapshot.difficulty, seed: snapshot.seed, engine: snapshot.engine, stage: .ended, winner: snapshot.winner, winningBid: snapshot.winningBid, hostBid: snapshot.hostBid, guestBid: snapshot.guestBid, deadline: nil, forfeitWinnerID: winnerID, sequence: nextSequence) }

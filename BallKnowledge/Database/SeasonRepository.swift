@@ -52,6 +52,17 @@ struct NBAFranchise: Identifiable, Hashable, Sendable {
     var name: String { id == "CHA" && teamCodes.contains("CHO") ? "Charlotte Hornets" : TeamBrand.name(for: id) }
 }
 
+/// Stable historical identities for comparisons. Displayed clues keep their
+/// modern brand; Charlotte intentionally retains its two distinct lineages.
+enum NBAFranchiseIdentity {
+    static func canonicalCode(for team: String) -> String {
+        ["NJN": "BKN", "BRK": "BKN", "SEA": "OKC", "VAN": "MEM", "KCK": "SAC",
+         "SDC": "LAC", "WSB": "WAS", "PHO": "PHX",
+         "CHA": "CHA", "CHO": "CHA", "CHH": "NOP", "NOH": "NOP",
+         "NOK": "NOP"][team.uppercased()] ?? team.uppercased()
+    }
+}
+
 enum LeaderStat: String, CaseIterable, Identifiable, Sendable {
     case points = "Points", games = "Games", minutes = "Minutes", rebounds = "Rebounds", assists = "Assists"
     case steals = "Steals", blocks = "Blocks", fgPercent = "FG%", threePercent = "3P%", ftPercent = "FT%"
@@ -148,9 +159,10 @@ struct NBAStatsDatabase: Sendable {
             else if name.contains(normalizedQuery) { rankedProfiles.append((2, profile)) }
         }
         rankedProfiles.sort {
-            $0.rank == $1.rank
-                ? $0.profile.playerName.localizedCaseInsensitiveCompare($1.profile.playerName) == .orderedAscending
-                : $0.rank < $1.rank
+            guard $0.rank == $1.rank else { return $0.rank < $1.rank }
+            let nameOrder = $0.profile.playerName.localizedCaseInsensitiveCompare($1.profile.playerName)
+            if nameOrder != .orderedSame { return nameOrder == .orderedAscending }
+            return $0.profile.id < $1.profile.id
         }
         return Array(rankedProfiles.prefix(limit).map(\.profile))
     }
@@ -206,7 +218,7 @@ struct NBAStatsDatabase: Sendable {
     }
 
     static func franchiseCode(for team: String) -> String {
-        ["NJN": "BRK", "VAN": "MEM", "SEA": "OKC", "KCK": "SAC", "SDC": "LAC", "WSB": "WAS", "CHH": "NOP", "CHA": "CHA", "CHO": "CHA", "NOH": "NOP", "NOK": "NOP", "PHO": "PHX"][team] ?? team
+        NBAFranchiseIdentity.canonicalCode(for: team)
     }
 
     static func normalize(_ value: String) -> String {

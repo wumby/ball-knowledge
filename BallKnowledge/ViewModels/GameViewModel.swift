@@ -1,5 +1,11 @@
 import Foundation
 
+struct GameQuickChatToast: Identifiable, Equatable {
+    let id = UUID()
+    let sender: String
+    let text: String
+}
+
 @MainActor final class GameViewModel: ObservableObject {
     enum Phase: Equatable { case matching, matchup, revealing, auction, bidResult, selecting, draftReveal, reportLoading, results }
     @Published var phase: Phase = .matching
@@ -16,6 +22,7 @@ import Foundation
     @Published var loadError: String?
     @Published var opponentDisplayName = "OPPONENT"
     @Published var connectionMessage: String?
+    @Published private(set) var quickChatToast: GameQuickChatToast?
     @Published private(set) var rankedMatchResult: RankedMatchResult?
     @Published private(set) var forcedResult: String?
     @Published private(set) var bestPossibleTeam: [DraftedPlayer] = []
@@ -28,9 +35,13 @@ import Foundation
     private let transport: MatchTransport
     private let friendSession: FriendBattleSession?
     private var friendUpdates: Task<Void, Never>?
+    private var quickChatUpdates: Task<Void, Never>?
+    private var quickChatDismissTask: Task<Void, Never>?
+    private var sentBotChatTriggers: Set<String> = []
     private let matchMode: OnlineMatchMode
     private let rankedLadder: RankedLadderService?
     let rankedAIProfile: RankedAIProfile?
+    private var activeRankedMatchID: String?
 
     init(difficulty: MatchDifficulty, transport: MatchTransport = LocalBotMatchTransport(), friendSession: FriendBattleSession? = nil, matchMode: OnlineMatchMode = .versusAI, rankedLadder: RankedLadderService? = nil, rankedAIProfile: RankedAIProfile? = nil) {
         self.difficulty = difficulty; self.transport = transport; self.friendSession = friendSession; self.matchMode = matchMode
@@ -38,18 +49,30 @@ import Foundation
         self.rankedAIProfile = rankedAIProfile
     }
     func start() async {
-        reportCalculation?.cancel(); reportCalculation = nil; reportCalculationID = nil
+        cancelGameplayWork()
+        engine = nil
         bestPossibleTeam = []; bestPossibleOpponentTeam = []
-        phase = .matching; loadError = nil; revealedPlayer = nil; pendingWinner = nil; isForcedAward = false; playerBid = 0; opponentBid = 0; toast = ""; rankedMatchResult = nil; forcedResult = nil
+        phase = .matching; loadError = nil; revealedPlayer = nil; pendingWinner = nil; isForcedAward = false; playerBid = 0; opponentBid = 0; toast = ""; rankedMatchResult = nil; forcedResult = nil; quickChatToast = nil; sentBotChatTriggers = []
         if let friendSession {
             opponentDisplayName = friendSession.opponentName
             friendUpdates = Task { [weak self, friendSession] in
                 for await snapshot in friendSession.$snapshot.values {
                     guard let snapshot else { continue }
-                    await self?.apply(snapshot, from: friendSession)
+                    self?.apply(snapshot, from: friendSession)
                 }
             }
-            do { try await friendSession.start() } catch { loadError = error.localizedDescription }
+            quickChatUpdates = Task { [weak self, friendSession] in
+                for await chat in friendSession.$latestQuickChat.values {
+                    guard let chat else { continue }
+                    self?.presentQuickChat(from: friendSession.opponentName, text: chat.message.text)
+                }
+            }
+            do {
+                try await friendSession.start()
+                // The host's first snapshot supplies a fresh session UUID.
+                // Waiting for it avoids reusing an MMR journal entry when the
+                // same two players immediately rematch.
+            } catch { loadError = error.localizedDescription }
             return
         }
         let seed = UInt64(Date().timeIntervalSince1970); try? await transport.connect()
@@ -57,10 +80,15 @@ import Foundation
             let teams = try await BundledSeasonRepository.randomTeams(count: 10, seed: seed)
             guard teams.count == 10 else { throw ArchiveLoadError.invalidArchive }
             engine = AuctionEngine(teams: teams, seed: seed, rankedAIProfile: rankedAIProfile)
-            opponentDisplayName = engine?.opponentName ?? "OPPONENT"
+            opponentDisplayName = rankedAIProfile == nil ? (engine?.opponentName ?? "OPPONENT") : "RANKED AI"
         } catch {
             loadError = error.localizedDescription
             return
+        }
+        if matchMode == .ranked, let rankedLadder, let engine {
+            let id = "five-alive-\(engine.seed)-\(transport.localPlayerID)"
+            activeRankedMatchID = id
+            rankedLadder.beginActiveRankedMatch(id: id)
         }
         bid = 0
         if matchMode == .ranked {
@@ -69,6 +97,7 @@ import Foundation
         } else {
             phase = .revealing
         }
+        sendBotQuickChat(.goodLuck, trigger: "match-start")
     }
     func adjustBid(by amount: Int) { guard let engine else { return }; bid = min(engine.playerBudget, max(0, bid + amount)) }
     func submitBid() {
@@ -78,6 +107,9 @@ import Foundation
         guard let outcome = engine.resolve(playerBid: bid, opponentBid: opponentBid) else { return }
         self.engine = engine; pendingWinner = outcome.winner; pendingBid = outcome.bid; playerBid = bid; self.opponentBid = opponentBid; isForcedAward = false; timer?.cancel()
         toast = outcome.winner == .player ? "YOU WON · $\(outcome.bid)M" : "OPPONENT WON · $\(outcome.bid)M"
+        if outcome.winner == .player, shouldBotPraiseBid(engine: engine, playerBid: bid, opponentBid: opponentBid) {
+            sendBotQuickChat(.niceBid, trigger: "nice-bid-\(engine.index)")
+        }
         phase = .bidResult
     }
     func continueAfterBid() {
@@ -98,15 +130,26 @@ import Foundation
         self.engine = engine; revealedPlayer = engine.playerRoster.last; pendingWinner = nil; phase = .draftReveal
     }
     func leaveMatch() {
-        timer?.cancel()
-        matchupTimer?.cancel()
-        reportCalculation?.cancel()
+        if matchMode == .ranked, let engine { finishRankedMatchIfNeeded(engine: engine, didWinOverride: false) }
+        cancelGameplayWork()
+        engine = nil
+        bestPossibleTeam = []
+        bestPossibleOpponentTeam = []
         if let friendSession { Task { await friendSession.forfeit() } }
-        transport.disconnect()
+        else { transport.disconnect() }
+    }
+    private func cancelGameplayWork() {
+        timer?.cancel(); timer = nil
+        matchupTimer?.cancel(); matchupTimer = nil
+        reportCalculation?.cancel(); reportCalculation = nil
+        reportCalculationID = nil
+        friendUpdates?.cancel(); friendUpdates = nil
+        quickChatUpdates?.cancel(); quickChatUpdates = nil
+        quickChatDismissTask?.cancel(); quickChatDismissTask = nil
     }
     private func autoPickForOpponent() {
         guard var engine, let pick = engine.botPick(), let winner = pendingWinner, engine.select(pick, for: winner, bid: pendingBid) else { return }
-        self.engine = engine; revealedPlayer = engine.opponentRoster.last; pendingWinner = nil; toast = "OPPONENT DRAFTED \(pick.playerName)"; phase = .draftReveal
+        self.engine = engine; revealedPlayer = engine.opponentRoster.last; pendingWinner = nil; phase = .draftReveal
     }
     private func scheduleLocalRankedMatchupAdvance() {
         matchupTimer?.cancel()
@@ -148,7 +191,7 @@ import Foundation
             .max(by: { $0.overallRating < $1.overallRating }) else { return }
         selectPlayer(player)
     }
-    var result: String { guard let engine else { return "" }; return forcedResult ?? TeamSimulator.winner(player: engine.playerRoster, opponent: engine.opponentRoster) }
+    var result: String { guard let engine else { return "" }; return forcedResult ?? TeamSimulator.matchOutcome(player: engine.playerRoster, opponent: engine.opponentRoster).displayLabel }
     var playerNetRating: TeamNetRating { TeamSimulator.rating(for: engine?.playerRoster ?? []) }
     var opponentNetRating: TeamNetRating { TeamSimulator.rating(for: engine?.opponentRoster ?? []) }
     var playerStats: TeamStatLine { TeamSimulator.stats(for: engine?.playerRoster ?? []) }
@@ -163,6 +206,7 @@ import Foundation
         bestPossibleTeam = []
         bestPossibleOpponentTeam = []
         phase = .reportLoading
+        sendBotQuickChat(.gg, trigger: "match-end")
 
         let calculationID = UUID()
         reportCalculationID = calculationID
@@ -184,13 +228,28 @@ import Foundation
     }
     private func finishRankedMatchIfNeeded(engine: AuctionEngine, didWinOverride: Bool? = nil) {
         guard matchMode == .ranked, let rankedLadder else { return }
-        let localID = transport.localPlayerID
-        let matchID = "\(engine.seed)-\(localID)"
-        rankedMatchResult = rankedLadder.recordCompletedMatch(id: matchID, didWin: didWinOverride ?? (TeamSimulator.winner(player: engine.playerRoster, opponent: engine.opponentRoster) == "PLAYER WINS"))
+        let matchID = activeRankedMatchID ?? "five-alive-\(engine.seed)-\(transport.localPlayerID)"
+        let outcome: RankedMatchOutcome
+        if let didWinOverride {
+            outcome = didWinOverride ? .win : .loss
+        } else {
+            switch TeamSimulator.matchOutcome(player: engine.playerRoster, opponent: engine.opponentRoster) {
+            case .localWin: outcome = .win
+            case .opponentWin: outcome = .loss
+            case .draw: outcome = .draw
+            }
+        }
+        rankedMatchResult = rankedLadder.finalizeActiveRankedMatch(id: matchID, outcome: outcome)
+        activeRankedMatchID = nil
     }
     var bestValuePick: DraftedPlayer? { engine?.playerRoster.filter { $0.bid > 0 }.max { TeamSimulator.playerImpact($0.season) / Double($0.bid) < TeamSimulator.playerImpact($1.season) / Double($1.bid) } }
     var biggestOverpay: DraftedPlayer? { engine?.playerRoster.filter { $0.bid > 0 }.min { TeamSimulator.playerImpact($0.season) / Double($0.bid) < TeamSimulator.playerImpact($1.season) / Double($1.bid) } }
     private func apply(_ snapshot: BattleSnapshot, from session: FriendBattleSession) {
+        if matchMode == .ranked, activeRankedMatchID == nil, let rankedLadder {
+            let id = snapshot.matchID ?? "five-alive-session-\(snapshot.seed)"
+            activeRankedMatchID = id
+            rankedLadder.beginActiveRankedMatch(id: id)
+        }
         // The host's difficulty arrives in the same complete snapshot as the
         // board, so a guest never renders local setup settings for this match.
         difficulty = snapshot.difficulty
@@ -214,7 +273,53 @@ import Foundation
             let didWin = snapshot.forfeitWinnerID.map { $0 == session.localPlayerID }
             if let didWin { forcedResult = didWin ? "PLAYER WINS BY FORFEIT" : "OPPONENT WINS BY FORFEIT" }
             if let engine { prepareFinalReport(from: engine, didWinOverride: didWin) }
+            friendUpdates?.cancel()
+            friendUpdates = nil
+            session.stop()
         }
     }
-    deinit { timer?.cancel(); matchupTimer?.cancel(); reportCalculation?.cancel(); friendUpdates?.cancel() }
+    func sendQuickChat(_ message: FiveAliveQuickChat) {
+        guard canQuickChat else { return }
+        presentQuickChat(from: "YOU", text: message.text)
+        if let friendSession {
+            Task { try? await friendSession.sendQuickChat(message) }
+            return
+        }
+
+        // Keep quick chat available in AI matches too, both so the interaction
+        // is consistent with friend battles and so the bot can acknowledge it.
+        let reply: FiveAliveQuickChat = switch message {
+        case .goodLuck: .goodLuck
+        case .niceBid: .niceBid
+        case .yourTurn: .thinking
+        case .thinking: .yourTurn
+        case .gg: .gg
+        }
+        let round = engine?.index ?? 0
+        Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(350))
+            self?.sendBotQuickChat(reply, trigger: "player-chat-\(round)-\(message.rawValue)")
+        }
+    }
+    var canQuickChat: Bool { friendSession != nil || usesBotQuickChat }
+    private var usesBotQuickChat: Bool { friendSession == nil && (matchMode == .versusAI || rankedAIProfile != nil) }
+    private func shouldBotPraiseBid(engine: AuctionEngine, playerBid: Int, opponentBid: Int) -> Bool {
+        guard playerBid > 0, opponentBid > 0, abs(playerBid - opponentBid) <= 3 else { return false }
+        return (engine.seed &+ UInt64(engine.index * 17)) % 3 == 0
+    }
+    private func sendBotQuickChat(_ message: FiveAliveQuickChat, trigger: String) {
+        guard usesBotQuickChat, sentBotChatTriggers.insert(trigger).inserted else { return }
+        presentQuickChat(from: opponentDisplayName, text: message.text)
+    }
+    private func presentQuickChat(from sender: String, text: String) {
+        let toast = GameQuickChatToast(sender: sender, text: text)
+        quickChatDismissTask?.cancel()
+        quickChatToast = toast
+        quickChatDismissTask = Task { [weak self, toast] in
+            try? await Task.sleep(for: .seconds(3.5))
+            guard !Task.isCancelled, self?.quickChatToast?.id == toast.id else { return }
+            self?.quickChatToast = nil
+        }
+    }
+    deinit { timer?.cancel(); matchupTimer?.cancel(); reportCalculation?.cancel(); friendUpdates?.cancel(); quickChatUpdates?.cancel(); quickChatDismissTask?.cancel() }
 }

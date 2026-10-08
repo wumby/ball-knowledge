@@ -1,8 +1,245 @@
 import XCTest
 import GameKit
+import Combine
 @testable import BallKnowledge
 
 final class AuctionEngineTests: XCTestCase {
+    func testGameSpecificRankBadgeAssetsStayDistinct() {
+        for tier in RankedTier.allCases {
+            XCTAssertEqual(tier.badgeAssetName(for: .fiveAlive), "FiveAliveRank\(tier.assetSuffix)")
+            XCTAssertEqual(tier.badgeAssetName(for: .boxWars), "BoxWarsRank\(tier.assetSuffix)")
+        }
+    }
+
+    func testRankTransitionClassification() {
+        XCTAssertEqual(RankTransition(result: .init(ratingBefore: 800, ratingAfter: 800, outcome: .draw), game: .fiveAlive).kind, .unchanged)
+        XCTAssertEqual(RankTransition(result: .init(ratingBefore: 800, ratingAfter: 840, outcome: .win), game: .fiveAlive).kind, .divisionPromotion)
+        XCTAssertEqual(RankTransition(result: .init(ratingBefore: 940, ratingAfter: 960, outcome: .win), game: .boxWars).kind, .tierPromotion)
+        XCTAssertEqual(RankTransition(result: .init(ratingBefore: 960, ratingAfter: 940, outcome: .loss), game: .boxWars).kind, .demotion)
+    }
+    func testEdgeBackSwipeAcceptsRightwardSwipeFromLeftEdge() {
+        XCTAssertTrue(EdgeBackSwipe.qualifies(
+            startLocation: CGPoint(x: 12, y: 300),
+            translation: CGSize(width: 90, height: 20)
+        ))
+    }
+
+    func testEdgeBackSwipeRejectsInvalidDrags() {
+        XCTAssertFalse(EdgeBackSwipe.qualifies(
+            startLocation: CGPoint(x: 12, y: 300),
+            translation: CGSize(width: 71, height: 0)
+        ), "Short drags should not navigate back")
+        XCTAssertFalse(EdgeBackSwipe.qualifies(
+            startLocation: CGPoint(x: 12, y: 300),
+            translation: CGSize(width: 80, height: 70)
+        ), "Vertical drags should not navigate back")
+        XCTAssertFalse(EdgeBackSwipe.qualifies(
+            startLocation: CGPoint(x: 12, y: 300),
+            translation: CGSize(width: -90, height: 0)
+        ), "Leftward drags should not navigate back")
+        XCTAssertFalse(EdgeBackSwipe.qualifies(
+            startLocation: CGPoint(x: 25, y: 300),
+            translation: CGSize(width: 90, height: 0)
+        ), "Non-edge drags should not navigate back")
+    }
+
+    func testCurrentTeamCodesResolveToApprovedLogoAssets() {
+        let currentTeamCodes = [
+            "ATL", "BKN", "BOS", "CHA", "CHI", "CLE", "DAL", "DEN", "DET", "GSW",
+            "HOU", "IND", "LAC", "LAL", "MEM", "MIA", "MIL", "MIN", "NYK", "OKC",
+            "ORL", "PHI", "PHX", "POR", "SAC", "SAS", "TOR", "UTA", "WAS"
+        ]
+
+        for team in currentTeamCodes {
+            XCTAssertNotNil(OfflineVisualCatalog.teamLogoName(team: team, season: "2020-21"), "Missing logo for \(team)")
+        }
+    }
+
+    func testGridDuelNeverPlacesEraCluesOnBothAxes() {
+        let records = [
+            SeasonRecord(id: "alpha-2000", playerName: "Alpha", season: "2000-01", team: "LAL", position: "PG", overallRating: 80),
+            SeasonRecord(id: "alpha-2010", playerName: "Alpha", season: "2010-11", team: "LAL", position: "PG", overallRating: 80),
+            SeasonRecord(id: "beta-2000", playerName: "Beta", season: "2000-01", team: "BOS", position: "SF", overallRating: 80),
+            SeasonRecord(id: "beta-2010", playerName: "Beta", season: "2010-11", team: "BOS", position: "SF", overallRating: 80)
+        ]
+
+        for seed in 0..<100 {
+            guard let grid = GridDuelEngine.generate(from: records, seed: UInt64(seed)) else { continue }
+            let rowsHaveEra = grid.rows.contains { if case .decade = $0 { true } else { false } }
+            let columnsHaveEra = grid.columns.contains { if case .decade = $0 { true } else { false } }
+            XCTAssertFalse(rowsHaveEra && columnsHaveEra, "Seed \(seed) placed era clues on both axes")
+        }
+    }
+
+    func testGridDuelTeamClueEligibilityExcludesHistoricalLogoConflictFranchises() {
+        let excluded: Set<String> = ["BKN", "CHA", "NOP", "OKC", "MEM", "SAC", "LAC", "WAS"]
+
+        XCTAssertEqual(GridDuelEngine.excludedTeamClueFranchiseCodes, excluded)
+        for franchise in excluded {
+            XCTAssertFalse(GridDuelEngine.isEligibleTeamClue(for: franchise), "\(franchise) should not be a Box Wars team clue")
+        }
+        XCTAssertTrue(GridDuelEngine.isEligibleTeamClue(for: "PHX"))
+    }
+
+    func testGridDuelGeneratedBoardsExcludeHistoricalLogoConflictTeamClues() {
+        let excluded = ["BKN", "CHA", "NOP", "OKC", "MEM", "SAC", "LAC", "WAS"]
+        let teams = excluded + ["LAL", "BOS"]
+        let records = teams.flatMap { team in
+            [
+                SeasonRecord(id: "\(team)-guard", playerName: "\(team) Guard", season: "2020-21", team: team, position: "PG", overallRating: 80),
+                SeasonRecord(id: "\(team)-forward", playerName: "\(team) Forward", season: "2020-21", team: team, position: "PF", overallRating: 80)
+            ]
+        }
+        let boards = (0..<100).compactMap { GridDuelEngine.generate(from: records, seed: UInt64($0)) }
+
+        XCTAssertFalse(boards.isEmpty)
+        for board in boards {
+            XCTAssertTrue(board.cells.allSatisfy { $0.eligibleAnswerCount > 0 })
+            for predicate in board.rows + board.columns {
+                if case let .team(franchise) = predicate {
+                    XCTAssertFalse(GridDuelEngine.excludedTeamClueFranchiseCodes.contains(franchise), "Generated excluded team clue \(franchise)")
+                }
+            }
+        }
+    }
+
+    @MainActor
+    func testGridDuelSelectingAnotherSquareKeepsTheNewSelection() async {
+        let model = GridDuelViewModel(mode: .versusAI)
+        await model.start()
+
+        guard let first = model.engine?.grid.cells.first,
+              let second = model.engine?.grid.cells.dropFirst().first else {
+            return XCTFail("Expected a playable grid")
+        }
+
+        model.select(cell: first)
+        XCTAssertEqual(model.selectedCellID, first.id)
+
+        model.select(cell: second)
+        XCTAssertEqual(model.selectedCellID, second.id)
+    }
+
+    @MainActor
+    func testGridDuelRankedForfeitRecordsOnlyOneLoss() {
+        let suiteName = "GridDuelLadderServiceTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            return XCTFail("Could not create isolated defaults")
+        }
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let ladder = GridDuelLadderService(defaults: defaults)
+        let first = ladder.recordCompletedMatch(id: "grid-duel-test-forfeit", didWin: false)
+        let second = ladder.recordCompletedMatch(id: "grid-duel-test-forfeit", didWin: false)
+
+        XCTAssertEqual(first?.didWin, false)
+        XCTAssertNil(second)
+        XCTAssertEqual(ladder.rating, first?.ratingAfter)
+    }
+
+    @MainActor
+    func testGridDuelRankedDrawKeepsRatingAndIsIdempotent() {
+        let suiteName = "GridDuelLadderDrawTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            return XCTFail("Could not create isolated defaults")
+        }
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let ladder = GridDuelLadderService(defaults: defaults)
+        let first = ladder.recordCompletedMatch(id: "grid-duel-test-draw", outcome: .draw)
+        let second = ladder.recordCompletedMatch(id: "grid-duel-test-draw", outcome: .draw)
+
+        XCTAssertEqual(first?.outcome, .draw)
+        XCTAssertTrue(first?.isDraw == true)
+        XCTAssertEqual(first?.delta, 0)
+        XCTAssertEqual(ladder.rating, GridDuelLadder.initialRating)
+        XCTAssertNil(second)
+    }
+
+    @MainActor
+    func testGridDuelPersistsLatestMMRForGameCenterSubmission() {
+        let suiteName = "GridDuelLadderSubmissionTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            return XCTFail("Could not create isolated defaults")
+        }
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let result = GridDuelLadderService(defaults: defaults).recordCompletedMatch(id: "grid-submission", didWin: true)
+
+        XCTAssertEqual(defaults.object(forKey: "gridduel.monthly.pendingSubmissionScore") as? Int, result?.ratingAfter)
+    }
+
+    @MainActor
+    func testGridDuelRepairsLegacyZeroEvenWhenMigrationMarkerIsCurrent() {
+        let suiteName = "GridDuelLegacyZeroTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else { return XCTFail("Could not create isolated defaults") }
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let date = Date(timeIntervalSince1970: 1_784_358_400)
+        defaults.set(0, forKey: "gridduel.monthly.rating")
+        defaults.set("box-wars-781-v2", forKey: "gridduel.monthly.baselineVersion")
+        defaults.set("2026-07", forKey: "gridduel.monthly.season")
+
+        let ladder = GridDuelLadderService(defaults: defaults, now: { date })
+
+        XCTAssertEqual(ladder.rating, 781)
+        XCTAssertEqual(ladder.pendingSubmissionScore, 781)
+        XCTAssertEqual(ladder.leaderboardSubmissionStatus, .pending(score: 781))
+    }
+
+    @MainActor
+    func testGridDuelPreservesLegitimatelyEarnedZeroRating() {
+        let suiteName = "GridDuelEarnedZeroTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else { return XCTFail("Could not create isolated defaults") }
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let date = Date(timeIntervalSince1970: 1_784_358_400)
+        defaults.set(0, forKey: "gridduel.monthly.rating")
+        defaults.set(date, forKey: "gridduel.monthly.lastLocalMutation")
+        defaults.set("box-wars-781-v2", forKey: "gridduel.monthly.baselineVersion")
+        defaults.set("2026-07", forKey: "gridduel.monthly.season")
+
+        let ladder = GridDuelLadderService(defaults: defaults, now: { date })
+
+        XCTAssertEqual(ladder.rating, 0)
+        XCTAssertNil(ladder.pendingSubmissionScore)
+    }
+
+    func testGridDuelEqualAggregateScoreIsAlwaysADraw() {
+        let records = [
+            SeasonRecord(id: "alpha", playerName: "Alpha", season: "S", team: "AAA", position: "PG", games: 20, points: 25, overallRating: 80),
+            SeasonRecord(id: "beta", playerName: "Beta", season: "S", team: "AAA", position: "PG", games: 20, points: 25, overallRating: 80),
+            SeasonRecord(id: "gamma", playerName: "Gamma", season: "S", team: "AAA", position: "PG", games: 20, points: 25, overallRating: 80),
+            SeasonRecord(id: "delta", playerName: "Delta", season: "S", team: "AAA", position: "PG", games: 20, points: 25, overallRating: 80)
+        ]
+        let grid = GridDuelGrid(rows: [.team("AAA"), .position("PG")], columns: [.position("PG"), .team("AAA")], archiveRows: records)
+        var engine = GridDuelEngine(grid: grid, archiveRows: records)
+        XCTAssertTrue(engine.submit(records[0], to: "0-0", forLocalPlayer: true, at: Date(timeIntervalSince1970: 50)))
+        XCTAssertTrue(engine.submit(records[1], to: "0-1", forLocalPlayer: true, at: Date(timeIntervalSince1970: 60)))
+        XCTAssertTrue(engine.submit(records[2], to: "1-0", forLocalPlayer: false, at: Date(timeIntervalSince1970: 1)))
+        XCTAssertTrue(engine.submit(records[3], to: "1-1", forLocalPlayer: false, at: Date(timeIntervalSince1970: 2)))
+
+        let result = engine.resolve()
+        XCTAssertEqual(result.localScore, result.opponentScore)
+        XCTAssertEqual(result.winner, .draw)
+    }
+
+    func testGridDuelContestedSquareAwardsBothPlayersTheirRarityPoints() {
+        let uncommon = SeasonRecord(id: "uncommon", playerName: "Uncommon", season: "S", team: "AAA", position: "PG", games: 20, points: 20, rebounds: 0, assists: 0, steals: 0, blocks: 0, overallRating: 80)
+        let rare = SeasonRecord(id: "rare", playerName: "Rare", season: "S", team: "AAA", position: "PG", games: 20, points: 15, rebounds: 0, assists: 0, steals: 0, blocks: 0, overallRating: 80)
+        let records = [uncommon, rare]
+        let grid = GridDuelGrid(rows: [.team("AAA"), .position("PG")], columns: [.position("PG"), .team("AAA")], archiveRows: records)
+        var engine = GridDuelEngine(grid: grid, archiveRows: records)
+
+        XCTAssertTrue(engine.submit(uncommon, to: "0-0", forLocalPlayer: true))
+        XCTAssertTrue(engine.submit(rare, to: "0-0", forLocalPlayer: false))
+
+        let result = engine.resolve()
+        XCTAssertEqual(result.cells[0].localPoints, 2)
+        XCTAssertEqual(result.cells[0].opponentPoints, 3)
+        XCTAssertEqual(result.localScore, 2)
+        XCTAssertEqual(result.opponentScore, 3)
+        XCTAssertEqual(result.winner, .opponent)
+    }
+
     func testGridDuelCareerWideEligibilityAndAnswerReplacement() {
         let records = [
             SeasonRecord(id: "lebron-lal", playerName: "LeBron James", season: "2020-21", team: "LAL", position: "SF", overallRating: 80),
@@ -20,7 +257,158 @@ final class AuctionEngineTests: XCTestCase {
         XCTAssertEqual(engine.localAnswers["0-0"]?.playerName, "Alpha")
     }
 
-    func testGridDuelInverseRarityUsesLowestTwentyGameSeason() {
+    func testGridDuelCareerRangeUsesStartAndEndYearsForMultiSeasonCareer() {
+        let records = [
+            SeasonRecord(id: "alpha-2011", playerName: "Alpha", season: "2011-2012", team: "LAL", position: "PG", overallRating: 80),
+            SeasonRecord(id: "alpha-2020", playerName: "Alpha", season: "2020-2021", team: "LAL", position: "PG", overallRating: 80)
+        ]
+        let grid = GridDuelGrid(rows: [.team("LAL"), .position("PG")], columns: [.position("PG"), .team("LAL")], archiveRows: records)
+        let engine = GridDuelEngine(grid: grid, archiveRows: records)
+
+        XCTAssertEqual(engine.careerRange(for: records[0]), "2011 – 2021")
+    }
+
+    func testGridDuelCareerRangeExpandsAbbreviatedCurrentSeasonEndYear() {
+        let records = [
+            SeasonRecord(id: "alpha-2024", playerName: "Alpha", season: "2024-25", team: "LAL", position: "PG", overallRating: 80),
+            SeasonRecord(id: "alpha-2025", playerName: "Alpha", season: "2025-26", team: "LAL", position: "PG", overallRating: 80)
+        ]
+        let grid = GridDuelGrid(rows: [.team("LAL"), .position("PG")], columns: [.position("PG"), .team("LAL")], archiveRows: records)
+        let engine = GridDuelEngine(grid: grid, archiveRows: records)
+
+        XCTAssertEqual(engine.careerRange(for: records[0]), "2024 – 2026")
+    }
+
+    func testGridDuelCareerRangeCachesMixedSeasonFormats() {
+        let records = [
+            SeasonRecord(id: "alpha-2019", playerName: "Alpha", season: "2019-20", team: "LAL", position: "PG", overallRating: 80),
+            SeasonRecord(id: "alpha-2024", playerName: "Alpha", season: "2024-2025", team: "LAL", position: "PG", overallRating: 80)
+        ]
+        let grid = GridDuelGrid(rows: [.team("LAL"), .position("PG")], columns: [.position("PG"), .team("LAL")], archiveRows: records)
+        let engine = GridDuelEngine(grid: grid, archiveRows: records)
+
+        XCTAssertEqual(engine.careerRange(for: records[0]), "2019 – 2025")
+    }
+
+    func testGridDuelCareerRangePreservesSingleSeasonDisplay() {
+        let record = SeasonRecord(id: "alpha-2011", playerName: "Alpha", season: "2011-2012", team: "LAL", position: "PG", overallRating: 80)
+        let grid = GridDuelGrid(rows: [.team("LAL"), .position("PG")], columns: [.position("PG"), .team("LAL")], archiveRows: [record])
+        let engine = GridDuelEngine(grid: grid, archiveRows: [record])
+
+        XCTAssertEqual(engine.careerRange(for: record), "2011-2012")
+    }
+
+    func testGridDuelDecadeLabelAndTeamIntersectionRequireTheSameSeason() {
+        let records = [
+            SeasonRecord(id: "alpha-2003-lal", playerID: "alpha01", playerName: "Alpha", season: "2003–04", team: "LAL", position: "PG", overallRating: 80),
+            SeasonRecord(id: "alpha-2013-bos", playerID: "alpha01", playerName: "Alpha", season: "2013–14", team: "BOS", position: "PG", overallRating: 80),
+            SeasonRecord(id: "beta-2013-lal", playerID: "beta01", playerName: "Beta", season: "2013–14", team: "LAL", position: "PG", overallRating: 80)
+        ]
+        let grid = GridDuelGrid(rows: [.decade(2000), .decade(2010)], columns: [.team("LAL"), .team("BOS")], archiveRows: records)
+
+        XCTAssertEqual(GridPredicate.decade(2000).label, "2000s")
+        XCTAssertEqual(grid.cell(row: 0, column: 0).eligiblePlayerIDs, ["alpha"])
+        XCTAssertTrue(grid.cell(row: 0, column: 1).eligiblePlayerIDs.isEmpty) // Alpha's BOS season is not in the 2000s.
+        XCTAssertEqual(grid.cell(row: 1, column: 0).eligiblePlayerIDs, ["beta"])
+        XCTAssertEqual(grid.cell(row: 1, column: 1).eligiblePlayerIDs, ["alpha"])
+    }
+
+    func testGridDuelGeneratedTeammateClueRetainsArchivePortraitIdentity() {
+        let records = [
+            SeasonRecord(id: "lebron-2012", playerID: "jamesle01", playerName: "LeBron James", season: "2012–13", team: "MIA", position: "SF", overallRating: 80),
+            SeasonRecord(id: "wade-2012", playerID: "wadedw01", playerName: "Dwyane Wade", season: "2012–13", team: "MIA", position: "SG", overallRating: 80)
+        ]
+        let index = GridCareerEligibilityIndex(archiveRows: records)
+        guard let clue = index.availableTeammateClues.first(where: { $0.playerName == "LeBron James" }) else {
+            return XCTFail("Expected LeBron teammate clue")
+        }
+
+        XCTAssertEqual(clue.playerID, "jamesle01")
+        XCTAssertEqual(OfflineVisualCatalog.portraitAssetName(for: clue.playerID), "player_jamesle01")
+    }
+
+    func testGridDuelGenerationCanPublishAnswerableDecadeClues() {
+        let records = [
+            SeasonRecord(id: "alpha", playerName: "Alpha", season: "1999–00", team: "LAL", position: "PG", overallRating: 80),
+            SeasonRecord(id: "beta", playerName: "Beta", season: "2003–04", team: "LAL", position: "SF", overallRating: 80),
+            SeasonRecord(id: "gamma", playerName: "Gamma", season: "2013–14", team: "LAL", position: "PG", overallRating: 80)
+        ]
+        let boards = (0..<100).compactMap { GridDuelEngine.generate(from: records, seed: UInt64($0)) }
+
+        XCTAssertTrue(boards.allSatisfy { $0.cells.allSatisfy { $0.eligibleAnswerCount > 0 } })
+        XCTAssertTrue(boards.contains { ($0.rows + $0.columns).contains { if case .decade = $0 { true } else { false } } })
+    }
+
+    func testGridDuelBroadPositionCluesAcceptTheirHistoricalGroups() {
+        let records = [
+            SeasonRecord(id: "point", playerName: "Point", season: "S", team: "AAA", position: "PG", overallRating: 80),
+            SeasonRecord(id: "shooting", playerName: "Shooting", season: "S", team: "AAA", position: "SG", overallRating: 80),
+            SeasonRecord(id: "wing", playerName: "Wing", season: "S", team: "AAA", position: "SF", overallRating: 80),
+            SeasonRecord(id: "forward", playerName: "Forward", season: "S", team: "AAA", position: "PF", overallRating: 80),
+            SeasonRecord(id: "center", playerName: "Center", season: "S", team: "AAA", position: "C", overallRating: 80),
+            SeasonRecord(id: "combo", playerName: "Combo", season: "S", team: "AAA", position: "PG-SF", overallRating: 80)
+        ]
+        let grid = GridDuelGrid(rows: [.position("G"), .position("F/C")], columns: [.team("AAA"), .team("AAA")], archiveRows: records)
+
+        let guards = grid.cell(row: 0, column: 0).eligiblePlayerIDs
+        XCTAssertTrue(guards.isSuperset(of: ["point", "shooting", "combo"]))
+        XCTAssertFalse(guards.contains("wing"))
+        XCTAssertFalse(guards.contains("forward"))
+        XCTAssertFalse(guards.contains("center"))
+
+        let frontcourt = grid.cell(row: 1, column: 0).eligiblePlayerIDs
+        XCTAssertTrue(frontcourt.isSuperset(of: ["wing", "forward", "center", "combo"]))
+        XCTAssertFalse(frontcourt.contains("point"))
+        XCTAssertFalse(frontcourt.contains("shooting"))
+    }
+
+    func testGridDuelExactPositionCluesRemainCompatible() {
+        let records = [
+            SeasonRecord(id: "point", playerName: "Point", season: "S", team: "AAA", position: "PG", overallRating: 80),
+            SeasonRecord(id: "shooting", playerName: "Shooting", season: "S", team: "AAA", position: "SG", overallRating: 80),
+            SeasonRecord(id: "combo", playerName: "Combo", season: "S", team: "AAA", position: "PG-SF", overallRating: 80)
+        ]
+        let grid = GridDuelGrid(rows: [.position("PG"), .position("SF")], columns: [.team("AAA"), .team("AAA")], archiveRows: records)
+
+        XCTAssertEqual(grid.cell(row: 0, column: 0).eligiblePlayerIDs, ["point", "combo"])
+        XCTAssertEqual(grid.cell(row: 1, column: 0).eligiblePlayerIDs, ["combo"])
+    }
+
+    func testGridDuelGlobalSearchCanShowAnIneligiblePlayerButSubmissionRejectsIt() {
+        let records = [
+            SeasonRecord(id: "lebron-lal", playerName: "LeBron James", season: "2020-21", team: "LAL", position: "SF", overallRating: 80),
+            SeasonRecord(id: "wizards-center", playerName: "Wizards Center", season: "2020-21", team: "WAS", position: "C", overallRating: 80),
+            SeasonRecord(id: "wizards-guard", playerName: "Wizards Guard", season: "2020-21", team: "WAS", position: "PG", overallRating: 80)
+        ]
+        let grid = GridDuelGrid(rows: [.team("WAS"), .position("PG")], columns: [.position("C"), .team("WAS")], archiveRows: records)
+        var engine = GridDuelEngine(grid: grid, archiveRows: records)
+
+        XCTAssertEqual(engine.searchRecords(query: "lebron").map(\.playerName), ["LeBron James"])
+        XCTAssertFalse(engine.submit(records[0], to: "0-0", forLocalPlayer: true))
+        XCTAssertNil(engine.localAnswers["0-0"])
+        XCTAssertTrue(engine.submit(records[1], to: "0-0", forLocalPlayer: true))
+    }
+
+    func testGridDuelGlobalSearchIsAlphabeticalAndLimitedToThirtyResults() {
+        let records = (0..<35).map { index in
+            SeasonRecord(
+                id: "match-\(index)",
+                playerName: String(format: "Match %02d", 34 - index),
+                season: "2020-21",
+                team: "LAL",
+                position: "PG",
+                overallRating: 80
+            )
+        }
+        let grid = GridDuelGrid(rows: [.team("LAL"), .position("PG")], columns: [.position("PG"), .team("LAL")], archiveRows: records)
+        let engine = GridDuelEngine(grid: grid, archiveRows: records)
+
+        let matches = engine.searchRecords(query: "MATCH")
+        XCTAssertEqual(matches.count, 30)
+        XCTAssertEqual(matches.map(\.playerName), (0..<30).map { String(format: "Match %02d", $0) })
+    }
+
+    func testGridDuelRarityUsesPeakTwentyGameSeasonThresholds() {
         func rarity(points: Double, games: Int = 20) -> GridRarityTier {
             let record = SeasonRecord(id: "player-\(points)-\(games)", playerName: "Player \(points)", season: "2020-21", team: "LAL", position: "PG", games: games, points: points, rebounds: 0, assists: 0, steals: 0, blocks: 0, overallRating: 80)
             let grid = GridDuelGrid(rows: [.team("LAL"), .position("PG")], columns: [.position("PG"), .team("LAL")], archiveRows: [record])
@@ -28,15 +416,17 @@ final class AuctionEngineTests: XCTestCase {
             XCTAssertTrue(engine.submit(record, to: "0-0", forLocalPlayer: true))
             return engine.rarity(for: engine.localAnswers["0-0"])!
         }
-        XCTAssertEqual(rarity(points: 9.9), .mythic)
-        XCTAssertEqual(rarity(points: 10), .legendary)
-        XCTAssertEqual(rarity(points: 16), .rare)
-        XCTAssertEqual(rarity(points: 22), .uncommon)
-        XCTAssertEqual(rarity(points: 29), .common)
+        XCTAssertEqual(rarity(points: 5.4), .mythic)
+        XCTAssertEqual(rarity(points: 5.5), .legendary)
+        XCTAssertEqual(rarity(points: 9.3), .rare)
+        XCTAssertEqual(rarity(points: 16.1), .uncommon)
+        XCTAssertEqual(rarity(points: 24.6), .common)
+        XCTAssertEqual(rarity(points: 30), .common) // Harden-equivalent
+        XCTAssertEqual(rarity(points: 33), .common) // Curry-equivalent
         XCTAssertEqual(rarity(points: 40, games: 19), .mythic)
     }
 
-    func testGridDuelRarityUsesTheLowestCareerSeasonRatherThanSubmittedSeason() {
+    func testGridDuelRarityUsesPeakCareerSeasonRatherThanSubmittedSeason() {
         let records = [
             SeasonRecord(id: "alpha-high", playerName: "Alpha", season: "2020-21", team: "LAL", position: "PG", games: 60, points: 31, rebounds: 6, assists: 7, steals: 1, blocks: 0, overallRating: 80),
             SeasonRecord(id: "alpha-low", playerName: "Alpha", season: "2021-22", team: "SAC", position: "PG", games: 22, points: 11, rebounds: 2, assists: 2, steals: 0, blocks: 0, overallRating: 80)
@@ -44,7 +434,21 @@ final class AuctionEngineTests: XCTestCase {
         let grid = GridDuelGrid(rows: [.team("SAC"), .position("PG")], columns: [.position("PG"), .team("SAC")], archiveRows: records)
         var engine = GridDuelEngine(grid: grid, archiveRows: records)
         XCTAssertTrue(engine.submit(records[1], to: "0-0", forLocalPlayer: true))
-        XCTAssertEqual(engine.rarity(for: engine.localAnswers["0-0"]), .legendary)
+        XCTAssertEqual(engine.rarity(for: engine.localAnswers["0-0"]), .common)
+    }
+
+    func testGridDuelBestGridUsesHighestRarityAndAlphabeticalTies() {
+        let records = [
+            SeasonRecord(id: "zeta", playerName: "Zeta", season: "2020-21", team: "LAL", position: "PG", games: 40, points: 5, rebounds: 0, assists: 0, steals: 0, blocks: 0, overallRating: 80),
+            SeasonRecord(id: "alpha", playerName: "Alpha", season: "2020-21", team: "LAL", position: "PG", games: 40, points: 5, rebounds: 0, assists: 0, steals: 0, blocks: 0, overallRating: 80),
+            SeasonRecord(id: "beta", playerName: "Beta", season: "2020-21", team: "LAL", position: "PG", games: 40, points: 6, rebounds: 0, assists: 0, steals: 0, blocks: 0, overallRating: 80)
+        ]
+        let grid = GridDuelGrid(rows: [.team("LAL"), .position("PG")], columns: [.position("PG"), .team("LAL")], archiveRows: records)
+        let engine = GridDuelEngine(grid: grid, archiveRows: records)
+
+        XCTAssertEqual(engine.bestValidAnswers().count, 4)
+        XCTAssertEqual(engine.bestValidAnswer(for: grid.cell(row: 0, column: 0))?.playerName, "Alpha")
+        XCTAssertEqual(engine.bestValidAnswer(for: grid.cell(row: 0, column: 0))?.points, 5)
     }
 
     func testGridDuelGenerationOnlyPublishesAnswerableCells() {
@@ -63,7 +467,8 @@ final class AuctionEngineTests: XCTestCase {
             XCTAssertEqual(Set(grid.rows + grid.columns).count, 4)
             for predicate in grid.rows + grid.columns {
                 switch predicate {
-                case .team, .teammateOf, .position: break
+                case .position(let value): XCTAssertTrue(["G", "F/C"].contains(value))
+                case .team, .teammateOf, .decade: break
                 }
             }
         }
@@ -95,9 +500,181 @@ final class AuctionEngineTests: XCTestCase {
         XCTAssertTrue(RankedSearchStage.wide.playerMessage.contains("wider range"))
     }
 
-    func testRankedEloStartsAtOneThousandAndAwardsTwentyFourForAnEvenWin() {
-        XCTAssertEqual(RankedLadder.rating(afterWin: true, rating: RankedLadder.initialRating), 1_012)
-        XCTAssertEqual(RankedLadder.rating(afterWin: false, rating: RankedLadder.initialRating), 988)
+    func testRankedEloStartsAtSilverEntryBaselineAndAwardsNineteenForAWinAgainstTheDefaultOpponent() {
+        XCTAssertEqual(RankedLadder.initialRating, 781)
+        XCTAssertEqual(RankedLadder.rating(afterWin: true, rating: RankedLadder.initialRating), 800)
+        XCTAssertEqual(RankedLadder.rating(afterWin: false, rating: RankedLadder.initialRating), 776)
+    }
+
+    @MainActor
+    func testFiveAliveFreshLadderStartsBronzeAtSeasonBaseline() {
+        let suiteName = "RankedLadderFreshTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else { return XCTFail("Could not create isolated defaults") }
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let ladder = RankedLadderService(defaults: defaults, now: { Date(timeIntervalSince1970: 1_784_358_400) })
+        XCTAssertEqual(ladder.rating, 781)
+        XCTAssertEqual(ladder.tier, .bronze)
+    }
+
+    @MainActor
+    func testFiveAliveReleaseMigrationResetsExistingRatingAndMatchJournal() {
+        let suiteName = "RankedLadderMigrationTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else { return XCTFail("Could not create isolated defaults") }
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        defaults.set(1_200, forKey: "ranked.monthly.rating")
+        defaults.set(["old-match"], forKey: "ranked.monthly.submittedMatchIDs")
+
+        let ladder = RankedLadderService(defaults: defaults, now: { Date(timeIntervalSince1970: 1_784_358_400) })
+        XCTAssertEqual(ladder.rating, 781)
+        XCTAssertNil(defaults.stringArray(forKey: "ranked.monthly.submittedMatchIDs"))
+        XCTAssertEqual(ladder.recordCompletedMatch(id: "old-match", didWin: true)?.ratingAfter, 800)
+    }
+
+    @MainActor
+    func testFiveAliveNewUTCMonthResetsRatingAndJournal() {
+        let suiteName = "RankedLadderSeasonTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else { return XCTFail("Could not create isolated defaults") }
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        var date = Date(timeIntervalSince1970: 1_784_358_400)
+        let ladder = RankedLadderService(defaults: defaults, now: { date })
+        XCTAssertNotNil(ladder.recordCompletedMatch(id: "match", didWin: true))
+        XCTAssertEqual(ladder.rating, 800)
+
+        date = Date(timeIntervalSince1970: 1_787_036_800)
+        XCTAssertEqual(ladder.rating, 781)
+        XCTAssertEqual(ladder.recordCompletedMatch(id: "match", didWin: true)?.ratingAfter, 800)
+    }
+
+    @MainActor
+    func testFiveAliveRepeatedSameSeasonAccessPreservesRatingAndJournal() {
+        let suiteName = "RankedLadderSameSeasonTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else { return XCTFail("Could not create isolated defaults") }
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let date = Date(timeIntervalSince1970: 1_784_358_400)
+        let first = RankedLadderService(defaults: defaults, now: { date })
+        XCTAssertEqual(first.recordCompletedMatch(id: "match", didWin: true)?.ratingAfter, 800)
+
+        let second = RankedLadderService(defaults: defaults, now: { date })
+        XCTAssertEqual(second.rating, 800)
+        XCTAssertNil(second.recordCompletedMatch(id: "match", didWin: true))
+    }
+
+    @MainActor
+    func testFiveAlivePersistsLatestMMRForGameCenterSubmission() {
+        let suiteName = "RankedLadderSubmissionTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else { return XCTFail("Could not create isolated defaults") }
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let result = RankedLadderService(defaults: defaults).recordCompletedMatch(id: "five-submission", didWin: true)
+
+        XCTAssertEqual(defaults.object(forKey: "ranked.monthly.pendingSubmissionScore") as? Int, result?.ratingAfter)
+    }
+
+    @MainActor
+    func testFiveAliveForfeitQueuesLatestLowerMMRForLeaderboardSubmission() {
+        let suiteName = "RankedLadderForfeitSubmissionTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else { return XCTFail("Could not create isolated defaults") }
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let ladder = RankedLadderService(defaults: defaults)
+        let result = ladder.recordCompletedMatch(id: "five-forfeit", didWin: false)
+
+        XCTAssertEqual(result?.ratingAfter, 776)
+        XCTAssertEqual(ladder.rating, 776)
+        XCTAssertEqual(ladder.pendingSubmissionScore, 776)
+        XCTAssertEqual(ladder.leaderboardSubmissionStatus, .pending(score: 776))
+    }
+
+    @MainActor
+    func testFiveAliveLeaderboardSubmissionAcknowledgementFailureAndRetry() async {
+        let suiteName = "RankedLadderSubmissionRetryTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else { return XCTFail("Could not create isolated defaults") }
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        var callbacks: [(Error?) -> Void] = []
+        var submittedScores: [Int] = []
+        let ladder = RankedLadderService(
+            defaults: defaults,
+            isGameCenterAuthenticated: { true },
+            submitScore: { score, completion in
+                submittedScores.append(score)
+                callbacks.append(completion)
+            }
+        )
+
+        XCTAssertEqual(ladder.recordCompletedMatch(id: "five-submission-retry", didWin: false)?.ratingAfter, 776)
+        XCTAssertEqual(submittedScores, [776])
+        callbacks.removeFirst()(NSError(domain: "GameCenterTests", code: 7))
+        await Task.yield()
+        XCTAssertEqual(ladder.pendingSubmissionScore, 776)
+        guard case let .failed(score, message) = ladder.leaderboardSubmissionStatus else {
+            return XCTFail("Expected a visible leaderboard submission failure")
+        }
+        XCTAssertEqual(score, 776)
+        XCTAssertFalse(message.isEmpty)
+
+        ladder.retryPendingLeaderboardSubmission()
+        XCTAssertEqual(submittedScores, [776, 776])
+        callbacks.removeFirst()(nil)
+        await Task.yield()
+        XCTAssertNil(ladder.pendingSubmissionScore)
+        XCTAssertEqual(ladder.leaderboardSubmissionStatus, .synced)
+    }
+
+    @MainActor
+    func testGridDuelBaselineMatchesFiveAlive() {
+        let suiteName = "GridDuelBaselineTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else { return XCTFail("Could not create isolated defaults") }
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let ladder = GridDuelLadderService(defaults: defaults)
+        XCTAssertEqual(ladder.rating, 781)
+        XCTAssertEqual(ladder.recordCompletedMatch(id: "match", didWin: true)?.ratingAfter, 800)
+    }
+
+    func testBoxWarsRankedAIProfilesIncreaseCoverageAndAnswerStrength() {
+        let expected: [(RankedTier, Int, Int)] = [
+            (.bronze, 1, 1), (.silver, 2, 2), (.gold, 3, 3),
+            (.platinum, 4, 4), (.goat, 4, 5)
+        ]
+
+        for (tier, filledCellCount, maximumAnswerPoints) in expected {
+            let profile = tier.boxWarsAIProfile
+            XCTAssertEqual(profile.filledCellCount, filledCellCount, "\(tier) coverage")
+            XCTAssertEqual(profile.maximumAnswerPoints, maximumAnswerPoints, "\(tier) point ceiling")
+        }
+    }
+
+    func testBoxWarsBronzeAIUsesTheWeakestValidAnswer() {
+        let engine = boxWarsDifficultyEngine()
+        let answers = engine.rankedAIAnswers(profile: RankedTier.bronze.boxWarsAIProfile)
+        XCTAssertEqual(answers.count, 1)
+        XCTAssertEqual(answers.first?.answer.playerName, "One Point")
+    }
+
+    func testBoxWarsRankedAIAnswersNeverRegressAcrossTiersAndGOATUsesBest() {
+        let engine = boxWarsDifficultyEngine()
+        let cell = engine.grid.cells[0]
+        let selectedPoints = RankedTier.allCases.map { tier -> Int in
+            let answer = engine.rankedAIAnswer(for: cell, profile: tier.boxWarsAIProfile)
+            XCTAssertNotNil(answer)
+            let gridAnswer = GridAnswer(playerID: GridCareerEligibilityIndex.playerID(for: answer!), playerName: answer!.playerName, recordID: answer!.id, submittedAt: .distantPast)
+            return engine.rarity(for: gridAnswer)!.points
+        }
+
+        XCTAssertEqual(selectedPoints, [1, 2, 3, 4, 5])
+        XCTAssertEqual(engine.rankedAIAnswer(for: cell, profile: RankedTier.goat.boxWarsAIProfile)?.playerName, "Five Points")
+    }
+
+    private func boxWarsDifficultyEngine() -> GridDuelEngine {
+        let records = [
+            ("One Point", 25.0), ("Two Points", 17.0), ("Three Points", 10.0),
+            ("Four Points", 7.0), ("Five Points", 5.0)
+        ].enumerated().map { index, value in
+            SeasonRecord(id: "difficulty-\(index)", playerName: value.0, season: "2020-21", team: "LAL", position: "PG", games: 40, points: value.1, rebounds: 0, assists: 0, steals: 0, blocks: 0, overallRating: 80)
+        }
+        let grid = GridDuelGrid(rows: [.team("LAL"), .position("PG")], columns: [.position("PG"), .team("LAL")], archiveRows: records)
+        return GridDuelEngine(grid: grid, archiveRows: records)
     }
 
     func testRankedTiersIncludeGOATAsTheUniqueHighestRank() {
@@ -391,13 +968,13 @@ final class AuctionEngineTests: XCTestCase {
         XCTAssertNotEqual(OfflineVisualCatalog.expectedTeamLogoName(team: "WAS", season: "2014–15"),
                           OfflineVisualCatalog.expectedTeamLogoName(team: "WAS", season: "2015–16"))
     }
-    func testPlayerFiltersIntersectAndFranchiseHistoryKeepsOriginalCodes() {
+    func testPlayerFiltersIntersectAcrossCanonicalFranchiseHistory() {
         let oldNet = SeasonRecord(id: "net", playerID: "player", playerName: "Test Player", season: "2011–12", team: "NJN", position: "PG-SG", overallRating: 80)
         let brooklyn = SeasonRecord(id: "brooklyn", playerID: "player", playerName: "Test Player", season: "2013–14", team: "BRK", position: "PG", overallRating: 80)
         let database = NBAStatsDatabase(teamSeasons: [TeamSeason(id: "nj", team: "NJN", season: "2011–12", players: [oldNet]), TeamSeason(id: "bk", team: "BRK", season: "2013–14", players: [brooklyn])])
         let profile = database.searchPlayers("Test Player")[0]
-        XCTAssertEqual(database.teamSeasonsByFranchise["BRK"]?.map(\.team), ["BRK", "NJN"])
-        XCTAssertEqual(database.rows(for: profile, season: "2011–12", franchise: "BRK", position: "SG").map(\.id), ["net"])
+        XCTAssertEqual(database.teamSeasonsByFranchise["BKN"]?.map(\.team), ["BRK", "NJN"])
+        XCTAssertEqual(database.rows(for: profile, season: "2011–12", franchise: "BKN", position: "SG").map(\.id), ["net"])
     }
     func testHornetsCodesGroupIntoTheirActualFranchiseHistories() {
         XCTAssertEqual(NBAStatsDatabase.franchiseCode(for: "CHO"), "CHA")
@@ -445,6 +1022,142 @@ final class AuctionEngineTests: XCTestCase {
         let strong = SeasonRecord(id: "strong", playerName: "Strong", season: "S", team: "T", position: "PG", points: 30, rebounds: 8, assists: 9, steals: 2, blocks: 1, fgPercent: 50, threePercent: 40, ftPercent: 90, overallRating: 80)
         let weak = SeasonRecord(id: "weak", playerName: "Weak", season: "S", team: "T", position: "PG", points: 5, rebounds: 1, assists: 1, steals: 0.2, blocks: 0.1, fgPercent: 35, threePercent: 25, ftPercent: 60, overallRating: 99)
         XCTAssertEqual(TeamSimulator.winner(player: [DraftedPlayer(season: strong, bid: 1)], opponent: [DraftedPlayer(season: weak, bid: 1)]), "OPPONENT WINS")
+    }
+
+    func testFiveAliveLocalWinUsesTypedOutcomeAndDisplayLabel() {
+        let local = SeasonRecord(id: "local", playerName: "Local", season: "S", team: "T", position: "PG", overallRating: 99)
+        let opponent = SeasonRecord(id: "opponent", playerName: "Opponent", season: "S", team: "T", position: "PG", overallRating: 80)
+
+        let outcome = TeamSimulator.matchOutcome(player: [DraftedPlayer(season: local, bid: 1)], opponent: [DraftedPlayer(season: opponent, bid: 1)])
+
+        XCTAssertEqual(outcome, .localWin)
+        XCTAssertTrue(outcome.didLocalPlayerWin)
+        XCTAssertEqual(outcome.displayLabel, "YOU WIN")
+    }
+
+    @MainActor
+    func testRankedLocalWinAtZeroMMRGainsPoints() {
+        let suiteName = "RankedFiveAliveWinTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            return XCTFail("Could not create isolated defaults")
+        }
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        defaults.set(0, forKey: "ranked.monthly.rating")
+
+        let result = RankedLadderService(defaults: defaults).recordCompletedMatch(id: "five-alive-local-win", didWin: FiveAliveMatchOutcome.localWin.didLocalPlayerWin)
+
+        XCTAssertEqual(result?.outcome, .win)
+        XCTAssertEqual(result?.ratingBefore, 0)
+        XCTAssertEqual(result?.delta, 24)
+        XCTAssertEqual(result?.ratingAfter, 24)
+    }
+
+    @MainActor
+    func testFriendBattleCompletionAwardsHostForLocalWin() {
+        XCTAssertEqual(FriendBattleSession.winnerID(for: .localWin, hostID: "host", peerID: "guest"), "host")
+    }
+
+    func testFiveAliveQuickChatPresetsHaveStableCodableIdentifiersAndDisplayText() throws {
+        let expected: [(FiveAliveQuickChat, String, String)] = [
+            (.goodLuck, "good_luck", "Good luck!"),
+            (.niceBid, "nice_bid", "Nice bid."),
+            (.yourTurn, "your_turn", "Your turn!"),
+            (.thinking, "thinking", "Thinking…"),
+            (.gg, "gg", "Good game!")
+        ]
+
+        XCTAssertEqual(FiveAliveQuickChat.allCases.count, expected.count)
+        for (message, identifier, text) in expected {
+            XCTAssertEqual(message.rawValue, identifier)
+            XCTAssertEqual(message.text, text)
+            XCTAssertEqual(try JSONDecoder().decode(FiveAliveQuickChat.self, from: JSONEncoder().encode(message)), message)
+        }
+    }
+
+    func testBoxWarsQuickChatPresetsHaveStableCodableIdentifiersAndDisplayText() throws {
+        let expected: [(BoxWarsQuickChat, String, String)] = [
+            (.goodLuck, "good_luck", "Good luck!"),
+            (.niceFind, "nice_find", "Nice find!"),
+            (.gg, "gg", "Good game!")
+        ]
+
+        XCTAssertEqual(BoxWarsQuickChat.allCases.count, expected.count)
+        for (message, identifier, text) in expected {
+            XCTAssertEqual(message.rawValue, identifier)
+            XCTAssertEqual(message.text, text)
+            XCTAssertEqual(try JSONDecoder().decode(BoxWarsQuickChat.self, from: JSONEncoder().encode(message)), message)
+        }
+    }
+
+    @MainActor
+    func testBoxWarsFriendChatSendsAndReceivesOnlyBoxWarsMessagesOnce() async throws {
+        let transport = MockMatchTransport(localPlayerID: "guest", opponentPlayerID: "host", opponentName: "Jordan")
+        let session = BoxWarsFriendChatSession(transport: transport)
+        defer { session.stop() }
+
+        try await session.start()
+        try await session.sendQuickChat(.niceFind)
+        guard case let .quickChat(game, id)? = transport.sent.last?.event else {
+            return XCTFail("Expected a Box Wars quick-chat envelope")
+        }
+        XCTAssertEqual(game, .boxWars)
+        XCTAssertEqual(id, BoxWarsQuickChat.niceFind.rawValue)
+
+        let chat = BattleEnvelope(sequence: 42, event: .quickChat(game: .boxWars, id: BoxWarsQuickChat.goodLuck.rawValue))
+        let received = expectation(description: "immediately delivered Box Wars quick chat")
+        var observation: AnyCancellable? = session.$latestQuickChat.dropFirst().sink { quickChat in
+            if quickChat?.message == .goodLuck { received.fulfill() }
+        }
+        transport.receive(chat)
+        await fulfillment(of: [received], timeout: 1)
+        observation = nil
+        XCTAssertEqual(session.latestQuickChat?.message, .goodLuck)
+        let receivedID = session.latestQuickChat?.id
+
+        transport.receive(chat)
+        transport.receive(BattleEnvelope(sequence: 43, event: .quickChat(game: .fiveAlive, id: FiveAliveQuickChat.gg.rawValue)))
+        await Task.yield()
+        XCTAssertEqual(session.latestQuickChat?.id, receivedID)
+    }
+
+    @MainActor
+    func testBoxWarsLocalQuickChatPresentsImmediateYouToast() {
+        let model = GridDuelViewModel(mode: .versusAI)
+        model.sendQuickChat(.niceFind)
+        XCTAssertEqual(model.quickChatToast?.sender, "YOU")
+        XCTAssertEqual(model.quickChatToast?.text, BoxWarsQuickChat.niceFind.text)
+    }
+
+    @MainActor
+    func testFiveAliveLocalQuickChatPresentsImmediateYouToast() {
+        let model = GameViewModel(difficulty: .easy, matchMode: .versusAI)
+        model.sendQuickChat(.goodLuck)
+        XCTAssertEqual(model.quickChatToast?.sender, "YOU")
+        XCTAssertEqual(model.quickChatToast?.text, FiveAliveQuickChat.goodLuck.text)
+    }
+
+    @MainActor
+    func testFriendBattleReceivesEachQuickChatEnvelopeOnlyOnce() async throws {
+        let transport = MockMatchTransport(localPlayerID: "guest", opponentPlayerID: "host")
+        let session = FriendBattleSession(transport: transport, hostID: "host")
+        defer { session.stop() }
+
+        try await session.start()
+        let quickChat = BattleEnvelope(sequence: 42, event: .quickChat(game: .fiveAlive, id: FiveAliveQuickChat.yourTurn.rawValue))
+        let received = expectation(description: "immediately delivered Five Alive quick chat")
+        var observation: AnyCancellable? = session.$latestQuickChat.dropFirst().sink { chat in
+            if chat?.message == .yourTurn { received.fulfill() }
+        }
+        transport.receive(quickChat)
+        await fulfillment(of: [received], timeout: 1)
+        observation = nil
+
+        XCTAssertEqual(session.latestQuickChat?.message, .yourTurn)
+        let receivedID = session.latestQuickChat?.id
+        transport.receive(quickChat)
+        await Task.yield()
+        XCTAssertEqual(session.latestQuickChat?.message, .yourTurn)
+        XCTAssertEqual(session.latestQuickChat?.id, receivedID)
     }
     func testFinalRatingIsUnaffectedByLineupStatThresholds() {
         let positions = ["PG", "SG", "SF", "PF", "C"]

@@ -1,6 +1,7 @@
 import SwiftUI
 import GameKit
 import UIKit
+import UIKit
 
 struct HomeView: View {
     @Binding var route: Route
@@ -102,11 +103,105 @@ struct GridDuelSetupView: View {
     var body: some View {
         FiveAlivePage(route: $route, title: "BOX WARS", subtitle: "CHOOSE HOW YOU PLAY") {
             PlayModeCard(title: "PRACTICE AI", subtitle: "Solve a fresh 2×2 NBA archive grid", icon: "cpu") { matchMode = .versusAI; route = .gridDuel }
-            PlayModeCard(title: "RANKED LADDER", subtitle: "Box Wars MMR is separate from Five Alive", icon: "trophy.fill") { matchMode = .ranked; route = .gridDuel }
-            PlayModeCard(title: "FRIEND MATCH", subtitle: "Local Box Wars practice while Game Center transport is configured", icon: "person.2.fill") { matchMode = .friend; route = .gridDuel }
+            PlayModeCard(title: "RANKED LADDER", subtitle: "Box Wars MMR is separate from Five Alive", icon: "trophy.fill") { matchMode = .ranked; route = .gridDuelRankedHub }
+            PlayModeCard(title: "FRIEND MATCH", subtitle: "Send a private Game Center Box Wars challenge", icon: "person.2.fill") { matchMode = .friend; route = .gridDuelFriendSetup }
             Text("Each shared grid runs for 90 seconds. Rarity tiers and points reveal after the buzzer.").font(.caption).foregroundStyle(.white.opacity(0.6))
         }
     }
+}
+
+struct GridDuelRankedHubView: View {
+    @Binding var route: Route
+    @Binding var matchMode: OnlineMatchMode
+    @Binding var friendMatch: GKMatch?
+    @Binding var rankedMatchup: RankedMatchup?
+    @ObservedObject var gameCenter: GameCenterCoordinator
+    @ObservedObject var ladder: GridDuelLadderService
+    @ObservedObject var leaderboard: GridDuelLeaderboardService
+    var rankTransition: RankTransition?
+    var consumeRankTransition: (UUID) -> Void = { _ in }
+    @State private var showingLeaderboard = false
+    @State private var showingRanks = false
+    @State private var matchupTask: Task<Void, Never>?
+
+    var body: some View {
+        FiveAlivePage(route: $route, back: .gridDuelSetup, title: "BOX WARS RANKED", subtitle: "MONTHLY LADDER") {
+            RankedHeader(display: ladder.display, game: .boxWars, transition: rankTransition, consumeTransition: consumeRankTransition)
+            LeaderboardSubmissionStatusCard(status: ladder.leaderboardSubmissionStatus, retry: ladder.retryPendingLeaderboardSubmission)
+            Button { showingLeaderboard = true } label: { Label("Leaderboard", systemImage: "list.number").frame(maxWidth: .infinity) }.buttonStyle(SecondaryButtonStyle())
+            Button { showingRanks = true } label: { Label("Ranks & MMR", systemImage: "chart.bar.fill").frame(maxWidth: .infinity) }.buttonStyle(SecondaryButtonStyle())
+            action
+        }
+        .onAppear { gameCenter.authenticate() }
+        .onChange(of: gameCenter.rankedSearchState) { _, state in
+            switch state {
+            case .matched:
+                guard let ticket = gameCenter.consumeRankedMatch() else { return }
+                matchupTask?.cancel()
+                matchupTask = Task {
+                    let matchup = await gameCenter.rankedMatchup(for: ticket.match, localRating: ladder.rating)
+                    guard !Task.isCancelled,
+                          route == .gridDuelRankedHub,
+                          gameCenter.isConsumedRankedSessionCurrent(ticket.id) else { return }
+                    rankedMatchup = matchup
+                    // Transfer the actual matched transport into Box Wars.
+                    // Previously this ticket was consumed and then discarded,
+                    // silently turning a PVP queue result into a local AI game.
+                    friendMatch = ticket.match
+                    matchMode = .ranked
+                    route = .gridDuel
+                }
+            case .startingAI:
+                guard let ticket = gameCenter.consumeRankedAIFallback() else { return }
+                rankedMatchup = .aiFallback(localName: GKLocalPlayer.local.displayName, localRating: ladder.rating, profile: ticket.profile)
+                friendMatch = nil
+                matchMode = .ranked
+                route = .gridDuel
+            default: break
+            }
+        }
+        .onDisappear {
+            matchupTask?.cancel()
+            if route != .gridDuel { gameCenter.resetRankedSession() }
+        }
+        .sheet(isPresented: $showingLeaderboard) { GridDuelLeaderboardSheet(gameCenter: gameCenter, leaderboard: leaderboard) }
+        .sheet(isPresented: $showingRanks) { RankedSearchRanksSheet(game: .boxWars, currentTier: ladder.tier) }
+        .authenticationSheet(gameCenter)
+    }
+
+    @ViewBuilder private var action: some View {
+        switch gameCenter.status {
+        case .ready:
+            switch gameCenter.rankedSearchState {
+            case let .searching(stage, elapsed):
+                VStack(alignment: .leading, spacing: 8) { ProgressView().tint(Color.accent); Text(stage.playerMessage).font(.headline.weight(.black)); Text("\(ladder.rating) MMR · ±\(stage.acceptedMMRRange) · \(max(0, RankedSearchStage.duration - elapsed)) seconds left").font(.caption).foregroundStyle(.white.opacity(0.6)); Button("CANCEL SEARCH") { gameCenter.cancelRankedMatch() }.buttonStyle(SecondaryButtonStyle()) }.padding(14).modeCard(true)
+            case .matched, .startingAI: ProgressView("PREPARING BOX WARS…").tint(Color.accent)
+            case let .failed(message): VStack(alignment: .leading) { Text("Couldn’t connect to Game Center.").font(.headline.weight(.black)); Text(message).font(.caption); Button("TRY AGAIN") { gameCenter.startRankedSearch(rating: ladder.rating) }.buttonStyle(SecondaryButtonStyle()) }.padding(14).modeCard()
+            case .idle: Button { Task { await ladder.refreshFromGameCenter(); gameCenter.startRankedSearch(rating: ladder.rating) } } label: { Text("QUEUE FOR RANKED").frame(maxWidth: .infinity) }.buttonStyle(PrimaryButtonStyle())
+            }
+        case .authenticating: ProgressView("SIGNING IN TO GAME CENTER…")
+        case let .unavailable(message): Text(message).foregroundStyle(.red)
+        case .idle: EmptyView()
+        }
+    }
+}
+
+struct GridDuelRankDetailsView: View {
+    @Binding var route: Route; @ObservedObject var ladder: GridDuelLadderService
+    var body: some View { FiveAlivePage(route: $route, back: .gridDuelRankedHub, title: "BOX WARS RANKS", subtitle: "MONTHLY REQUIREMENTS") { ForEach(RankedTier.allCases, id: \.self) { rank in HStack { RankBadge(tier: rank, game: .boxWars, size: 44); Text(rank.rawValue).font(.headline.weight(.black)).foregroundStyle(rank == ladder.tier ? Color.accent : .white); Spacer(); Text(rank.requiredMMR).font(.subheadline.weight(.bold)).foregroundStyle(.white.opacity(0.68)) }.padding(14).modeCard(rank == ladder.tier) } } }
+}
+
+struct GridDuelFriendSetupView: View {
+    @Binding var route: Route; @Binding var matchMode: OnlineMatchMode; @ObservedObject var gameCenter: GameCenterCoordinator; @Binding var friendMatch: GKMatch?
+    @State private var showingMatchmaker = false
+    var body: some View { FiveAlivePage(route: $route, back: .gridDuelSetup, title: "BOX WARS FRIEND MATCH", subtitle: "PRIVATE GAME CENTER CHALLENGE") { Text("Invite a friend to solve the same Box Wars grid. Friend matches never affect MMR.").foregroundStyle(.white.opacity(0.7)); Button { showingMatchmaker = true } label: { Label("INVITE FRIEND", systemImage: "person.crop.circle.badge.plus").frame(maxWidth: .infinity) }.buttonStyle(PrimaryButtonStyle()) }
+        .onAppear { gameCenter.authenticate() }.sheet(isPresented: $showingMatchmaker) { FriendMatchmakerView(coordinator: gameCenter) }.onChange(of: gameCenter.match) { _, match in if let match { friendMatch = match; matchMode = .friend; route = .gridDuel } }.authenticationSheet(gameCenter) }
+}
+
+struct GridDuelLeaderboardView: View {
+    @Binding var route: Route; @ObservedObject var gameCenter: GameCenterCoordinator; @ObservedObject var leaderboard: GridDuelLeaderboardService; @State private var filter: RankedLeaderboardFilter = .global
+    var body: some View { FiveAlivePage(route: $route, back: .gridDuelRankedHub, title: "BOX WARS LEADERBOARD", subtitle: RankedLadder.seasonDateRange()) { Picker("Leaderboard filter", selection: $filter) { ForEach(RankedLeaderboardFilter.allCases) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented); content }.task { await leaderboard.load(filter: filter) }.onChange(of: filter) { _, value in Task { await leaderboard.load(filter: value) } }.onAppear { if gameCenter.status == .idle { gameCenter.authenticate() } }.authenticationSheet(gameCenter) }
+    @ViewBuilder private var content: some View { switch leaderboard.state { case .idle, .loading: ProgressView("LOADING LEADERBOARD…").frame(maxWidth: .infinity).padding(30); case .signInRequired: Text("SIGN IN TO GAME CENTER TO VIEW THE MONTHLY LEADERBOARD.").foregroundStyle(.white.opacity(0.7)); case .emptyFriends: Text("NO FRIENDS RANKED YET").foregroundStyle(.white.opacity(0.7)); case let .failed(message): Text(message).foregroundStyle(.red); case .loaded: ForEach(leaderboard.rows) { row in HStack { Text("#\(row.placement)").monospacedDigit(); RankBadge(tier: row.tier, game: .boxWars, size: 38); VStack(alignment: .leading) { Text(row.displayName).font(.headline.weight(.black)); Text(row.display.title).scoreLabel() }; Spacer(); Text("\(row.mmr) MMR").font(.headline.weight(.black)).monospacedDigit() }.padding(12).modeCard(row.isLocalPlayer) } } }
 }
 
 struct AISetupView: View {
@@ -128,34 +223,63 @@ struct RankedHubView: View {
     @Binding var rankedAIProfile: RankedAIProfile?
     @Binding var rankedMatchup: RankedMatchup?
     @ObservedObject var gameCenter: GameCenterCoordinator; @ObservedObject var rankedLadder: RankedLadderService
+    @ObservedObject var leaderboard: RankedLeaderboardService
+    var rankTransition: RankTransition?
+    var consumeRankTransition: (UUID) -> Void = { _ in }
+    @State private var matchupTask: Task<Void, Never>?
+    @State private var showingLeaderboard = false
+    @State private var showingRanks = false
     var body: some View {
         FiveAlivePage(route: $route, back: .gameSetup, title: "RANKED", subtitle: "MONTHLY LADDER") {
-            HStack { VStack(alignment: .leading) { Text("CURRENT RANK").scoreLabel(); Text("\(rankedLadder.rating) MMR").font(.title.weight(.black)).foregroundStyle(Color.accent); Text(rankedLadder.tier.rawValue).font(.headline.weight(.black)) }; Spacer(); RankBadge(tier: rankedLadder.tier, size: 58) }.padding(18).modeCard(true)
-            Button { route = .leaderboard } label: { Label("LEADERBOARD", systemImage: "list.number").frame(maxWidth: .infinity) }.buttonStyle(SecondaryButtonStyle())
-            Button { route = .rankDetails } label: { Label("RANKS & MMR", systemImage: "chart.bar.fill").frame(maxWidth: .infinity) }.buttonStyle(SecondaryButtonStyle())
+            RankedHeader(display: rankedLadder.display, game: .fiveAlive, transition: rankTransition, consumeTransition: consumeRankTransition)
+            LeaderboardSubmissionStatusCard(status: rankedLadder.leaderboardSubmissionStatus, retry: rankedLadder.retryPendingLeaderboardSubmission)
+            Button { showingLeaderboard = true } label: { Label("Leaderboard", systemImage: "list.number").frame(maxWidth: .infinity) }.buttonStyle(SecondaryButtonStyle())
+            Button { showingRanks = true } label: { Label("Ranks & MMR", systemImage: "chart.bar.fill").frame(maxWidth: .infinity) }.buttonStyle(SecondaryButtonStyle())
             rankedAction
         }
         .onAppear { gameCenter.authenticate() }
-        .onChange(of: gameCenter.match) { _, match in
-            guard let match else { return }
-            Task {
-                rankedMatchup = await gameCenter.rankedMatchup(for: match, localRating: rankedLadder.rating)
-                friendMatch = match; difficulty = RankedMatchSetup.difficulty(afterSelecting: difficulty); matchMode = .ranked; rankedMatchKind = .pvp; rankedAIProfile = nil; route = .game
+        .onChange(of: gameCenter.rankedSearchState) { _, state in
+            switch state {
+            case .matched:
+                guard let ticket = gameCenter.consumeRankedMatch() else { return }
+                matchupTask?.cancel()
+                matchupTask = Task {
+                    let matchup = await gameCenter.rankedMatchup(for: ticket.match, localRating: rankedLadder.rating)
+                    guard !Task.isCancelled,
+                          route == .rankedHub,
+                          gameCenter.isConsumedRankedSessionCurrent(ticket.id) else { return }
+                    rankedMatchup = matchup
+                    friendMatch = ticket.match
+                    difficulty = RankedMatchSetup.difficulty(afterSelecting: difficulty)
+                    matchMode = .ranked
+                    rankedMatchKind = .pvp
+                    rankedAIProfile = nil
+                    route = .game
+                }
+            case .startingAI:
+                guard let ticket = gameCenter.consumeRankedAIFallback() else { return }
+                friendMatch = nil
+                difficulty = RankedMatchSetup.difficulty(afterSelecting: difficulty)
+                matchMode = .ranked
+                rankedMatchKind = .aiFallback
+                rankedAIProfile = ticket.profile
+                rankedMatchup = .aiFallback(localName: GKLocalPlayer.local.displayName, localRating: rankedLadder.rating, profile: ticket.profile)
+                route = .game
+            default:
+                break
             }
         }
-        .onChange(of: gameCenter.rankedSearchState) { _, state in
-            guard case let .startingAI(profile) = state else { return }
-            friendMatch = nil; difficulty = RankedMatchSetup.difficulty(afterSelecting: difficulty); matchMode = .ranked; rankedMatchKind = .aiFallback; rankedAIProfile = profile
-            rankedMatchup = .aiFallback(localName: GKLocalPlayer.local.displayName, localRating: rankedLadder.rating, profile: profile)
-            route = .game
+        .onDisappear {
+            matchupTask?.cancel()
+            if route != .game { gameCenter.resetRankedSession() }
         }
+        .sheet(isPresented: $showingLeaderboard) { RankedLeaderboardSheet(gameCenter: gameCenter, leaderboard: leaderboard) }
+        .sheet(isPresented: $showingRanks) { RankedSearchRanksSheet(game: .fiveAlive, currentTier: rankedLadder.tier) }
         .authenticationSheet(gameCenter)
     }
     @ViewBuilder private var rankedAction: some View {
         switch gameCenter.status {
         case .ready:
-            Text("We’ll search for a real opponent for up to 30 seconds. If nobody is available, you’ll play a ranked match against AI instead.")
-                .font(.subheadline.weight(.medium)).foregroundStyle(.white.opacity(0.72))
             switch gameCenter.rankedSearchState {
             case let .searching(stage, elapsed):
                 VStack(alignment: .leading, spacing: 8) {
@@ -166,12 +290,14 @@ struct RankedHubView: View {
                     Button { gameCenter.cancelRankedMatch() } label: { Label("CANCEL SEARCH", systemImage: "xmark.circle.fill").frame(maxWidth: .infinity) }.buttonStyle(SecondaryButtonStyle())
                     Text("Cancelling does not affect your rank.").font(.caption).foregroundStyle(.white.opacity(0.58))
                 }.padding(14).modeCard(true)
+            case .matched:
+                ProgressView("Opponent found — preparing your ranked match.").tint(Color.accent)
             case .startingAI:
                 ProgressView("No player found — starting a Ranked AI match.").tint(Color.accent)
             case let .failed(message):
                 VStack(alignment: .leading, spacing: 8) { Text("Couldn’t connect to Game Center.").font(.headline.weight(.black)); Text(message).font(.caption).foregroundStyle(.white.opacity(0.65)); Button("TRY AGAIN") { gameCenter.startRankedSearch(rating: rankedLadder.rating) }.buttonStyle(SecondaryButtonStyle()) }.padding(14).modeCard()
             case .idle:
-                Button { Task { await rankedLadder.refreshFromGameCenter(); gameCenter.startRankedSearch(rating: rankedLadder.rating) } } label: { Label("FIND A FAIR MATCH", systemImage: "trophy.fill").frame(maxWidth: .infinity) }.buttonStyle(PrimaryButtonStyle())
+                Button { Task { await rankedLadder.refreshFromGameCenter(); gameCenter.startRankedSearch(rating: rankedLadder.rating) } } label: { Text("QUEUE FOR RANKED").frame(maxWidth: .infinity) }.buttonStyle(PrimaryButtonStyle())
             }
         case .authenticating: ProgressView("SIGNING IN TO GAME CENTER…").frame(maxWidth: .infinity).padding()
         case let .unavailable(message): Text(message).foregroundStyle(.red)
@@ -183,7 +309,7 @@ struct RankedHubView: View {
 
 struct RankDetailsView: View {
     @Binding var route: Route; @ObservedObject var rankedLadder: RankedLadderService
-    var body: some View { FiveAlivePage(route: $route, back: .rankedHub, title: "RANKS & MMR", subtitle: "MONTHLY REQUIREMENTS") { ForEach(RankedTier.allCases, id: \.self) { tier in HStack(spacing: 12) { RankBadge(tier: tier, size: 44); Text(tier.rawValue).font(.headline.weight(.black)).foregroundStyle(tier == rankedLadder.tier ? Color.accent : .white); Spacer(); Text(tier.requiredMMR).font(.subheadline.weight(.bold)).monospacedDigit().foregroundStyle(.white.opacity(0.68)) }.padding(14).modeCard(tier == rankedLadder.tier) }; Text("Wins and losses update your MMR after every ranked match.").font(.caption).foregroundStyle(.white.opacity(0.6)) } }
+    var body: some View { FiveAlivePage(route: $route, back: .rankedHub, title: "RANKS & MMR", subtitle: "MONTHLY REQUIREMENTS") { ForEach(RankedTier.allCases, id: \.self) { tier in HStack(spacing: 12) { RankBadge(tier: tier, game: .fiveAlive, size: 44); Text(tier.rawValue).font(.headline.weight(.black)).foregroundStyle(tier == rankedLadder.tier ? Color.accent : .white); Spacer(); Text(tier.requiredMMR).font(.subheadline.weight(.bold)).monospacedDigit().foregroundStyle(.white.opacity(0.68)) }.padding(14).modeCard(tier == rankedLadder.tier) }; Text("Wins and losses update your MMR after every ranked match.").font(.caption).foregroundStyle(.white.opacity(0.6)) } }
 }
 
 struct FriendSetupView: View {
@@ -213,6 +339,123 @@ struct FriendSetupView: View {
 
 private struct AuthenticationSheet: Identifiable { let controller: UIViewController; var id: ObjectIdentifier { ObjectIdentifier(controller) } }
 private extension View { func authenticationSheet(_ coordinator: GameCenterCoordinator) -> some View { sheet(item: Binding(get: { coordinator.authenticationController.map(AuthenticationSheet.init) }, set: { _ in coordinator.authenticationController = nil }), onDismiss: { coordinator.refreshAuthenticationStatus() }) { GameCenterAuthenticationView(controller: $0.controller) } }; func modeCard(_ selected: Bool = false) -> some View { background(selected ? Color.accent.opacity(0.14) : .white.opacity(0.055)).overlay(RoundedRectangle(cornerRadius: 14).stroke(selected ? Color.accent.opacity(0.75) : .white.opacity(0.12))).clipShape(RoundedRectangle(cornerRadius: 14)) } }
+private struct LeaderboardSubmissionStatusCard: View {
+    let status: LeaderboardSubmissionStatus
+    let retry: () -> Void
+
+    var body: some View {
+        switch status {
+        case .synced:
+            EmptyView()
+        case let .pending(score):
+            Label("\(score) MMR is waiting to sync with Game Center.", systemImage: "arrow.triangle.2.circlepath")
+                .font(.caption.weight(.semibold)).foregroundStyle(.white.opacity(0.72)).padding(12).modeCard()
+        case let .failed(score, message):
+            VStack(alignment: .leading, spacing: 8) {
+                Text(score.map { "Couldn’t submit \($0) MMR to Game Center." } ?? "Couldn’t sync the Game Center leaderboard.")
+                    .font(.caption.weight(.bold)).foregroundStyle(.red)
+                Text(message).font(.caption).foregroundStyle(.white.opacity(0.7))
+                Button("RETRY LEADERBOARD SYNC", action: retry).buttonStyle(SecondaryButtonStyle())
+            }.padding(12).modeCard()
+        }
+    }
+}
+private struct RankedSearchRanksSheet: View {
+    let game: CompetitiveGame
+    let currentTier: RankedTier
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(RankedTier.allCases, id: \.self) { tier in
+                        HStack {
+                            RankBadge(tier: tier, game: game, size: 42)
+                            Text(tier.rawValue).font(.headline.weight(.black))
+                            Spacer()
+                            Text(tier.requiredMMR).font(.subheadline.weight(.bold)).monospacedDigit()
+                        }
+                        .padding(12).modeCard(tier == currentTier)
+                    }
+                }.padding()
+            }
+            .navigationTitle("Ranks & MMR")
+        }
+        .presentationDetents([.fraction(0.8), .large])
+    }
+}
+
+private struct GridDuelLeaderboardSheet: View {
+    @ObservedObject var gameCenter: GameCenterCoordinator
+    @ObservedObject var leaderboard: GridDuelLeaderboardService
+    @State private var filter: RankedLeaderboardFilter = .global
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    Picker("Leaderboard filter", selection: $filter) { ForEach(RankedLeaderboardFilter.allCases) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented)
+                    content
+                }.padding()
+            }
+            .navigationTitle("Leaderboard")
+        }
+        .task { await leaderboard.load(filter: filter) }
+        .onChange(of: filter) { _, value in Task { await leaderboard.load(filter: value) } }
+        .onChange(of: gameCenter.status) { _, status in if status == .ready { Task { await leaderboard.load(filter: filter) } } }
+        .presentationDetents([.fraction(0.8), .large])
+    }
+
+    @ViewBuilder private var content: some View {
+        switch leaderboard.state {
+        case .idle, .loading: ProgressView("Loading leaderboard…").frame(maxWidth: .infinity).padding(30)
+        case .signInRequired: Text("Sign in to Game Center to view the monthly leaderboard.").foregroundStyle(.secondary)
+        case .emptyFriends: Text("No friends ranked yet").foregroundStyle(.secondary)
+        case let .failed(message): VStack(spacing: 10) { Text(message).foregroundStyle(.red); Button("Try Again") { Task { await leaderboard.load(filter: filter) } }.buttonStyle(SecondaryButtonStyle()) }
+        case .loaded: ForEach(leaderboard.rows) { row in
+            HStack { Text("#\(row.placement)").monospacedDigit(); RankBadge(tier: row.tier, game: .boxWars, size: 36); VStack(alignment: .leading) { Text(row.displayName).font(.headline.weight(.black)); Text(row.display.title).scoreLabel() }; Spacer(); Text("\(row.mmr) MMR").font(.headline.weight(.black)).monospacedDigit() }.padding(12).modeCard(row.isLocalPlayer)
+        }
+        }
+    }
+}
+
+private struct RankedLeaderboardSheet: View {
+    @ObservedObject var gameCenter: GameCenterCoordinator
+    @ObservedObject var leaderboard: RankedLeaderboardService
+    @State private var filter: RankedLeaderboardFilter = .global
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    Picker("Leaderboard filter", selection: $filter) { ForEach(RankedLeaderboardFilter.allCases) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented)
+                    content
+                }.padding()
+            }
+            .navigationTitle("Leaderboard")
+        }
+        .task { await leaderboard.load(filter: filter) }
+        .onChange(of: filter) { _, value in Task { await leaderboard.load(filter: value) } }
+        .onChange(of: gameCenter.status) { _, status in if status == .ready { Task { await leaderboard.load(filter: filter) } } }
+        .presentationDetents([.fraction(0.8), .large])
+    }
+
+    @ViewBuilder private var content: some View {
+        switch leaderboard.state {
+        case .idle, .loading: ProgressView("Loading leaderboard…").frame(maxWidth: .infinity).padding(30)
+        case .signInRequired: Text("Sign in to Game Center to view the monthly leaderboard.").foregroundStyle(.secondary)
+        case .emptyFriends: Text("No friends ranked yet").foregroundStyle(.secondary)
+        case let .failed(message): VStack(spacing: 10) { Text(message).foregroundStyle(.red); Button("Try Again") { Task { await leaderboard.load(filter: filter) } }.buttonStyle(SecondaryButtonStyle()) }
+        case .loaded:
+            if let pinned = leaderboard.pinnedLocalPlayer { row(pinned, pinned: true) }
+            ForEach(leaderboard.rows) { row($0, pinned: false) }
+        }
+    }
+
+    private func row(_ item: RankedLeaderboardRow, pinned: Bool) -> some View {
+        HStack { Text("#\(item.placement)").monospacedDigit(); RankBadge(tier: item.tier, game: .fiveAlive, size: 36); Text(item.displayName).font(.headline.weight(.black)); Spacer(); Text("\(item.mmr) MMR").font(.headline.weight(.black)).monospacedDigit() }.padding(12).modeCard(pinned || item.isLocalPlayer)
+    }
+}
 private struct FiveAlivePage<Content: View>: View { @Binding var route: Route; var back: Route = .home; let title: String; let subtitle: String; @ViewBuilder let content: Content; init(route: Binding<Route>, back: Route = .home, title: String, subtitle: String, @ViewBuilder content: () -> Content) { _route = route; self.back = back; self.title = title; self.subtitle = subtitle; self.content = content() }; var body: some View { ScrollView { VStack(alignment: .leading, spacing: 14) { Button { route = back } label: { Image(systemName: "chevron.left").font(.headline.bold()).frame(width: 42, height: 42).background(.white.opacity(0.08)).clipShape(Circle()) }; BrandHeader(compact: false, title: title, tagline: subtitle, markAsset: "FiveAliveMark"); content }.padding(20) }.scrollIndicators(.hidden) } }
 private struct PlayModeCard: View { let title: String; let subtitle: String; let icon: String; let action: () -> Void; var body: some View { Button(action: action) { HStack(spacing: 12) { Image(systemName: icon).font(.title3.weight(.black)).foregroundStyle(Color.accent).frame(width: 28); VStack(alignment: .leading, spacing: 2) { Text(title).font(.subheadline.weight(.black)); Text(subtitle).font(.caption).foregroundStyle(.white.opacity(0.58)) }; Spacer(); Image(systemName: "chevron.right").foregroundStyle(.white.opacity(0.45)) }.padding(14).modeCard() }.buttonStyle(.plain) } }
 
@@ -223,7 +466,7 @@ struct RankedLeaderboardView: View {
     @State private var filter: RankedLeaderboardFilter = .global
 
     var body: some View {
-        FiveAlivePage(route: $route, back: .rankedHub, title: "LEADERBOARD", subtitle: "CURRENT MONTH") {
+        FiveAlivePage(route: $route, back: .rankedHub, title: "LEADERBOARD", subtitle: currentMonthDateRange) {
             Picker("Leaderboard filter", selection: $filter) { ForEach(RankedLeaderboardFilter.allCases) { Text($0.rawValue).tag($0) } }
                 .pickerStyle(.segmented)
             content
@@ -233,6 +476,10 @@ struct RankedLeaderboardView: View {
         .onChange(of: gameCenter.status) { _, status in if status == .ready { Task { await leaderboard.load(filter: filter) } } }
         .onAppear { if gameCenter.status == .idle { gameCenter.authenticate() } }
         .authenticationSheet(gameCenter)
+    }
+
+    private var currentMonthDateRange: String {
+        RankedLadder.seasonDateRange()
     }
 
     @ViewBuilder private var content: some View {
@@ -252,7 +499,7 @@ struct RankedLeaderboardView: View {
     }
 
     private func leaderboardRow(_ row: RankedLeaderboardRow, pinned: Bool) -> some View {
-        HStack(spacing: 10) { Text("#\(row.placement)").font(.subheadline.weight(.black)).monospacedDigit().foregroundStyle(row.isLocalPlayer ? Color.accent : .white.opacity(0.7)).frame(width: 36, alignment: .leading); RankBadge(tier: row.tier, size: 38); VStack(alignment: .leading, spacing: 2) { Text(row.displayName).font(.subheadline.weight(.black)).lineLimit(1); Text(row.tier.rawValue).scoreLabel().foregroundStyle(row.isLocalPlayer ? Color.accent : .white.opacity(0.48)) }; Spacer(minLength: 2); VStack(alignment: .trailing, spacing: 1) { Text("\(row.mmr)").font(.headline.weight(.black)).monospacedDigit(); Text("MMR").scoreLabel().foregroundStyle(.white.opacity(0.45)) } }.padding(12).background(row.isLocalPlayer || pinned ? Color.accent.opacity(0.14) : .white.opacity(0.045)).overlay(RoundedRectangle(cornerRadius: 12).stroke(row.isLocalPlayer || pinned ? Color.accent.opacity(0.65) : .white.opacity(0.08))).clipShape(RoundedRectangle(cornerRadius: 12))
+        HStack(spacing: 10) { Text("#\(row.placement)").font(.subheadline.weight(.black)).monospacedDigit().foregroundStyle(row.isLocalPlayer ? Color.accent : .white.opacity(0.7)).frame(width: 36, alignment: .leading); RankBadge(tier: row.tier, game: .fiveAlive, size: 38); VStack(alignment: .leading, spacing: 2) { Text(row.displayName).font(.subheadline.weight(.black)).lineLimit(1); Text(row.tier.rawValue).scoreLabel().foregroundStyle(row.isLocalPlayer ? Color.accent : .white.opacity(0.48)) }; Spacer(minLength: 2); VStack(alignment: .trailing, spacing: 1) { Text("\(row.mmr)").font(.headline.weight(.black)).monospacedDigit(); Text("MMR").scoreLabel().foregroundStyle(.white.opacity(0.45)) } }.padding(12).background(row.isLocalPlayer || pinned ? Color.accent.opacity(0.14) : .white.opacity(0.045)).overlay(RoundedRectangle(cornerRadius: 12).stroke(row.isLocalPlayer || pinned ? Color.accent.opacity(0.65) : .white.opacity(0.08))).clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 
@@ -302,14 +549,68 @@ struct BrandHeader: View {
 
 struct RankBadge: View {
     let tier: RankedTier
+    var game: CompetitiveGame = .fiveAlive
     let size: CGFloat
 
     var body: some View {
-        Image(tier.badgeAssetName)
+        Image(tier.badgeAssetName(for: game))
             .resizable()
             .scaledToFit()
             .frame(width: size, height: size)
             .accessibilityLabel(tier.rawValue + " rank badge")
+    }
+}
+
+private struct RankedHeader: View {
+    let display: RankedDisplay
+    let game: CompetitiveGame
+    let transition: RankTransition?
+    let consumeTransition: (UUID) -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var activeTransition: RankTransition?
+    @State private var revealed = false
+
+    var body: some View {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("CURRENT RANK").scoreLabel()
+                Text(display.title)
+                    .font(.system(size: 30, weight: .black, design: .rounded))
+                    .foregroundStyle(Color.accent)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .opacity(revealed ? 1 : 0.72)
+                Text("\(display.rating) MMR")
+                    .font(.subheadline.weight(.black)).monospacedDigit()
+                    .foregroundStyle(.white.opacity(0.68))
+            }
+            Spacer(minLength: 4)
+            ZStack {
+                Circle().fill(tint.opacity(activeTransition == nil ? 0 : 0.26)).blur(radius: 15)
+                    .scaleEffect(revealed ? 1.25 : 0.7)
+                RankBadge(tier: display.tier, game: game, size: 94)
+                    .scaleEffect(revealed ? 1 : (activeTransition?.kind == .demotion ? 0.82 : 0.55))
+            }
+        }
+        .padding(18)
+        .modeCard(true)
+        .onAppear(perform: beginTransition)
+    }
+
+    private var tint: Color { activeTransition?.kind == .demotion ? .red : Color.accent }
+    private func beginTransition() {
+        guard let transition, transition.game == game else {
+            revealed = true
+            return
+        }
+        consumeTransition(transition.id)
+        guard transition.kind != .unchanged else {
+            revealed = true
+            return
+        }
+        activeTransition = transition
+        if !reduceMotion, transition.kind != .demotion { UIImpactFeedbackGenerator(style: transition.kind == .tierPromotion ? .heavy : .light).impactOccurred() }
+        withAnimation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: transition.kind == .tierPromotion ? 0.55 : 0.4, dampingFraction: 0.68)) { revealed = true }
     }
 }
 
@@ -350,6 +651,6 @@ struct TeamBadge: View {
     var body: some View { let brand = TeamBrand.forTeam(team); ZStack { Circle().fill(LinearGradient(colors: [brand.primary, brand.secondary.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing)); Circle().stroke(.white.opacity(0.3), lineWidth: 1); Image(systemName: "basketball.fill").font(.system(size: size * 0.34, weight: .black)).foregroundStyle(.white.opacity(0.24)); Text(team).font(.system(size: size * 0.23, weight: .black, design: .rounded)).tracking(-1).foregroundStyle(.white) }.frame(width: size, height: size).shadow(color: brand.primary.opacity(0.45), radius: 10) }
 }
 struct ArenaBackground: View { var body: some View { LinearGradient(colors: [Color.appBackground, Color(red: 0.10, green: 0.035, blue: 0.13), Color.appBackground], startPoint: .topLeading, endPoint: .bottomTrailing).ignoresSafeArea().overlay(alignment: .topTrailing) { Circle().fill(Color.accent.opacity(0.12)).frame(width: 360).blur(radius: 24).offset(x: 120, y: -150) } } }
-struct PrimaryButtonStyle: ButtonStyle { let compact: Bool; init(compact: Bool = false) { self.compact = compact }; func makeBody(configuration: Configuration) -> some View { configuration.label.font(.headline.weight(.black)).foregroundStyle(.black).padding(compact ? 13 : 17).background(Color.accent).clipShape(RoundedRectangle(cornerRadius: 15)).scaleEffect(configuration.isPressed ? 0.98 : 1) } }
-struct SecondaryButtonStyle: ButtonStyle { let compact: Bool; init(compact: Bool = false) { self.compact = compact }; func makeBody(configuration: Configuration) -> some View { configuration.label.font(.headline.weight(.bold)).foregroundStyle(.white).padding(compact ? 12 : 16).frame(maxWidth: .infinity).background(.white.opacity(configuration.isPressed ? 0.1 : 0.04)).overlay(RoundedRectangle(cornerRadius: 15).stroke(.white.opacity(0.14))).clipShape(RoundedRectangle(cornerRadius: 15)) } }
+struct PrimaryButtonStyle: ButtonStyle { let compact: Bool; init(compact: Bool = false) { self.compact = compact }; func makeBody(configuration: Configuration) -> some View { configuration.label.font(.headline.weight(.black)).foregroundStyle(Color.accent).frame(maxWidth: .infinity, minHeight: compact ? 44 : 52).padding(.horizontal, compact ? 13 : 17).background(Color.black.opacity(configuration.isPressed ? 0.22 : 0), in: RoundedRectangle(cornerRadius: 15)).overlay(RoundedRectangle(cornerRadius: 15).stroke(Color.accent)).contentShape(RoundedRectangle(cornerRadius: 15)).scaleEffect(configuration.isPressed ? 0.98 : 1) } }
+struct SecondaryButtonStyle: ButtonStyle { let compact: Bool; init(compact: Bool = false) { self.compact = compact }; func makeBody(configuration: Configuration) -> some View { configuration.label.font(.headline.weight(.bold)).foregroundStyle(.white).frame(maxWidth: .infinity, minHeight: compact ? 44 : 52).padding(.horizontal, compact ? 12 : 16).background(.white.opacity(configuration.isPressed ? 0.1 : 0.04), in: RoundedRectangle(cornerRadius: 15)).overlay(RoundedRectangle(cornerRadius: 15).stroke(.white.opacity(0.14))).contentShape(RoundedRectangle(cornerRadius: 15)) } }
 extension View { func scoreLabel() -> some View { font(.caption2.weight(.black)).tracking(1.4).foregroundStyle(.white.opacity(0.48)) } }

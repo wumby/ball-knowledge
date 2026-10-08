@@ -2,6 +2,7 @@ import SwiftUI
 
 struct StatsView: View {
     let resetID: UUID
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private enum TeamSeasonSource {
         case franchise(NBAFranchise)
@@ -17,6 +18,26 @@ struct StatsView: View {
 
     private enum Screen {
         case landing, players, teams, seasons, leaders, leaderBoard(String?), franchise(NBAFranchise), season(String), roster(TeamSeason, TeamSeasonSource), profile(NBAPlayerProfile)
+
+        var transitionID: String {
+            switch self {
+            case .landing: "landing"
+            case .players: "players"
+            case .teams: "teams"
+            case .seasons: "seasons"
+            case .leaders: "leaders"
+            case .leaderBoard(let season): "leaderBoard-\(season ?? "all")"
+            case .franchise(let franchise): "franchise-\(franchise.id)"
+            case .season(let season): "season-\(season)"
+            case .roster(let teamSeason, _): "roster-\(teamSeason.id)"
+            case .profile(let profile): "profile-\(profile.id)"
+            }
+        }
+
+        var supportsBackNavigation: Bool {
+            if case .landing = self { return false }
+            return true
+        }
     }
 
     @State private var screen: Screen = .landing
@@ -36,9 +57,21 @@ struct StatsView: View {
             if let loadError {
                 ContentUnavailableView("NBA ARCHIVE UNAVAILABLE", systemImage: "exclamationmark.triangle", description: Text(loadError)).foregroundStyle(.white)
             } else if let database {
-                content(database)
+                ZStack {
+                    if screen.supportsBackNavigation {
+                        content(database)
+                            .id(screen.transitionID)
+                            .transition(ScreenMotion.transition(reduceMotion: reduceMotion))
+                            .simultaneousGesture(backSwipeGesture)
+                    } else {
+                        content(database)
+                            .id(screen.transitionID)
+                            .transition(ScreenMotion.transition(reduceMotion: reduceMotion))
+                    }
+                }
+                .animation(ScreenMotion.animation(reduceMotion: reduceMotion), value: screen.transitionID)
             } else {
-                ProgressView("LOADING NBA ARCHIVE…").tint(Color.accent)
+                archiveLoadingState
             }
         }
         .sheet(item: $selected) { PlayerStatDetail(player: $0) }
@@ -57,6 +90,18 @@ struct StatsView: View {
         }
     }
 
+    private var archiveLoadingState: some View {
+        VStack(spacing: 12) {
+            ProgressView().controlSize(.large).tint(Color.accent)
+            Text("LOADING NBA ARCHIVE…")
+                .font(.caption.weight(.black))
+                .tracking(1.3)
+                .foregroundStyle(.white.opacity(0.82))
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Loading NBA archive")
+    }
+
     @ViewBuilder private func content(_ database: NBAStatsDatabase) -> some View {
         switch screen {
         case .landing: landing
@@ -70,7 +115,6 @@ struct StatsView: View {
                 database.teamSeasonsByFranchise[franchise.id] ?? [],
                 title: franchise.name,
                 subtitle: "FRANCHISE HISTORY",
-                back: { screen = .teams },
                 openRoster: { screen = .roster($0, .franchise(franchise)) }
             )
         case .season(let season):
@@ -78,11 +122,10 @@ struct StatsView: View {
                 database.teamSeasonsBySeason[season] ?? [],
                 title: season,
                 subtitle: "TEAM SEASONS",
-                back: { screen = .seasons },
                 openRoster: { screen = .roster($0, .season(season)) }
             )
-        case .roster(let teamSeason, let source):
-            roster(teamSeason, back: { screen = source.previousScreen })
+        case .roster(let teamSeason, _):
+            roster(teamSeason)
         case .profile(let profile): profileView(profile, database: database)
         }
     }
@@ -117,7 +160,7 @@ struct StatsView: View {
         let results = database.searchPlayers(debouncedQuery)
         return VStack(spacing: 0) {
             VStack(spacing: 0) {
-                header(title: "PLAYERS", subtitle: "SEARCH EVERY PLAYER", back: leavePlayers)
+                header(title: "PLAYERS", subtitle: "SEARCH EVERY PLAYER", back: navigateBack)
                 playerSearch
             }
 
@@ -147,7 +190,7 @@ struct StatsView: View {
 
     private func franchises(_ database: NBAStatsDatabase) -> some View {
         VStack(spacing: 0) {
-            header(title: "TEAMS", subtitle: "BROWSE FRANCHISE HISTORY", back: { screen = .landing })
+            header(title: "TEAMS", subtitle: "BROWSE FRANCHISE HISTORY", back: navigateBack)
             ScrollView { LazyVStack(spacing: 9) { ForEach(database.franchises) { franchise in
                 Button { screen = .franchise(franchise) } label: {
                     HStack(spacing: 13) { if let latest = database.teamSeasonsByFranchise[franchise.id]?.first { TeamLogo(team: latest.team, season: latest.season, size: 48) } else { TeamBadge(team: franchise.id, size: 48) }; VStack(alignment: .leading, spacing: 3) { Text(franchise.name).font(.headline.weight(.black)); Text("\(franchise.teamCodes.joined(separator: ", ")) · \(database.teamSeasonsByFranchise[franchise.id]?.count ?? 0) TEAM-YEARS").scoreLabel() }; Spacer(); Image(systemName: "chevron.right").foregroundStyle(.white.opacity(0.38)) }.cardStyle()
@@ -158,7 +201,7 @@ struct StatsView: View {
 
     private func seasons(_ database: NBAStatsDatabase) -> some View {
         VStack(spacing: 0) {
-            header(title: "SEASONS", subtitle: "BROWSE EVERY TEAM-YEAR", back: { screen = .landing })
+            header(title: "SEASONS", subtitle: "BROWSE EVERY TEAM-YEAR", back: navigateBack)
             ScrollView { LazyVStack(spacing: 9) { ForEach(database.seasons, id: \.self) { season in
                 Button { screen = .season(season) } label: { HStack { VStack(alignment: .leading, spacing: 3) { Text(season).font(.headline.weight(.black)); Text("\(database.teamSeasonsBySeason[season]?.count ?? 0) TEAMS AVAILABLE").scoreLabel() }; Spacer(); Image(systemName: "chevron.right").foregroundStyle(.white.opacity(0.38)) }.cardStyle() }.buttonStyle(.plain)
             } }.padding(20) }.scrollIndicators(.hidden)
@@ -167,7 +210,7 @@ struct StatsView: View {
 
     private func leaderSeasons(_ database: NBAStatsDatabase) -> some View {
         VStack(spacing: 0) {
-            header(title: "LEADERS", subtitle: "TOP 10 BY STAT", back: { screen = .landing })
+            header(title: "LEADERS", subtitle: "TOP 10 BY STAT", back: navigateBack)
             ScrollView {
                 LazyVStack(spacing: 9) {
                     Button { openLeaderBoard(season: nil) } label: {
@@ -190,7 +233,7 @@ struct StatsView: View {
     private func leaderBoard(_ database: NBAStatsDatabase, season: String?) -> some View {
         let leaders = database.leaders(for: selectedLeaderStat, season: season)
         return VStack(spacing: 0) {
-            header(title: season ?? "ALL TIME", subtitle: "\(selectedLeaderStat.rawValue.uppercased()) LEADERS", back: { screen = .leaders })
+            header(title: season ?? "ALL TIME", subtitle: "\(selectedLeaderStat.rawValue.uppercased()) LEADERS", back: navigateBack)
             ScrollView(.horizontal) {
                 HStack(spacing: 8) {
                     ForEach(LeaderStat.allCases) { stat in
@@ -213,22 +256,22 @@ struct StatsView: View {
         }
     }
 
-    private func teamSeasons(_ rows: [TeamSeason], title: String, subtitle: String, back: @escaping () -> Void, openRoster: @escaping (TeamSeason) -> Void) -> some View {
+    private func teamSeasons(_ rows: [TeamSeason], title: String, subtitle: String, openRoster: @escaping (TeamSeason) -> Void) -> some View {
         VStack(spacing: 0) {
-            header(title: title, subtitle: subtitle, back: back)
+            header(title: title, subtitle: subtitle, back: navigateBack)
             ScrollView { LazyVStack(spacing: 9) { ForEach(rows) { row in
                 Button { openRoster(row) } label: { teamSeasonCard(row) }.buttonStyle(.plain)
             } }.padding(20) }.scrollIndicators(.hidden)
         }
     }
 
-    private func roster(_ teamSeason: TeamSeason, back: @escaping () -> Void) -> some View {
+    private func roster(_ teamSeason: TeamSeason) -> some View {
         let players = teamSeason.players.sorted { $0.points > $1.points }
         return VStack(spacing: 0) {
             header(
                 title: "\(TeamBrand.name(for: teamSeason.team)) · \(teamSeason.season)",
                 subtitle: "FULL ROSTER · \(players.count) PLAYERS",
-                back: back
+                back: navigateBack
             )
             ScrollView { LazyVStack(spacing: 9) { ForEach(players) { player in
                 Button { selected = player } label: { PlayerStatRow(player: player) }.buttonStyle(.plain)
@@ -239,7 +282,7 @@ struct StatsView: View {
     private func profileView(_ profile: NBAPlayerProfile, database: NBAStatsDatabase) -> some View {
         let rows = database.rows(for: profile, season: selectedSeasonFilter, franchise: selectedFranchiseFilter, position: selectedPositionFilter)
         return VStack(spacing: 0) {
-            header(title: profile.playerName, subtitle: "\(profile.seasons.count) AVAILABLE PLAYER-SEASONS", back: { clearFilters(); screen = .players })
+            header(title: profile.playerName, subtitle: "\(profile.seasons.count) AVAILABLE PLAYER-SEASONS", back: navigateBack)
             filters(database)
             HStack { Text("PLAYER-SEASONS"); Spacer(); Text("\(rows.count)") }.scoreLabel().padding(.horizontal, 20).padding(.top, 4)
             ScrollView { LazyVStack(spacing: 9) { ForEach(rows) { player in Button { selected = player } label: { PlayerStatRow(player: player) }.buttonStyle(.plain) } }.padding(20) }.scrollIndicators(.hidden)
@@ -304,6 +347,48 @@ struct StatsView: View {
     private func openLeaderBoard(season: String?) { selectedLeaderStat = .points; screen = .leaderBoard(season) }
     private func cancelPlayerSearch() { query = ""; isPlayerSearchFocused = false }
     private func leavePlayers() { cancelPlayerSearch(); screen = .landing }
+
+    private var backSwipeGesture: some Gesture {
+        DragGesture(minimumDistance: 12)
+            .onEnded { value in
+                guard EdgeBackSwipe.qualifies(startLocation: value.startLocation, translation: value.translation) else { return }
+                navigateBack()
+            }
+    }
+
+    private func navigateBack() {
+        switch screen {
+        case .landing:
+            break
+        case .players:
+            leavePlayers()
+        case .teams, .seasons, .leaders:
+            screen = .landing
+        case .leaderBoard:
+            screen = .leaders
+        case .franchise:
+            screen = .teams
+        case .season:
+            screen = .seasons
+        case .roster(_, let source):
+            screen = source.previousScreen
+        case .profile:
+            clearFilters()
+            screen = .players
+        }
+    }
+}
+
+enum EdgeBackSwipe {
+    static let edgeWidth: CGFloat = 24
+    static let minimumDistance: CGFloat = 72
+    static let horizontalDominanceRatio: CGFloat = 1.5
+
+    static func qualifies(startLocation: CGPoint, translation: CGSize) -> Bool {
+        guard startLocation.x <= edgeWidth,
+              translation.width >= minimumDistance else { return false }
+        return translation.width >= abs(translation.height) * horizontalDominanceRatio
+    }
 }
 
 private extension View { func cardStyle() -> some View { padding(11).background(.white.opacity(0.065)).overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.08))).clipShape(RoundedRectangle(cornerRadius: 14)) } }

@@ -23,6 +23,7 @@
 		A10000000000000000000015 /* BallKnowledge/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000015 /* BallKnowledge/Assets.xcassets */; };
 		A10000000000000000000016 /* OfflineVisuals.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000016 /* OfflineVisuals.swift */; };
 		A10000000000000000000017 /* OfflineVisualManifest.json in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000017 /* OfflineVisualManifest.json */; };
+		A10000000000000000000024 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000024 /* PrivacyInfo.xcprivacy */; };
 		A10000000000000000000018 /* RankedLadderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000019 /* RankedLadderService.swift */; };
 		A10000000000000000000019 /* GridDuelEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000020 /* GridDuelEngine.swift */; };
 		A10000000000000000000020 /* GridDuelViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000021 /* GridDuelViewModel.swift */; };
@@ -64,6 +65,7 @@
 		B10000000000000000000021 /* GridDuelViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridDuelViewModel.swift; sourceTree = "<group>"; };
 		B10000000000000000000022 /* GridDuelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridDuelView.swift; sourceTree = "<group>"; };
 		B10000000000000000000023 /* GridDuelLadderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridDuelLadderService.swift; sourceTree = "<group>"; };
+		B10000000000000000000024 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = BallKnowledge/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		C10000000000000000000001 /* BallKnowledgeTests/AuctionEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BallKnowledgeTests/AuctionEngineTests.swift; sourceTree = "<group>"; };
 		D10000000000000000000001 /* Hoops IQ.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = "Hoops IQ.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D10000000000000000000002 /* BallKnowledgeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = BallKnowledgeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -99,6 +101,7 @@
 			isa = PBXGroup;
 			children = (
 				B10000000000000000000001 /* BallKnowledge/BallKnowledgeApp.swift */,
+				B10000000000000000000024 /* PrivacyInfo.xcprivacy */,
 				B10000000000000000000018 /* BallKnowledge.entitlements */,
 				B10000000000000000000015 /* BallKnowledge/Assets.xcassets */,
 				F10000000000000000000002 /* Models */,
@@ -278,6 +281,7 @@
 				A10000000000000000000013 /* nba_historical_rosters.json in Resources */,
 				A10000000000000000000015 /* BallKnowledge/Assets.xcassets in Resources */,
 				A10000000000000000000017 /* OfflineVisualManifest.json in Resources */,
+				A10000000000000000000024 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
